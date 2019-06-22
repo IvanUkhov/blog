@@ -3,8 +3,11 @@ author: Ivan Ukhov
 email: ivan.ukhov@gmail.com
 description: She sells seashells by the seashore.
 url: https://blog.ivanukhov.com
+
 twitter_username: IvanUkhov
 github_username: IvanUkhov
+
+google_analytics: UA-47932672-9
 
 markdown: kramdown
 theme: minima
