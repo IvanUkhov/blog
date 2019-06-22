@@ -9,6 +9,9 @@ github_username: IvanUkhov
 
 google_analytics: UA-47932672-9
 
+disqus:
+  shortname: good-news-everyone
+
 markdown: kramdown
 theme: minima
 plugins:
