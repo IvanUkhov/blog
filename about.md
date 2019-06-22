@@ -4,4 +4,4 @@ title: About
 permalink: /about/
 ---
 
-She sells seashells on the seashore.
+She sells seashells by the seashore.
