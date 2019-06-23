@@ -29,13 +29,21 @@ applied (in order to actually make predictions). Predictions are to be delivered
 to the data warehouse for further consumption by other parties. In our case, the
 destination is a data set in BigQuery.
 
-The data warehouse is certainly not the end of the journey. However, we will
-stop there and save the discussion about visualization, dashboards, and acting
-upon predictions for another time.
+The data warehouse is certainly not the end of the journey. However, I will stop
+there and save the discussion about visualization, dashboards, and acting upon
+predictions for another time.
 
 # Preparing the model
 
 For concreteness, suppose the model has been written in Python.
+
+```
+.
+├── prediction
+│   ├── __init__.py
+│   └── main.py
+└── Makefile
+```
 
 # Wrapping the model into a service
 
@@ -51,11 +59,14 @@ predictions to the data warehouse.
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
-and weaknesses, which one has to be aware of. This leads me to a request for
-feedback. If you have any suggestions regarding improving the workflow, please
-leave a comment below. I am particularly curious to see if there is an elegant,
-robust solution to communicating with Docker containers running in virtual
-machines in Compute Engine.
+and weaknesses, which one has to be aware of.
+
+This leads me to a request for feedback. If you have any suggestions regarding
+improving the workflow, please leave a comment below. I am particularly curious
+to see if there is an elegant, robust solution to communicating with Docker
+containers running in virtual machines in Compute Engine.
+
+Thank you!
 
 [Airflow]: https://airflow.apache.org/
 [Compute Engine]: https://cloud.google.com/compute/
