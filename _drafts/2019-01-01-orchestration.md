@@ -35,15 +35,23 @@ predictions for another time.
 
 # Preparing the model
 
-For concreteness, suppose the model has been written in Python.
+For concreteness, suppose the model has been written in Python. In that case,
+the repository of the project might look as follows:
 
 ```
 .
 ├── prediction
 │   ├── __init__.py
-│   └── main.py
-└── Makefile
+│   ├── main.py
+│   ├── model.py
+│   └── task.py
+├── README.md
+└── requirements.txt
 ```
+
+Here `prediction` is a Python package, and it is likely to contain many more
+files than the ones listed. The `main` module is the entry point for
+command-line invocation.
 
 # Wrapping the model into a service
 
