@@ -33,6 +33,11 @@ The data warehouse is certainly not the end of the journey. However, I will stop
 there and save the discussion about visualization, dashboards, and acting upon
 predictions for another time.
 
+Lastly, the following two repositories contain the code discussed below:
+
+* [example-prediction] and
+* [example-prediction-service].
+
 # Preparing the model
 
 For concreteness, suppose the model has been written in Python. In that case,
@@ -49,9 +54,66 @@ the repository of the project might look as follows:
 └── requirements.txt
 ```
 
-Here `prediction` is a Python package, and it is likely to contain many more
-files than the ones listed. The `main` module is the entry point for
-command-line invocation.
+Here [`prediction`] is a Python package, and it is likely to contain many more
+files than the ones listed. The [`main`] file is the entry point for
+command-line invocation, the [`task`] module defines the actions that the
+package is capable of performing, and the [`model`] module defines the model.
+
+As alluded to above, the primary job of the `main` file is to parse command-line
+arguments, read a configuration file, potentially set up logging and alike and
+delegate the rest the `task` module. At a later stage, an invocation of an
+action might look as follows:
+
+```bash
+python -m prediction.main --action training --config configs/training.json
+```
+
+Here we are passing two arguments: `--action` and `--config`. The former is to
+specify the action of interest, and the latter is to supply additional options.
+Collecting everything in a single configuration file scales much better than
+passing each option as a separate argument.
+
+The `task` module is conceptually as follows (see the repository for the exact
+implementation):
+
+```python
+class Task:
+
+    def training(self):
+        # Read the training data
+        # Train the model
+        # Save the trained model
+
+    def application(self):
+        # Read the application data
+        # Load the trained model
+        # Make predictions
+        # Save the predictions
+```
+
+In this example, there are two tasks: training and application. The training
+task is responsible for fetching the training data, training the model, and
+saving the result in a predefined location for future usage by the application
+task. The application task is responsible for fetching the application data
+(that is, the data the model is supposed to be applied to), loading the trained
+model produced by the training task, making predictions, and saving them in a
+predefined location to be picked up for the subsequent delivery to the data
+warehouse.
+
+Likewise, the `model` module can be simplified as follows:
+
+```python
+class Model:
+
+    def fit(self, data):
+        # Estimate the model’s parameters
+
+    def predict(self, data):
+        # Make predictions using the estimated parameters
+```
+
+Incidentally, this interface resembles the one used by the `scikit-learn`
+package.
 
 # Wrapping the model into a service
 
@@ -79,3 +141,11 @@ Thank you!
 [Airflow]: https://airflow.apache.org/
 [Compute Engine]: https://cloud.google.com/compute/
 [Docker]: https://www.docker.com/
+
+[example-prediction]: https://github.com/IvanUkhov/example-prediction
+[example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
+
+[`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
+[`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
+[`prediction`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
+[`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
