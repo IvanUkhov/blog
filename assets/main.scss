@@ -5,12 +5,16 @@
 
 @import url('https://use.typekit.net/lrc5xlz.css');
 
+.site-header {
+  border-top: none;
+}
+
 .highlight code, p code.highlighter-rouge {
-  font-family: fira-mono, monospace;
+  font-family: input-mono-narrow, monospace;
   font-weight: 400;
   font-style: normal;
 }
 
-.site-header {
-  border-top: none;
+.highlighter-rouge .highlight, code {
+  background: #fafafa;
 }
