@@ -49,6 +49,9 @@ The suggested structure of the repository hosting the model is as follows:
 
 ```
 .
+├── configs/
+│   ├── application.json
+│   └── training.json
 ├── prediction/
 │   ├── __init__.py
 │   ├── main.py
@@ -148,6 +151,9 @@ structure of the repository is as follows:
 │   ├── model.py
 │   └── task.py
 ├── service/
+│   ├── configs/
+│   │   ├── application.json
+│   │   └── training.json
 │   ├── source/                # the first repository as a submodule
 │   └── requirements.txt
 ├── scheduler/
