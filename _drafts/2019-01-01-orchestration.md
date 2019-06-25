@@ -150,7 +150,7 @@ structure of the repository is as follows:
 ├── service/
 │   ├── source/                # the first repository as a submodule
 │   └── requirements.txt
-├── sheduler/
+├── scheduler/
 │   ├── configs/
 │   │   ├── application.json
 │   │   └── training.json
