@@ -15,18 +15,22 @@ schedule the training and application phases of a predictive model using Apache
 [Airflow], Google [Compute Engine], and [Docker].
 
 Let us first set expectations for what is assumed to be given and what will be
-attained at the end of the article. We assume that there has already been
-developed a predictive model for supporting business decisions of some kind,
-such as a model for identifying potential churners or estimating the lifetime
-value of customers. The explanatory variables, modeling technique, and
-hyperparameters have already been decided upon. We also assume that the company
-in question has chosen Google Cloud Platform as their primary platform, which
-makes a certain suite of tools available to us. Our goal is then to schedule the
-model to run in the cloud so that it is being periodically retrained (in order
-to account for potential fluctuations in the data distribution) and periodically
-applied (in order to actually make predictions). Predictions are to be delivered
-to the data warehouse for further consumption by other parties. In our case, the
-destination is a data set in BigQuery.
+attained by the end of the article. It is assumed that a predictive model for
+supporting business decisions—such as a model for identifying potential churners
+or a model for estimating the lifetime value of customers—has already been
+developed. This means that the business question to be answered has already been
+defined and translated into a target variable, the data needed for answering the
+question have already been collected and translated into a set of explanatory
+variables, and a modeling technique has already been adequately selected and
+applied in order to answering the question by predicting the target variable
+given the explanatory variables. We also assume that the company at hand has
+chosen Google Cloud Platform as their primary platform, which makes a certain
+suite of tools readily available. Our goal is then to schedule the model to run
+in the cloud so that it is being periodically retrained (in order to account for
+potential fluctuations in the data distribution) and periodically applied (in
+order to actually make predictions). Predictions are to be delivered to the data
+warehouse for further consumption by other parties. In our case, the destination
+is a data set in BigQuery.
 
 The data warehouse is certainly not the end of the journey. However, I will stop
 there and save the discussion about visualization, dashboards, and acting upon
