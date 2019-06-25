@@ -26,12 +26,14 @@ applied in order to answering the question by predicting the target variable
 given the explanatory variables. For the sake of concreteness, the model is
 assumed to be written in Python. We also assume that the company at hand has
 chosen Google Cloud Platform as their primary platform, which makes a certain
-suite of tools readily available. Our goal is then to schedule the model to run
-in the cloud so that it is being periodically retrained (in order to account for
-potential fluctuations in the data distribution) and periodically applied (in
-order to actually make predictions). Predictions are to be delivered to the data
-warehouse for further consumption by other parties. In our case, the destination
-is a data set in BigQuery.
+suite of tools readily available.
+
+Our goal is then to schedule the model to run in the cloud so that it is being
+periodically retrained (in order to account for potential fluctuations in the
+data distribution) and periodically applied (in order to actually make
+predictions). Predictions are to be delivered to the data warehouse for further
+consumption by other parties. In our case, the destination is a data set in
+BigQuery.
 
 The data warehouse is certainly not the end of the journey. However, I will stop
 there and save the discussion about visualization, dashboards, and acting upon
@@ -43,7 +45,6 @@ Lastly, the following two repositories contain the code discussed below:
 * [example-prediction-service].
 
 # Preparing the model
-
 
 The suggested structure of the repository hosting the model is as follows:
 
