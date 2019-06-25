@@ -23,7 +23,8 @@ defined and translated into a target variable, the data needed for answering the
 question have already been collected and translated into a set of explanatory
 variables, and a modeling technique has already been adequately selected and
 applied in order to answering the question by predicting the target variable
-given the explanatory variables. We also assume that the company at hand has
+given the explanatory variables. For the sake of concreteness, the model is
+assumed to be written in Python. We also assume that the company at hand has
 chosen Google Cloud Platform as their primary platform, which makes a certain
 suite of tools readily available. Our goal is then to schedule the model to run
 in the cloud so that it is being periodically retrained (in order to account for
@@ -43,12 +44,12 @@ Lastly, the following two repositories contain the code discussed below:
 
 # Preparing the model
 
-For concreteness, suppose the model has been written in Python. In that case,
-the repository of the project might look as follows:
+
+The suggested structure of the repository hosting the model is as follows:
 
 ```
 .
-├── prediction
+├── prediction/
 │   ├── __init__.py
 │   ├── main.py
 │   ├── model.py
@@ -72,9 +73,12 @@ python -m prediction.main --action training --config configs/training.json
 ```
 
 Here we are passing two arguments: `--action` and `--config`. The former is to
-specify the action of interest, and the latter is to supply additional options.
-Collecting everything in a single configuration file scales much better than
-passing each option as a separate argument.
+specify the action of interest, and the latter is to supply additional
+configuration parameters, such as the location of the training data and the
+values of the model’s hyperparameters. Keeping all parameters in a separate
+file, as opposed to hard-coding them, makes the code reusable, and passing them
+all at once as a single file scales much better than passing each parameter as a
+separate argument.
 
 The `task` module is conceptually as follows (see the repository for the exact
 implementation):
@@ -118,10 +122,44 @@ class Model:
 Incidentally, this interface resembles the one used by the `scikit-learn`
 package.
 
+It can be seen that the structure presented above makes very few assumptions
+about the model, which makes it generally applicable. It can also be easily
+extended to accommodate other actions. For instance, one could have a separate
+action for testing the model on unseen data.
+
+Having structured the model as shown above, it can now be productionized, which
+we discuss next.
+
 # Wrapping the model into a service
 
 Now it is time to turn the model into a service. In the scope of this article, a
-service is a piece of code that can be executed in the cloud upon request.
+service is a self-sufficient piece of code that can be executed in the cloud
+upon request. To this end, another repository is created in order to keep
+concerns separated. Specifically, the modeling code should not be mixed with the
+code specific to a particular environment where the model happens to be
+deployed. By convention, the name of the new repository is the same as the one
+for the model except for the addition of the `-service` suffix. The suggested
+structure of the repository is as follows:
+
+```
+.
+├── container/
+│   ├── main.py
+│   ├── model.py
+│   └── task.py
+├── service/
+│   ├── source/                # the first repository as a submodule
+│   └── requirements.txt
+├── sheduler/
+│   ├── configs/
+│   │   ├── application.json
+│   │   └── training.json
+│   ├── application.py         # a symlink to graph.py
+│   ├── graph.py
+│   └── training.py            # a symlink to graph.py
+├── Makefile
+└── README.md
+```
 
 # Scheduling the service
 
