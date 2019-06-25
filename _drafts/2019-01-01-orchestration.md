@@ -1,8 +1,7 @@
 ---
 layout: post
 title: >-
-  A poor man’s orchestration of predictive models via Airflow, Compute Engine,
-  and Docker
+  A poor man’s orchestration of predictive models, or do it yourself
 date: 2019-01-01
 ---
 
