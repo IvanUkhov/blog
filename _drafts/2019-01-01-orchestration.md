@@ -148,9 +148,9 @@ structure of the repository is as follows:
 ```
 .
 ├── container/
-│   ├── main.py
-│   ├── model.py
-│   └── task.py
+│   ├── Dockerfile
+│   ├── run.sh
+│   └── wait.sh
 ├── service/
 │   ├── configs/
 │   │   ├── application.json
@@ -167,6 +167,11 @@ structure of the repository is as follows:
 ├── Makefile
 └── README.md
 ```
+
+The [`container`] folder contains files for building a Docker image for the
+service. The [`service`] folder is the service itself, meaning that these files
+will be present in the container and eventually executed. Lastly, the
+[`scheduler`] folder contain files for scheduling the service using Airflow.
 
 # Scheduling the service
 
@@ -193,7 +198,10 @@ Thank you!
 [example-prediction]: https://github.com/IvanUkhov/example-prediction
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
 
+[`container`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
 [`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
 [`prediction`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
+[`scheduler`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
+[`service`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
 [`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
