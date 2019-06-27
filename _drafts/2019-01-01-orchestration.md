@@ -62,7 +62,7 @@ The suggested structure of the repository hosting the model is as follows:
 └── requirements.txt
 ```
 
-Here [`prediction`] is a Python package, and it is likely to contain many more
+Here [`prediction/`] is a Python package, and it is likely to contain many more
 files than the ones listed. The [`main`] file is the entry point for
 command-line invocation, the [`task`] module defines the actions that the
 package is capable of performing, and the [`model`] module defines the model.
@@ -168,10 +168,27 @@ structure of the repository is as follows:
 └── README.md
 ```
 
-The [`container`] folder contains files for building a Docker image for the
-service. The [`service`] folder is the service itself, meaning that these files
+The [`container/`] folder contains files for building a Docker image for the
+service. The [`service/`] folder is the service itself, meaning that these files
 will be present in the container and eventually executed. Lastly, the
-[`scheduler`] folder contain files for scheduling the service using Airflow.
+[`scheduler/`] folder contain files for scheduling the service using Airflow.
+The last one will be covered in the next section; here we focus on the first
+two.
+
+Let us start with `service/`. The first repository (the one discussed in the
+previous section) is added to this second repository as a Git submodule living
+in `service/source/`. This means that the model will essentially be embedded
+into the service but will conveniently remain an independent entity. At all
+times, the service contains a reference to a particular state (a particular
+commit, potentially on a dedicated release branch) of the model, guaranteeing
+that the desired version of the model is in production. However, when invoking
+the model from the service, we might want to use a different set of
+configuration files than the ones present in the first repository. To this end,
+a service-specific version of the configuration files is created in
+`service/configs/`.
+
+Now it is time to containerize the service code by building a Docker image. The
+relevant files are gathered in `container/`.
 
 # Scheduling the service
 
@@ -198,10 +215,10 @@ Thank you!
 [example-prediction]: https://github.com/IvanUkhov/example-prediction
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
 
-[`container`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
+[`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
 [`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
-[`prediction`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
-[`scheduler`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
-[`service`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
+[`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
+[`scheduler/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
+[`service/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
 [`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
