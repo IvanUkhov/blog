@@ -185,10 +185,36 @@ that the desired version of the model is in production. However, when invoking
 the model from the service, we might want to use a different set of
 configuration files than the ones present in the first repository. To this end,
 a service-specific version of the configuration files is created in
-`service/configs/`.
+`service/configs/`. We might also want to install additional Python
+dependencies; hence, there is a separate file with requirements.
 
 Now it is time to containerize the service code by building a Docker image. The
-relevant files are gathered in `container/`.
+relevant files are gathered in `container/`. The image build defined in
+[`container/Dockerfile`] is as follows:
+
+```docker
+# Use a minimal Python image
+FROM python:3.7-slim
+
+# Install Google Cloud SDK as described in
+# https://cloud.google.com/sdk/docs/quickstart-debian-ubuntu
+
+# Copy the service directory to the image
+COPY service /service
+# Copy the run script to the image
+COPY container/run.sh /run.sh
+
+# Install Python dependencies specific to the predictive model
+RUN pip install --upgrade --requirement /service/source/requirements.txt
+# Install Python dependencies specific to the service
+RUN pip install --upgrade --requirement /service/requirements.txt
+
+# Set the working directory to be the service directory
+WORKDIR /service
+
+# Set the entry point to be the run script
+ENTRYPOINT /run.sh
+```
 
 # Scheduling the service
 
@@ -216,6 +242,7 @@ Thank you!
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
 
 [`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
+[`container/Dockerfile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/Dockerfile
 [`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
 [`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
