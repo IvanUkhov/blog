@@ -276,14 +276,30 @@ info "Running action '${ACTION}'..."
 info 'Well done.'
 ```
 
-The scripts expect a number of environment variables to be set upon each
+The script expects a number of environment variables to be set upon each
 container launch, which will be discussed shortly. The primary ones are `NAME`,
 `VERSION`, and `ACTION`, indicating the name of the service, version of the
 service, and action to be executed by the service, respectively. Given `ACTION`,
 the script chooses which of the processing function to call at the bottom of the
-script. Since containers are stateless, all artifacts are stored in an external
-storage, which is a bucket in Cloud Storage in our case, and this job is
-delegated to the `load` and `save` functions.
+script.
+
+The `process_training` and `process_application` are responsible for training
+and application, respectively. It can be seen that they leverage the
+command-line interface by invoking the `main` file, which was discussed in the
+previous section. Since containers are stateless, all artifacts are stored in an
+external storage, which is a bucket in Cloud Storage in our case, and this job
+is delegated to the `load` and `save` functions used in both `process_training`
+and `process_application`.
+
+The container communicates with the outside world using [Stackdriver] via the
+`info` function, which sends messages to a log dedicated to the current service
+run. The key message is the one indicating a successful completion, “Well done,”
+which is sent at the very end. This is the message that we will look for in
+order to deterinate the overall outcome of a service run.
+
+Lastly, note also that, upon successful or unsuccessful completion, the
+container deletes its hosting virtual machine, which is achieved by setting a
+handler (`delete`) for the `EXIT` event.
 
 # Scheduling the service
 
@@ -306,6 +322,7 @@ Thank you!
 [Airflow]: https://airflow.apache.org/
 [Compute Engine]: https://cloud.google.com/compute/
 [Docker]: https://www.docker.com/
+[Stackdriver]: https://cloud.google.com/stackdriver/
 
 [example-prediction]: https://github.com/IvanUkhov/example-prediction
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
