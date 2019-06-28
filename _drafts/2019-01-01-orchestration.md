@@ -216,6 +216,75 @@ WORKDIR /service
 ENTRYPOINT /run.sh
 ```
 
+As mentioned earlier, `service/` gets copied as is (including `service/source`
+with the model), and it will be the working directory inside the container. We
+also copy [`container/run.sh`], which becomes the entry point of the container;
+this script is executed whenever a container is launched. Let us take a look at
+the content of the script (as before, some parts omitted for clarify):
+
+```sh
+#!/bin/bash
+
+function process_training() {
+  # Define the output location in Cloud Storage
+  local output="gs://${NAME}/${VERSION}/training/${stamp}"
+  # Invoke training
+  python -m prediction.main \
+    --action training \
+    --config configs/training.json
+  # Copy the result to the output location in Cloud Storage
+  save "${output}"
+}
+
+function process_application() {
+  # Find the latest trained model in Cloud Storage
+  # Define the output location in Cloud Storage
+  local output="gs://${NAME}/${VERSION}/application/${stamp}"
+  # Copy the model from the input location in Cloud Storage
+  load "${input}"
+  # Invoke application
+  python -m prediction.main \
+    --action application \
+    --config configs/application.json
+  # Copy the result to the output location in Cloud Storage
+  save "${output}"
+}
+
+function delete() {
+  # Delete a Compute Engine instance called "${NAME}-${VERSION}-${ACTION}"
+}
+
+function info() {
+  # Write into a Stackdriver log called "${NAME}-${VERSION}-${ACTION}"
+}
+
+function load() {
+  # Sync the content of a location in a bucket with the output directory
+}
+
+function save() {
+  # Sync the content of the output directory with a location in a bucket
+}
+
+# Invoke the delete function when the script exits regardless of the reason
+trap delete EXIT
+# Report a successful start to Stackdriver
+info "Running action '${ACTION}'..."
+# Invoke the function specified by the ACTION environment variable
+"process_${ACTION}"
+# Report a successful completion to Stackdriver
+info 'Well done.'
+```
+
+The scripts expect a number of environment variables to be set upon each
+container launch, which will be discussed shortly. The primary ones are `NAME`,
+`VERSION`, and `ACTION`, indicating the name of the service, version of the
+service, and action to be executed by the service, respectively. Given `ACTION`,
+the script chooses which of the processing function to call at the bottom of the
+script. Since containers are stateless, all artifacts are stored in an external
+storage, which is a bucket in Cloud Storage in our case, and this job is
+delegated to the `load` and `save` functions.
+
 # Scheduling the service
 
 Having wrapped the model into a cloud service, let us now make both the training
@@ -241,8 +310,9 @@ Thank you!
 [example-prediction]: https://github.com/IvanUkhov/example-prediction
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
 
-[`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
 [`container/Dockerfile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/Dockerfile
+[`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
+[`container/run.sh`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/run.sh
 [`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
 [`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
