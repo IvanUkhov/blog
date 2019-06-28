@@ -25,19 +25,19 @@ variables, and a modeling technique has already been adequately selected and
 applied in order to answering the question by predicting the target variable
 given the explanatory variables. For the sake of concreteness, the model is
 assumed to be written in Python. We also assume that the company at hand has
-chosen Google Cloud Platform as their primary platform, which makes a certain
+chosen Google Cloud Platform as its primary platform, which makes a certain
 suite of tools readily available.
 
-Our goal is then to schedule the model to run in the cloud so that it is being
+Our goal is then to schedule the model to run in the cloud so that it is
 periodically retrained (in order to account for potential fluctuations in the
 data distribution) and periodically applied (in order to actually make
 predictions). Predictions are to be delivered to the data warehouse for further
 consumption by other parties. In our case, the destination is a data set in
 BigQuery.
 
-The data warehouse is certainly not the end of the journey. However, I will stop
-there and save the discussion about visualization, dashboards, and acting upon
-predictions for another time.
+The data warehouse is certainly not the end of the journey. However, we will
+stop there and save the discussion about visualization, dashboards, and acting
+upon predictions for another time.
 
 Lastly, the following two repositories contain the code discussed below:
 
@@ -68,7 +68,7 @@ command-line invocation, the [`task`] module defines the actions that the
 package is capable of performing, and the [`model`] module defines the model.
 
 As alluded to above, the primary job of the `main` file is to parse command-line
-arguments, read a configuration file, potentially set up logging and alike and
+arguments, read a configuration file, potentially set up logging and alike, and
 delegate the rest the `task` module. At a later stage, an invocation of an
 action might look as follows:
 
@@ -77,12 +77,12 @@ python -m prediction.main --action training --config configs/training.json
 ```
 
 Here we are passing two arguments: `--action` and `--config`. The former is to
-specify the action of interest, and the latter is to supply additional
-configuration parameters, such as the location of the training data and the
-values of the model’s hyperparameters. Keeping all parameters in a separate
-file, as opposed to hard-coding them, makes the code reusable, and passing them
-all at once as a single file scales much better than passing each parameter as a
-separate argument.
+specify the desired action, and the latter is to supply additional configuration
+parameters, such as the location of the training data and the values of the
+model’s hyperparameters. Keeping all parameters in a separate file, as opposed
+to hard-coding them, makes the code reusable, and passing them all at once as a
+single file scales much better than passing each parameter as a separate
+argument.
 
 The `task` module is conceptually as follows (see the repository for the exact
 implementation):
@@ -189,8 +189,8 @@ a service-specific version of the configuration files is created in
 dependencies; hence, there is a separate file with requirements.
 
 Now it is time to containerize the service code by building a Docker image. The
-relevant files are gathered in `container/`. The image build defined in
-[`container/Dockerfile`] is as follows:
+relevant files are gathered in `container/`. The image is defined in
+[`container/Dockerfile`] and is as follows:
 
 ```docker
 # Use a minimal Python image
