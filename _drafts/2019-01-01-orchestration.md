@@ -33,7 +33,7 @@ periodically retrained (in order to account for potential fluctuations in the
 data distribution) and periodically applied (in order to actually make
 predictions). Predictions are to be delivered to the data warehouse for further
 consumption by other parties. In our case, the destination is a data set in
-BigQuery.
+[BigQuery].
 
 The data warehouse is certainly not the end of the journey. However, we will
 stop there and save the discussion about visualization, dashboards, and acting
@@ -301,18 +301,18 @@ Note also that, upon successful or unsuccessful completion, the container
 deletes its hosting virtual machine, which is achieved by setting a handler
 (`delete`) for the `EXIT` event.
 
-Lastly, let us discuss the commands used for building images and launching
-actions. This entails a few lengthy invocations of [Cloud SDK], which,
-fortunately, can be tightly organized in a [`Makefile`]:
+Lastly, let us discuss the commands used for building the image and launching
+the actions. This entails a few lengthy invocations of [Cloud SDK], which can be
+neatly organized in a [`Makefile`]:
 
 ```make
-# The name of the product
-name ?= example-prediction
-# The version of the product
+# The name of the service
+name ?= example-prediction-service
+# The version of the service
 version ?= 2019-00-00
 
 # The name of the project on Google Cloud Platform
-project ?= example-project
+project ?= example-cloud-project
 # The zone for operations in Compute Engine
 zone ?= europe-west1-b
 # The address of Container Registry
@@ -337,8 +337,8 @@ training-start:
 		--container-env ACTION=training \
 		--container-env ZONE=${zone} \
 		--container-restart-policy never \
-		--machine-type n1-standard-1 \
 		--no-restart-on-failure \
+		--machine-type n1-standard-1 \
 		--scopes default,bigquery,compute-rw,storage-rw
 		--zone ${zone}
 
@@ -351,8 +351,48 @@ training-check:
 # Similar for application
 ```
 
-Here we define one target for building images, namely `build`, and three targets
-per action, namely `start`, `wait`, and `check`.
+Here we define one command for building images, namely `build`, and three
+commands per action, namely `start`, `wait`, and `check`. The `build` command is
+invoked as follows:
+
+```sh
+make build
+```
+
+It has to be used each time a new version of the service is to be deployed. The
+command creates a local Docker image according to the recipe in
+`container/Dockerfile` and uploads it to [Container Registry], which is Google’s
+storage for Docker images. For the last operation to succeed, your local Docker
+has to be configured apporpriately, which boils down to the following lines:
+
+```sh
+gcloud auth login # General authentication for Cloud SDK
+gcloud auth configure-docker
+```
+
+Once `build` has finished successfully, one should be able to see the newly
+created image in [Cloud Console] by navigating to Container Registry in the menu
+to the left. All future versions of the service will be neatly grouped in a
+separate folder in the registry.
+
+Given that the image is in the cloud, we can start to create virtual machines
+running containers with this particular image, which is what the `start` command
+is for:
+
+```sh
+make training-start # Similar for application
+```
+
+Internally, it relies on `gcloud compute instances create-with-container`, which
+can be seen in `Makefile` listed above. There are a few aspects to note about
+this command. Apart from selecting the right image and version
+(`--container-image`), one has to make sure to set the environment variables
+mantioned earlier, as they control what the container will be doing once
+launched. This is achieved by passing a number of `--container-env` options to
+`create-with-container`. Here one can also easily scale up and down the host
+virtual machive via the `--machine-type` option. Lastly, it is important to set
+the `--scopes` option correctly in order to empower the container to work with
+BigQuery, Compute Engine, and Cloud Storage.
 
 # Scheduling the service
 
@@ -373,9 +413,12 @@ containers running in virtual machines in Compute Engine.
 Thank you!
 
 [Airflow]: https://airflow.apache.org/
+[BigQuery]: https://cloud.google.com/bigquery/
+[Cloud Console]: https://console.cloud.google.com
 [Cloud SDK]: https://cloud.google.com/sdk/
 [Cloud Storage]: https://cloud.google.com/storage/
 [Compute Engine]: https://cloud.google.com/compute/
+[Container Registry]: https://cloud.google.com/container-registry/
 [Docker]: https://www.docker.com/
 [Stackdriver]: https://cloud.google.com/stackdriver/
 
