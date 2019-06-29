@@ -412,6 +412,53 @@ between jobs, keep record of all past and upcoming jobs, and preferably provide
 a web-based control panel. One such tool is Airflow, and it is the one used in
 this article.
 
+In Airflow, the work to be done is expressed as a directed acyclic graph. Our
+job is then to define two such graphs for our service, one for training and one
+for application, each with its own periodicity. At this point, it might seem
+that each graph will contain only one node calling the `start` command, which
+was introduced earlier. However, a more comprehensive solution is to not only
+start the service but also wait for its termination and check that it
+successfully executed the corresponding logic. It will give us great visibility
+on the health of the service right in Airflow.
+
+The above is the reason we have defined two additional commands in `Makefile`:
+`wait` and `check`. The `wait` command ensures that the virtual machine reached
+a terminal state (regardless of the outcome), and the `check` command ensures
+that the terminal state was the one expected. This functionality can be
+implemented in different ways; the one we use can be seen in
+[`container/wait.sh`], which is invoked by both operations:
+
+```sh
+#!/bin/bash
+
+function process_instance() {
+  echo 'Waiting for the instance to finish...'
+  while true; do
+    # Try to read some information about the instance
+    # Exit successfully when there is no such instance
+    wait
+  done
+}
+
+function process_success() {
+  echo 'Waiting for the success to be reported...'
+  while true; do
+    # Check if the last entry in Stackdriver contains “Well done”
+    # Exit successfully if the phrase is present
+    wait
+  done
+}
+
+function wait() {
+  echo 'Waiting...'
+  sleep 10
+}
+
+# Invoke the function specified by the first command-line argument and forward
+# the rest of the arguments to this function
+process_${1} ${@:2:10}
+```
+
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
@@ -441,6 +488,7 @@ Thank you!
 [`container/Dockerfile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/Dockerfile
 [`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
 [`container/run.sh`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/run.sh
+[`container/wait.sh`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/wait.sh
 [`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
 [`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
