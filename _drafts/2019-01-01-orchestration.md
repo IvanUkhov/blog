@@ -352,8 +352,11 @@ training-check:
 ```
 
 Here we define one command for building images, namely `build`, and three
-commands per action, namely `start`, `wait`, and `check`. The `build` command is
-invoked as follows:
+commands per action, namely `start`, `wait`, and `check`. In this section, we
+discuss `build` and `start` and leave the last two for the next section, as they
+are needed specifically for scheduling.
+
+The `build` command is invoked as follows:
 
 ```sh
 make build
@@ -393,6 +396,9 @@ launched. This is achieved by passing a number of `--container-env` options to
 virtual machive via the `--machine-type` option. Lastly, it is important to set
 the `--scopes` option correctly in order to empower the container to work with
 BigQuery, Compute Engine, and Cloud Storage.
+
+At this point, we have handly commands for invoking both the training and
+application steps of the predictive model. It is time to schedule them.
 
 # Scheduling the service
 
