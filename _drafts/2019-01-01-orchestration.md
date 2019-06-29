@@ -459,6 +459,25 @@ function wait() {
 process_${1} ${@:2:10}
 ```
 
+The script has two main functions. The `process_instance` function waits for the
+virtual machine to finish, and it is currently based on trying to fetch some
+information about the machine in question using Cloud SDK. Whenever this
+fetching fails, it is an indication of the machine being shut down and
+destroyed, which is exactly what is needed in this case. The `process_success`
+function waits for the success message, “Well done,” to appear in Stackdriver.
+This message might never appear, and this is the reason `process_success` has a
+limit number of tries, unlike `process_instance`.
+
+All right, there are now three commands to schedule in sequence: `start`,
+`wait`, and `check`. For instance, for training, the exact commands are the
+following:
+
+```sh
+make training-start
+make training-wait
+make training-check
+```
+
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
