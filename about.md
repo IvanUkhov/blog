@@ -14,6 +14,8 @@ one can read more about in the [thesis]. At the moment, I work as a data science
 at a gaming tech company based in Stockholm. I also enjoy [taking
 pictures][photography].
 
+Do not hesitate to reach out!
+
 Sincerely yours,<br/>Ivan
 
 [photography]: https://photography.ivanukhov.com/
