@@ -366,7 +366,7 @@ It has to be used each time a new version of the service is to be deployed. The
 command creates a local Docker image according to the recipe in
 `container/Dockerfile` and uploads it to [Container Registry], which is Google’s
 storage for Docker images. For the last operation to succeed, your local Docker
-has to be configured apporpriately, which boils down to the following lines:
+has to be configured appropriately, which boils down to the following lines:
 
 ```sh
 gcloud auth login # General authentication for Cloud SDK
@@ -390,21 +390,27 @@ Internally, it relies on `gcloud compute instances create-with-container`, which
 can be seen in `Makefile` listed above. There are a few aspects to note about
 this command. Apart from selecting the right image and version
 (`--container-image`), one has to make sure to set the environment variables
-mantioned earlier, as they control what the container will be doing once
+mentioned earlier, as they control what the container will be doing once
 launched. This is achieved by passing a number of `--container-env` options to
 `create-with-container`. Here one can also easily scale up and down the host
-virtual machive via the `--machine-type` option. Lastly, it is important to set
+virtual machine via the `--machine-type` option. Lastly, it is important to set
 the `--scopes` option correctly in order to empower the container to work with
 BigQuery, Compute Engine, and Cloud Storage.
 
-At this point, we have handly commands for invoking both the training and
-application steps of the predictive model. It is time to schedule them.
+At this point, we have a few handy commands for working with the service. It is
+time for scheduling.
 
 # Scheduling the service
 
-Having wrapped the model into a cloud service, let us now make both the training
-and application phases to be executed periodically, promptly delivering
-predictions to the data warehouse.
+The goal now is to make both training and application be executed periodically,
+promptly delivering predictions to the data warehouse. Technically, one could
+just keep invoking `make training-start` and `make application-start` on their
+local machine, but of course, this is neither convenient nor reliable. Instead,
+we would like to have an autonomous scheduler running in the cloud that would,
+apart from its primary task of dispatching jobs, manage temporal dependencies
+between jobs, keep record of all past and upcoming jobs, and preferably provide
+a web-based control panel. One such tool is Airflow, and it is the one used in
+this article.
 
 # Conclusion
 
