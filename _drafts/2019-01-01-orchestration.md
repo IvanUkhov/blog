@@ -233,7 +233,7 @@ function process_training() {
     --action ${ACTION} \
     --config configs/${ACTION}.json
   # Copy the result to the output location in Cloud Storage
-  save ${output}
+  save output ${output}
 }
 
 function process_application() {
@@ -241,25 +241,33 @@ function process_application() {
   # Define the output location in Cloud Storage
   local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
   # Copy the model from the input location in Cloud Storage
-  load ${input}
+  load ${input} output
   # Invoke application
   python -m prediction.main \
     --action ${ACTION} \
     --config configs/${ACTION}.json
   # Copy the result to the output location in Cloud Storage
-  save ${output}
+  save output ${output}
+  # Define the input file in Cloud Storage
+  # Define the output table in BigQuery
+  # Ingest the result into the output table in BigQuery
+  ingest ${input} ${output} player_id:STRING,label:BOOL
 }
 
 function delete() {
   # Delete a Compute Engine instance called "${NAME}-${VERSION}-${ACTION}"
 }
 
+function ingest() {
+  # Ingest a file from Cloud Storage into a table in BigQuery
+}
+
 function load() {
-  # Sync the content of a location in a bucket with the output directory
+  # Sync the content of a location in Cloud Storage with a local directory
 }
 
 function save() {
-  # Sync the content of the output directory with a location in a bucket
+  # Sync the content of a local directory with a location in Cloud Storage
 }
 
 function send() {
