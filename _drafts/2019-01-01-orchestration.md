@@ -227,35 +227,31 @@ the content of the script (as before, some parts omitted for clarify):
 
 function process_training() {
   # Define the output location in Cloud Storage
-  local output="gs://${NAME}/${VERSION}/training/${stamp}"
+  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
   # Invoke training
   python -m prediction.main \
-    --action training \
-    --config configs/training.json
+    --action ${ACTION} \
+    --config configs/${ACTION}.json
   # Copy the result to the output location in Cloud Storage
-  save "${output}"
+  save ${output}
 }
 
 function process_application() {
   # Find the latest trained model in Cloud Storage
   # Define the output location in Cloud Storage
-  local output="gs://${NAME}/${VERSION}/application/${stamp}"
+  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
   # Copy the model from the input location in Cloud Storage
-  load "${input}"
+  load ${input}
   # Invoke application
   python -m prediction.main \
-    --action application \
-    --config configs/application.json
+    --action ${ACTION} \
+    --config configs/${ACTION}.json
   # Copy the result to the output location in Cloud Storage
-  save "${output}"
+  save ${output}
 }
 
 function delete() {
   # Delete a Compute Engine instance called "${NAME}-${VERSION}-${ACTION}"
-}
-
-function info() {
-  # Write into a Stackdriver log called "${NAME}-${VERSION}-${ACTION}"
 }
 
 function load() {
@@ -266,14 +262,18 @@ function save() {
   # Sync the content of the output directory with a location in a bucket
 }
 
+function send() {
+  # Write into a Stackdriver log called "${NAME}-${VERSION}-${ACTION}"
+}
+
 # Invoke the delete function when the script exits regardless of the reason
 trap delete EXIT
 # Report a successful start to Stackdriver
-info "Running action '${ACTION}'..."
+send 'Running the action...'
 # Invoke the function specified by the ACTION environment variable
-"process_${ACTION}"
+process_${ACTION}
 # Report a successful completion to Stackdriver
-info 'Well done.'
+send 'Well done.'
 ```
 
 The script expects a number of environment variables to be set upon each
@@ -292,7 +292,7 @@ is delegated to the `load` and `save` functions used in both `process_training`
 and `process_application`.
 
 The container communicates with the outside world using [Stackdriver] via the
-`info` function, which sends messages to a log dedicated to the current service
+`send` function, which sends messages to a log dedicated to the current service
 run. The key message is the one indicating a successful completion, “Well done,”
 which is sent at the very end. This is the message that we will look for in
 order to determine the overall outcome of a service run.
@@ -301,9 +301,58 @@ Note also that, upon successful or unsuccessful completion, the container
 deletes its hosting virtual machine, which is achieved by setting a handler
 (`delete`) for the `EXIT` event.
 
-Lastly, we look at the actual invocation of the service, which entails two
-lengthy shell commands leveraging [Cloud SDK]. For convenience, this is done via
-a [`Makefile`].
+Lastly, let us discuss the commands used for building images and launching
+actions. This entails a few lengthy invocations of [Cloud SDK], which,
+fortunately, can be tightly organized in a [`Makefile`]:
+
+```make
+# The name of the product
+name ?= example-prediction
+# The version of the product
+version ?= 2019-00-00
+
+# The name of the project on Google Cloud Platform
+project ?= example-project
+# The zone for operations in Compute Engine
+zone ?= europe-west1-b
+# The address of Container Registry
+registry ?= eu.gcr.io
+
+# The name of the Docker image
+image := ${name}
+# The name of the instance excluding the action
+instance := ${name}-${version}
+
+build:
+	docker rmi ${image} 2> /dev/null || true
+	docker build --file container/Dockerfile --tag ${image} .
+	docker tag ${image} ${registry}/${project}/${image}:${version}
+	docker push ${registry}/${project}/${image}:${version}
+
+training-start:
+	gcloud compute instances create-with-container ${instance}-training \
+		--container-image ${registry}/${project}/${image}:${version} \
+		--container-env NAME=${name} \
+		--container-env VERSION=${version} \
+		--container-env ACTION=training \
+		--container-env ZONE=${zone} \
+		--container-restart-policy never \
+		--machine-type n1-standard-1 \
+		--no-restart-on-failure \
+		--scopes default,bigquery,compute-rw,storage-rw
+		--zone ${zone}
+
+training-wait:
+	container/wait.sh instance ${instance}-training ${zone}
+
+training-check:
+	container/wait.sh success ${instance}-training
+
+# Similar for application
+```
+
+Here we define one target for building images, namely `build`, and three targets
+per action, namely `start`, `wait`, and `check`.
 
 # Scheduling the service
 
