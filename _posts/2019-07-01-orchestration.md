@@ -69,7 +69,7 @@ package is capable of performing, and the [`model`] module defines the model.
 
 As alluded to above, the primary job of the `main` file is to parse command-line
 arguments, read a configuration file, potentially set up logging and alike, and
-delegate the rest the `task` module. At a later stage, an invocation of an
+delegate the rest to the `task` module. At a later stage, an invocation of an
 action might look as follows:
 
 ```bash
