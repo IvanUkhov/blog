@@ -553,6 +553,49 @@ be simbolic links to `scheduler/graph.py`, avoiding any code repetition. When
 they are read by Airflow, each one will have its own name, and it will load its
 own configuration if there is one in `scheduler/configs/`.
 
+For instance, for training, [`scheduler/configs/training.json`] is as follows:
+
+```json
+{
+  "graph": {
+    "dag_id": "example-prediction-service-training",
+    "schedule_interval": "0 0 1 * *",
+    "start_date": "2019-07-01"
+  },
+  "tasks": [
+    {
+      "name": "start",
+      "code": "make -C '${ROOT}/..' training-start"
+    },
+    {
+      "name": "wait",
+      "code": "make -C '${ROOT}/..' training-wait"
+    },
+    {
+      "name": "check",
+      "code": "make -C '${ROOT}/..' training-check"
+    }
+  ],
+  "dependencies": [
+    ["wait", "start"],
+    ["check", "wait"]
+  ]
+}
+```
+
+Each configuration file contains three main sections: `graph`, `tasks`, and
+`dependencies`. The first section prescribes the desired start date,
+periodicity, and other parameters specific to the graph itself. In this example,
+the graph is triggered on the first day of every month at midnight (`0 0 1 *
+*`), which might be a reasonable frequency for retraining the model. The second
+section defines what commands should be executed. It can be seen that there is
+one task for each of the three actions. The `-C '${ROOT}/..'` part is needed in
+order to ensure that the right `Makefile` is used, which is taken care of in
+`scheduler/graph.py`. Lastly, the third section dictates the order of execution
+by enforcing dependencies. In this case, we are saying that `wait` depends on
+(should be executed after) `start`, and that `check` depends on `wait`, forming
+a chain of tasks.
+
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
@@ -588,6 +631,7 @@ Thank you!
 [`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
 [`scheduler/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
 [`scheduler/configs/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/configs
+[`scheduler/configs/training.json`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/configs/training.json
 [`scheduler/graph.py`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/graph.py
 [`service/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
 [`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
