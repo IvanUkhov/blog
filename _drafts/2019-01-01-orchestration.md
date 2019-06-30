@@ -608,13 +608,22 @@ utilized for this purpose.
 
 Having reached this point, our predictive model is up and running in the cloud
 in an autonomous fashion, delivering predictions to the data warehouse to act
-upon. Although the presented workflow gets the job done, it has its own
-limitations and weaknesses, which one has to be aware of.
+upon. The data warehouse is certainly not the end of the journey, but we stop
+here and save the discussion for another time.
 
-This leads me to a request for feedback. If you have any suggestions regarding
-improving the workflow, please leave a comment below. I am particularly curious
-to see if there is an elegant, robust solution to communicating with Docker
-containers running in virtual machines in Compute Engine.
+Although the presented workflow gets the job done, it has its own limitations
+and weaknesses, which one has to be aware of. The most prominent one is the
+communication between a Docker container running inside a virtual machine and
+the scheduler, Airflow. Busy waiting for a virtual machine in Compute Engine to
+shut down and for Stackdriver to deliver a certain message is arguably not the
+most reliable solution. There is also a certain overhead associated with
+starting a virtual machine in Compute Engine, downloading an image from
+Container Registry, and launching a container. Furthermore, this approach is not
+suitable for online prediction, as the service does not expose any API for other
+services to integrate with---its job is making periodically batch predictions.
+
+If you have any suggestions regarding improving the workflow, please leave a
+comment below.
 
 Thank you!
 
