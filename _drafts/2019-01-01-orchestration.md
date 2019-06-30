@@ -596,6 +596,14 @@ by enforcing dependencies. In this case, we are saying that `wait` depends on
 (should be executed after) `start`, and that `check` depends on `wait`, forming
 a chain of tasks.
 
+At this point, the graphs are considered to be complete. In order to make
+Airflow aware of them, the repository can be simply cloned into the `dags`
+directory of Airflow.
+
+Lastly, Airflow itself can live on a separate instance in Compute Engine.
+Alternatively, [Cloud Composer] provided by Google Cloud Platform can be
+utilized for this purpose.
+
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
@@ -610,6 +618,7 @@ Thank you!
 
 [Airflow]: https://airflow.apache.org/
 [BigQuery]: https://cloud.google.com/bigquery/
+[Cloud Composer]: https://cloud.google.com/composer/
 [Cloud Console]: https://console.cloud.google.com
 [Cloud SDK]: https://cloud.google.com/sdk/
 [Cloud Storage]: https://cloud.google.com/storage/
