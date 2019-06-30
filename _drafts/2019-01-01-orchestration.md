@@ -123,9 +123,6 @@ class Model:
         # Make predictions using the estimated parameters
 ```
 
-Incidentally, this interface resembles the one used by the `scikit-learn`
-package.
-
 It can be seen that the structure presented above makes very few assumptions
 about the model, which makes it generally applicable. It can also be easily
 extended to accommodate other actions. For instance, one could have a separate
@@ -138,12 +135,11 @@ we discuss next.
 
 Now it is time to turn the model into a service. In the scope of this article, a
 service is a self-sufficient piece of code that can be executed in the cloud
-upon request. To this end, another repository is created in order to keep
-concerns separated. Specifically, the modeling code should not be mixed with the
-code specific to a particular environment where the model happens to be
-deployed. By convention, the name of the new repository is the same as the one
-for the model except for the addition of the `-service` suffix. The suggested
-structure of the repository is as follows:
+upon request. To this end, another repository is created, adhering to the
+separation-of-concerns design principle. Specifically, by doing so, we avoid
+mixing the modeling code with the code specific to a particular environment
+where the model happens to be deployed. The suggested structure of the
+repository is as follows:
 
 ```
 .
@@ -161,9 +157,9 @@ structure of the repository is as follows:
 │   ├── configs/
 │   │   ├── application.json
 │   │   └── training.json
-│   ├── application.py         # a symlink to graph.py
+│   ├── application.py         # a symbolic link to graph.py
 │   ├── graph.py
-│   └── training.py            # a symlink to graph.py
+│   └── training.py            # a symbolic link to graph.py
 ├── Makefile
 └── README.md
 ```
@@ -226,31 +222,31 @@ the content of the script (as before, some parts omitted for clarify):
 #!/bin/bash
 
 function process_training() {
-  # Define the output location in Cloud Storage
-  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
   # Invoke training
   python -m prediction.main \
     --action ${ACTION} \
     --config configs/${ACTION}.json
-  # Copy the result to the output location in Cloud Storage
+  # Set the output location in Cloud Storage
+  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
+  # Copy the trained model from the output directory to Cloud Storage
   save output ${output}
 }
 
 function process_application() {
   # Find the latest trained model in Cloud Storage
-  # Define the output location in Cloud Storage
-  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
-  # Copy the model from the input location in Cloud Storage
+  # Copy the trained model from Cloud Storage to the output directory
   load ${input} output
   # Invoke application
   python -m prediction.main \
     --action ${ACTION} \
     --config configs/${ACTION}.json
-  # Copy the result to the output location in Cloud Storage
+  # Set the output location in Cloud Storage
+  local output=gs://${NAME}/${VERSION}/${ACTION}/${timestamp}
+  # Copy the predictions from the output directory to Cloud Storage
   save output ${output}
-  # Define the input file in Cloud Storage
-  # Define the output table in BigQuery
-  # Ingest the result into the output table in BigQuery
+  # Set the input file in Cloud Storage
+  # Set the output data set and table in BigQuery
+  # Ingest the predictions from Cloud Storage into BigQuery
   ingest ${input} ${output} player_id:STRING,label:BOOL
 }
 
@@ -276,6 +272,7 @@ function send() {
 
 # Invoke the delete function when the script exits regardless of the reason
 trap delete EXIT
+
 # Report a successful start to Stackdriver
 send 'Running the action...'
 # Invoke the function specified by the ACTION environment variable
@@ -297,20 +294,23 @@ command-line interface by invoking the `main` file, which was discussed in the
 previous section. Since containers are stateless, all artifacts are stored in an
 external storage, which is a bucket in [Cloud Storage] in our case, and this job
 is delegated to the `load` and `save` functions used in both `process_training`
-and `process_application`.
+and `process_application`. In addition, the result of the application action
+(that is, the predictions) is ingested into a table in BigQuery using [Cloud
+SDK], which can be seen in the `ingest` function in [`container/run.sh`].
 
 The container communicates with the outside world using [Stackdriver] via the
-`send` function, which sends messages to a log dedicated to the current service
-run. The key message is the one indicating a successful completion, “Well done,”
-which is sent at the very end. This is the message that we will look for in
-order to determine the overall outcome of a service run.
+`send` function, which writes messages to a log dedicated to the current service
+run. The most important message is the one indicating a successful completion,
+which is sent at the very end; we use “Well done” for this purpose. This is the
+message that will be looked for in order to determine the overall outcome of a
+service run.
 
 Note also that, upon successful or unsuccessful completion, the container
 deletes its hosting virtual machine, which is achieved by setting a handler
 (`delete`) for the `EXIT` event.
 
 Lastly, let us discuss the commands used for building the image and launching
-the actions. This entails a few lengthy invocations of [Cloud SDK], which can be
+the actions. This entails a few lengthy invocations of Cloud SDK, which can be
 neatly organized in a [`Makefile`]:
 
 ```make
@@ -417,24 +417,25 @@ local machine, but of course, this is neither convenient nor reliable. Instead,
 we would like to have an autonomous scheduler running in the cloud that would,
 apart from its primary task of dispatching jobs, manage temporal dependencies
 between jobs, keep record of all past and upcoming jobs, and preferably provide
-a web-based control panel. One such tool is Airflow, and it is the one used in
-this article.
+a web-based dashboard for monitoring. One such tool is Airflow, and it is the
+one used in this article.
 
-In Airflow, the work to be done is expressed as a directed acyclic graph. Our
-job is then to define two such graphs for our service, one for training and one
-for application, each with its own periodicity. At this point, it might seem
-that each graph will contain only one node calling the `start` command, which
-was introduced earlier. However, a more comprehensive solution is to not only
-start the service but also wait for its termination and check that it
-successfully executed the corresponding logic. It will give us great visibility
-on the health of the service right in Airflow.
+In Airflow, the work to be performed is expressed as a directed acyclic graph
+defined using Python. Our job is to create two such graphs. One is for training,
+and one is for application, each with its own periodicity. At this point, it
+might seem that each graph should contain only one node calling the `start`
+command, which was introduced earlier. However, a more comprehensive solution is
+to not only start the service but also wait for its termination and check that
+it successfully executed the corresponding logic. It will give us great
+visibility on the life cycle of the service in terms of various statistics (for
+instance, the duration and outcome of all runs) directly in Airflow.
 
 The above is the reason we have defined two additional commands in `Makefile`:
 `wait` and `check`. The `wait` command ensures that the virtual machine reached
 a terminal state (regardless of the outcome), and the `check` command ensures
 that the terminal state was the one expected. This functionality can be
-implemented in different ways; the one we use can be seen in
-[`container/wait.sh`], which is invoked by both operations:
+implemented in different ways. The approach that we use can be seen in
+[`container/wait.sh`], which is invoked by both operations from `Makefile`:
 
 ```sh
 #!/bin/bash
@@ -472,13 +473,13 @@ virtual machine to finish, and it is currently based on trying to fetch some
 information about the machine in question using Cloud SDK. Whenever this
 fetching fails, it is an indication of the machine being shut down and
 destroyed, which is exactly what is needed in this case. The `process_success`
-function waits for the success message, “Well done,” to appear in Stackdriver.
-This message might never appear, and this is the reason `process_success` has a
-limit number of tries, unlike `process_instance`.
+function waits for the key phrase “Well done” to appear in Stackdriver. However,
+this message might never appear, and this is the reason `process_success` has a
+timeout, unlike `process_instance`.
 
 All right, there are now three commands to schedule in sequence: `start`,
-`wait`, and `check`. For instance, for training, the exact commands are the
-following:
+`wait`, and `check`. For instance, for training, the exact command sequence is
+the following:
 
 ```sh
 make training-start

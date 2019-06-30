@@ -5,6 +5,6 @@ build:
 	cp CNAME _site
 
 serve:
-	bundle exec jekyll serve --drafts
+	bundle exec jekyll serve --drafts --incremental
 
 .PHONY: all build serve
