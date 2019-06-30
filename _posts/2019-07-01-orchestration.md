@@ -1,7 +1,7 @@
 ---
 layout: post
 title: A poor man’s orchestration of predictive models, or do it yourself
-date: 2019-01-01
+date: 2019-07-01
 ---
 
 As a data scientist focusing on developing data products, you naturally want
