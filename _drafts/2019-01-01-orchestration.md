@@ -500,7 +500,58 @@ makes sense to keep the varying parts in separate configuration files and use
 the exact same code for constructing the graphs, adhering to the
 do-not-repeat-yourself design principle. The [`scheduler/configs/`] folder
 contains the configuration files suggested, and [`scheduler/graph.py`] is the
-Python script creating a graph.
+Python script creating a graph:
+
+```python
+from airflow import DAG
+from airflow.operators.bash_operator import BashOperator
+
+
+def configure():
+    # Extract the directory containing the current file
+    path = os.path.dirname(__file__)
+    # Extract the name of the current file without its extension
+    name = os.path.splitext(os.path.basename(__file__))[0]
+    # Load the configuration file corresponding to the extracted name
+    config = os.path.join(path, 'configs', name + '.json')
+    config = json.loads(open(config).read())
+    return config
+
+
+def construct(config):
+
+    def _construct_graph(default_args, start_date, **options):
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        return DAG(default_args=default_args, start_date=start_date, **options)
+
+    def _construct_task(graph, name, code):
+        return BashOperator(task_id=name, bash_command=code, dag=graph)
+
+    # Construct an empty graph
+    graph = _construct_graph(**config['airflow'])
+    # Construct the specified tasks
+    tasks = [_construct_task(graph, **task) for task in config['tasks']]
+    tasks = dict([(task.task_id, task) for task in tasks])
+    # Enforce the specified dependencies between the tasks
+    for child, parent in config['dependencies']:
+        tasks[parent].set_downstream(tasks[child])
+    return graph
+
+
+try:
+    # Load an appropriate configuration file and construct a graph accordingly
+    graph = construct(configure())
+except FileNotFoundError:
+    # Exit without errors in case the current file has no configuration file
+    pass
+```
+
+The script receives no arguments and instead tries to find a suitable
+configuration file based on its own name, which can be seen in the `configure`
+function. Then `scheduler/training.py` and `scheduler/application.py` can simply
+be simbolic links to `scheduler/graph.py`, avoiding any code repetition. When
+they are read by Airflow, each one will have its own name, and it will load its
+own configuration if there is one in `scheduler/configs/`.
 
 # Conclusion
 
