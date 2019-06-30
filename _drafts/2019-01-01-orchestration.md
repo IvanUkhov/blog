@@ -6,7 +6,7 @@ date: 2019-01-01
 
 As a data scientist focusing on developing data products, you naturally want
 your work to reach its target audience. Suppose, however, that your company does
-not have a dedicated engineering team for productionazing data-science code. One
+not have a dedicated engineering team for productizing data-science code. One
 solution is to seek help in other teams, which are surely busy with their own
 endeavors, and spend months waiting. Alternatively, you could take the
 initiative and do it yourself. In this article, we take the initiative and
@@ -21,7 +21,7 @@ developed. This means that a business problem has already been identified and
 translated into a concrete question, the data needed for answering the question
 have already been collected and transformed into a target variable and a set of
 explanatory variables, and a modeling technique has already been selected and
-calibrated in order to answering the question by predicting the target variable
+calibrated in order to answer the question by predicting the target variable
 given the explanatory variables. For the sake of concreteness, the model is
 assumed to be written in Python. We also assume that the company at hand has
 chosen Google Cloud Platform as its primary platform, which makes a certain
@@ -128,8 +128,8 @@ about the model, which makes it generally applicable. It can also be easily
 extended to accommodate other actions. For instance, one could have a separate
 action for testing the model on unseen data.
 
-Having structured the model as shown above, it can now be productionized, which
-we discuss next.
+Having structured the model as shown above, it can now be productized, which we
+discuss next.
 
 # Wrapping the model into a service
 
@@ -167,22 +167,22 @@ repository is as follows:
 The [`container/`] folder contains files for building a Docker image for the
 service. The [`service/`] folder is the service itself, meaning that these files
 will be present in the container and eventually executed. Lastly, the
-[`scheduler/`] folder contain files for scheduling the service using Airflow.
+[`scheduler/`] folder contains files for scheduling the service using Airflow.
 The last one will be covered in the next section; here we focus on the first
 two.
 
 Let us start with `service/`. The first repository (the one discussed in the
 previous section) is added to this second repository as a Git submodule living
-in `service/source/`. This means that the model will essentially be embedded
-into the service but will conveniently remain an independent entity. At all
-times, the service contains a reference to a particular state (a particular
-commit, potentially on a dedicated release branch) of the model, guaranteeing
-that the desired version of the model is in production. However, when invoking
-the model from the service, we might want to use a different set of
-configuration files than the ones present in the first repository. To this end,
-a service-specific version of the configuration files is created in
-`service/configs/`. We might also want to install additional Python
-dependencies; hence, there is a separate file with requirements.
+in `service/source/`. This means that the model will essentially be embedded in
+the service but will conveniently remain an independent entity. At all times,
+the service contains a reference to a particular state (a particular commit,
+potentially on a dedicated release branch) of the model, guaranteeing that the
+desired version of the model is in production. However, when invoking the model
+from the service, we might want to use a different set of configuration files
+than the ones present in the first repository. To this end, a service-specific
+version of the configuration files is created in `service/configs/`. We might
+also want to install additional Python dependencies; hence, there is a separate
+file with requirements.
 
 Now it is time to containerize the service code by building a Docker image. The
 relevant files are gathered in `container/`. The image is defined in
@@ -216,7 +216,7 @@ As mentioned earlier, `service/` gets copied as is (including `service/source`
 with the model), and it will be the working directory inside the container. We
 also copy [`container/run.sh`], which becomes the entry point of the container;
 this script is executed whenever a container is launched. Let us take a look at
-the content of the script (as before, some parts omitted for clarify):
+the content of the script (as before, some parts omitted for clarity):
 
 ```sh
 #!/bin/bash
@@ -549,7 +549,7 @@ except FileNotFoundError:
 The script receives no arguments and instead tries to find a suitable
 configuration file based on its own name, which can be seen in the `configure`
 function. Then `scheduler/training.py` and `scheduler/application.py` can simply
-be simbolic links to `scheduler/graph.py`, avoiding any code repetition. When
+be symbolic links to `scheduler/graph.py`, avoiding any code repetition. When
 they are read by Airflow, each one will have its own name, and it will load its
 own configuration if there is one in `scheduler/configs/`.
 
@@ -606,8 +606,10 @@ utilized for this purpose.
 
 # Conclusion
 
-Although the presented workflow gets the job done, it has its own limitations
-and weaknesses, which one has to be aware of.
+Having reached this point, our predictive model is up and running in the cloud
+in an autonomous fashion, delivering predictions to the data warehouse to act
+upon. Although the presented workflow gets the job done, it has its own
+limitations and weaknesses, which one has to be aware of.
 
 This leads me to a request for feedback. If you have any suggestions regarding
 improving the workflow, please leave a comment below. I am particularly curious
