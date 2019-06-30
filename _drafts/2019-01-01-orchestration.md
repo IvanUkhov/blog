@@ -1,7 +1,6 @@
 ---
 layout: post
-title: >-
-  A poor man’s orchestration of predictive models, or do it yourself
+title: A poor man’s orchestration of predictive models, or do it yourself
 date: 2019-01-01
 ---
 
@@ -18,26 +17,27 @@ Let us first set expectations for what is assumed to be given and what will be
 attained by the end of the article. It is assumed that a predictive model for
 supporting business decisions—such as a model for identifying potential churners
 or a model for estimating the lifetime value of customers—has already been
-developed. This means that the business question to be answered has already been
-defined and translated into a target variable, the data needed for answering the
-question have already been collected and translated into a set of explanatory
-variables, and a modeling technique has already been adequately selected and
-applied in order to answering the question by predicting the target variable
+developed. This means that a business problem has already been identified and
+translated into a concrete question, the data needed for answering the question
+have already been collected and transformed into a target variable and a set of
+explanatory variables, and a modeling technique has already been selected and
+calibrated in order to answering the question by predicting the target variable
 given the explanatory variables. For the sake of concreteness, the model is
 assumed to be written in Python. We also assume that the company at hand has
 chosen Google Cloud Platform as its primary platform, which makes a certain
 suite of tools readily available.
 
-Our goal is then to schedule the model to run in the cloud so that it is
-periodically retrained (in order to account for potential fluctuations in the
-data distribution) and periodically applied (in order to actually make
-predictions). Predictions are to be delivered to the data warehouse for further
-consumption by other parties. In our case, the destination is a data set in
-[BigQuery].
+Our goal is then to schedule the model to run in the cloud via Airflow, Compute
+Engine, and Docker so that it is periodically retrained (in order to take into
+account potential fluctuations in the data distribution) and periodically
+applied (in order to actually make predictions), delivering predictions to the
+data warehouse in the form of [BigQuery] for further consumption by other
+parties.
 
-The data warehouse is certainly not the end of the journey. However, we shall
-stop there and save the discussion about visualization, dashboards, and acting
-upon predictions for another time.
+It is important to note that this article is not a tutorial on any of the
+aforementioned technologies. The reader is assumed to be familiar with Google
+Cloud Platform and to have an understanding of Airflow and Docker, as well as to
+be comfortable with finding out missing details on their own.
 
 Lastly, the following two repositories contain the code discussed below:
 
