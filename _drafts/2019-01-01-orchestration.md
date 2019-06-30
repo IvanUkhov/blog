@@ -35,7 +35,7 @@ predictions). Predictions are to be delivered to the data warehouse for further
 consumption by other parties. In our case, the destination is a data set in
 [BigQuery].
 
-The data warehouse is certainly not the end of the journey. However, we will
+The data warehouse is certainly not the end of the journey. However, we shall
 stop there and save the discussion about visualization, dashboards, and acting
 upon predictions for another time.
 
@@ -284,9 +284,15 @@ send 'Well done.'
 The script expects a number of environment variables to be set upon each
 container launch, which will be discussed shortly. The primary ones are `NAME`,
 `VERSION`, and `ACTION`, indicating the name of the service, version of the
-service, and action to be executed by the service, respectively. Given `ACTION`,
-the script chooses which of the processing function to call at the bottom of the
-script.
+service, and action to be executed by the service, respectively.
+
+As we shall see below, the above script interacts with several different
+products on Google Cloud Platform. It might then be surprising that there is
+only a handful of variables passed to the script. The explanation is that the
+convention-over-configuration design paradigm is followed to a great extent
+here, meaning that other necessary variables can be derived (save sensible
+default values) from the ones given, since there are certain naming conventions
+used throughout the project.
 
 The `process_training` and `process_application` are responsible for training
 and application, respectively. It can be seen that they leverage the
@@ -487,6 +493,15 @@ make training-wait
 make training-check
 ```
 
+We need to create two separate Python files defining two separate Airflow
+graphs; however, the graphs will be almost identical except for the triggering
+interval and the prefix of the `start`, `wait`, and `check` commands. It then
+makes sense to keep the varying parts in separate configuration files and use
+the exact same code for constructing the graphs, adhering to the
+do-not-repeat-yourself design principle. The [`scheduler/configs/`] folder
+contains the configuration files suggested, and [`scheduler/graph.py`] is the
+Python script creating a graph.
+
 # Conclusion
 
 Although the presented workflow gets the job done, it has its own limitations
@@ -521,5 +536,7 @@ Thank you!
 [`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
 [`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
 [`scheduler/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
+[`scheduler/configs/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/configs
+[`scheduler/graph.py`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/graph.py
 [`service/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
 [`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
