@@ -14,7 +14,7 @@ schedule the training and application phases of a predictive model using Apache
 [Airflow], Google [Compute Engine], and [Docker].
 
 Let us first set expectations for what is assumed to be given and what will be
-attained by the end of the article. It is assumed that a predictive model for
+attained by the end of this article. It is assumed that a predictive model for
 supporting business decisions—such as a model for identifying potential churners
 or a model for estimating the lifetime value of customers—has already been
 developed. This means that a business problem has already been identified and
