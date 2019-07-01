@@ -1,6 +1,6 @@
 ---
 layout: home
-list_title: Notes
+list_title: Articles
 ---
 
 “Good news, everyone!” is about solving technical or otherwise problems that a
