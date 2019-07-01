@@ -622,8 +622,11 @@ Container Registry, and launching a container. Furthermore, this approach is not
 suitable for online prediction, as the service does not expose any API for other
 services to integrate with---its job is making periodically batch predictions.
 
-If you have any suggestions regarding improving the workflow, please leave a
-comment below.
+If you have any suggestions regarding improving the workflow or simply would
+like to share your thoughts, please leave a comment below or send an e-mail.
+Feel also free to [create an issue] or [open a pull request] on GitHub. Any
+feedback is very much appreciated!
+
 
 Thank you!
 
@@ -640,6 +643,9 @@ Thank you!
 
 [example-prediction]: https://github.com/IvanUkhov/example-prediction
 [example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
+
+[create an issue]: https://github.com/IvanUkhov/example-prediction-service/issues
+[open a pull request]: https://github.com/IvanUkhov/example-prediction-service/pulls
 
 [`Makefile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/Makefile
 [`container/Dockerfile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/Dockerfile
