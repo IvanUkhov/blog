@@ -12,23 +12,36 @@ operating online—and derive the expected utility of switching from variant A t
 variant B under some modeling assumptions. This information can subsequently be
 utilized in order to support the corresponding decision-making process.
 
-Before we proceed, this article is largely inspired by a series of excellent
-blog posts by [Evan Miller], [Chris Stucchio], and [David Robinson].
+An R implementation of the math below can be found in the following repository:
+
+* [conversion-rate].
+
+However, it was written for personal exploratory purposes and has no
+documentation at the moment. If you decide to dive in, you will be on your own.
+
+Lastly, this article is largely inspired by a series of excellent blog posts by
+[Evan Miller], [Chris Stucchio], and [David Robinson], which are strongly
+recommended.
+
+# Problem
 
 Suppose, as a business, you send communications to your customers in order to
 increase their engagement with the product. Furthermore, suppose you suspect
-that a certain change to the usual way of working might increase the uplift.
-In order to test your hypothesis, you set up an A/B test. The only decision you
-care about is whether or not you should switch from A to B. The twist is that
-each variant comes with its own utility, if it is the winner, and its own loss,
-if it is the loser, from the perspective of the business, and you would like to
-incorporate this information in your decision.
+that a certain change to the usual way of working might increase the uplift. In
+order to test your hypothesis, you set up an A/B test. The only decision you
+care about is whether or not you should switch from variant A to variant B where
+variant A is be the baseline (the usual way of working). The twist is that, from
+the perspective of the business, variant B comes with its own gain if it is the
+winner, and its own loss if it is the loser. The goal is to incorporate this
+information in the final decision, making necessary assumptions along the way.
 
-Let $$A$$ and $$B$$ be two random variable modeling the conversion rates of two
-groups, group A and group B. Group A is considered to be the baseline.
-Furthermore, let $$f$$ be the density function of the joint distribution of
-$$A$$ and $$B$$. In what follows, concrete values assumed by the variables are
-denoted by $$a$$ and $$b$$, respectively.
+# Solution
+
+Let $$A$$ and $$B$$ be two random variables modeling the conversion rates of the
+two variants, variant A and variant B. Furthermore, let $$f$$ be the probability
+density function of the joint distribution of $$A$$ and $$B$$. In what follows,
+concrete values assumed by the variables are denoted by $$a$$ and $$b$$,
+respectively.
 
 Define the utility function as
 
@@ -37,10 +50,11 @@ U(a, b) = G(a, b) I(a < b) + L(a, b) I(a > b)
 $$
 
 where $$G$$ and $$L$$ are referred to as the gain and loss functions,
-respectively. The gain function takes effect when group B has a higher
-conversion rate than the one of group A, and the loss function takes effect when
-group A is better than group B, which is what is enforced by the two indicator
-functions. The expected utility is then as follows:
+respectively. The gain function takes effect when variant B has a higher
+conversion rate than the one of variant A, and the loss function takes effect
+when variant A is better than variant B, which is what is enforced by the two
+indicator functions (the equality is not essential). The expected utility is
+then as follows:
 
 $$
 \begin{align}
@@ -52,7 +66,7 @@ E(U(A, B))
 \end{align}
 $$
 
-Suppose the gain and loss are linear:
+We assume further the gain and loss are linear:
 
 $$
 \begin{align}
@@ -61,8 +75,8 @@ $$
 \end{align}
 $$
 
-In the above, $$w_g$$ and $$w_l$$ are two non-negative scaling factors. Then we
-have that
+In the above, $$w_g$$ and $$w_l$$ are two non-negative scaling factors, which
+can be used to encode business preferences. Then we have that
 
 $$
 \begin{align}
@@ -85,7 +99,10 @@ $$
 
 Now, assume $$A$$ has a beta distribution with parameters $$\alpha_a$$ and
 $$\beta_a$$; similarly, let $$B$$ has a beta distribution with parameters
-$$\alpha_b$$ and $$\beta_b$$. Assume further that, given the parameters, the
+$$\alpha_b$$ and $$\beta_b$$. In practice, these distributions are posterior
+distributions due to Bayesian analysis. They combine the prior knowledge of the
+decision-maker and the knowledge obtained from the data that is continuously
+streaming from the A/B test. Assume further that, given the parameters, the
 variables are independent. In this case,
 
 $$
@@ -114,7 +131,7 @@ h(\alpha_a, \beta_a, \alpha_b + 1, \beta_b)
 \end{align}
 $$
 
-where
+where, which a slight abuse of notation, $$B$$ is the beta function and
 
 $$
 h(\alpha_1, \beta_1, \alpha_2, \beta_2) = P(X_1 < X_2)
@@ -129,7 +146,8 @@ $$
 \end{align}
 $$
 
-Similarly,
+The function $$h$$ has an analytical expression that can be found in the blog
+posts mentioned above. Similarly,
 
 $$
 G_2 =
@@ -157,7 +175,7 @@ h(\alpha_b + 1, \beta_b, \alpha_a, \beta_a).
 \end{align}
 $$
 
-Similarly,
+Also,
 
 $$
 L_2 =
@@ -181,8 +199,8 @@ h(\alpha_b, \beta_b, \alpha_a + 1, \beta_a).
 \end{align}
 $$
 
-It is worth noting that, in the case of this linear model, we have the following
-relationship between $$G$$ and $$L$$:
+It is worth noting that, in the case of the assumed linear model, we have the
+following relationship between $$G$$ and $$L$$:
 
 $$
 \begin{align}
@@ -202,11 +220,12 @@ h(\alpha_a + 1, \beta_a, \alpha_b, \beta_b) \\
 \frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)} -
 (L_1 - L_2) \\
 &=
-\Delta - (L_1 - L_2).
+\Delta - (L_1 - L_2)
 \end{align}
 $$
 
-Therefore,
+where $$\Delta$$ is the different between the above two ratios of beta
+functions. Therefore,
 
 $$
 \begin{align}
