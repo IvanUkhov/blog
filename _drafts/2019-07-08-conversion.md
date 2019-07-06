@@ -30,7 +30,7 @@ increase their engagement with the product. Furthermore, suppose you suspect
 that a certain change to the usual way of working might increase the uplift. In
 order to test your hypothesis, you set up an A/B test. The only decision you
 care about is whether or not you should switch from variant A to variant B where
-variant A is be the baseline (the usual way of working). The twist is that, from
+variant A is the baseline (the usual way of working). The twist is that, from
 the perspective of the business, variant B comes with its own gain if it is the
 winner, and its own loss if it is the loser. The goal is to incorporate this
 information in the final decision, making necessary assumptions along the way.
