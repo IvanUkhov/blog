@@ -1,21 +1,34 @@
 ---
 layout: post
-title: A Bayesian approach to the inference of conversion rates
+title: On the expected utility in conversion rate optimization
 date: 2019-07-08
 math: true
 ---
 
-Let us explore a Bayesian approach to statistical inference in the context of
-conversion rates. To begin with, let $$A$$ and $$B$$ be two random variable
-modeling the conversion rates of two groups, group A and group B. Group A is
-considered to be the baseline. Furthermore, let $$f$$ be the density function of
-the joint distribution of $$A$$ and $$B$$. In what follows, concrete values
-assumed by the variables are denoted by $$a$$ and $$b$$, respectively.
+It can be not only extremely useful but also deeply satisfying to dust off one’s
+math skills from time to time. In this article, we approach the classical
+problem of conversion rate optimization—which is frequently faced by companies
+operating online—and derive the expected utility of switching from variant A to
+variant B under some modeling assumptions. This information can subsequently be
+utilized in order to support the corresponding decision-making process.
 
 Before we proceed, this article is largely inspired by a series of excellent
 blog posts by [Evan Miller], [Chris Stucchio], and [David Robinson].
 
-# Expected utility
+Suppose, as a business, you send communications to your customers in order to
+increase their engagement with the product. Furthermore, suppose you suspect
+that a certain change to the usual way of working might increase the uplift.
+In order to test your hypothesis, you set up an A/B test. The only decision you
+care about is whether or not you should switch from A to B. The twist is that
+each variant comes with its own utility, if it is the winner, and its own loss,
+if it is the loser, from the perspective of the business, and you would like to
+incorporate this information in your decision.
+
+Let $$A$$ and $$B$$ be two random variable modeling the conversion rates of two
+groups, group A and group B. Group A is considered to be the baseline.
+Furthermore, let $$f$$ be the density function of the joint distribution of
+$$A$$ and $$B$$. In what follows, concrete values assumed by the variables are
+denoted by $$a$$ and $$b$$, respectively.
 
 Define the utility function as
 
