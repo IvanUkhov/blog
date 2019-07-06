@@ -236,6 +236,17 @@ E(U(A, B))
 \end{align}
 $$
 
+# Conclusion
+
+The decision-maker is now well equipped to take the decision. Having done
+Bayesian analysis and obtained the posterior distributions of the conversion
+rates, the derived formula allows one to choose which variant to keep, while
+taking the company’s preferences into account.
+
+Please feel free to reach out if you have any thoughts or suggestions.
+
+[conversion-rate]: https://github.com/IvanUkhov/conversion-rate
+
 [Chris Stucchio]: https://www.chrisstucchio.com/blog/2014/bayesian_ab_decision_rule.html
 [David Robinson]: http://varianceexplained.org/r/bayesian-ab-testing/
 [Evan Miller]: http://www.evanmiller.org/bayesian-ab-testing.html
