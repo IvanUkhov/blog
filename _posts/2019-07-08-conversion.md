@@ -38,7 +38,7 @@ information in the final decision, making necessary assumptions along the way.
 # Solution
 
 Let $$A$$ and $$B$$ be two random variables modeling the conversion rates of the
-two variants, variant A and variant B. Furthermore, let $$f$$ be the probability
+two variants, variant A and variant B. Furthermore, let $$p$$ be the probability
 density function of the joint distribution of $$A$$ and $$B$$. In what follows,
 concrete values assumed by the variables are denoted by $$a$$ and $$b$$,
 respectively.
@@ -59,10 +59,10 @@ then as follows:
 $$
 \begin{align}
 E(U(A, B))
-&= \int_0^1 \int_0^1 U(a, b) f(a, b) \, db \, da \\
+&= \int_0^1 \int_0^1 U(a, b) p(a, b) \, db \, da \\
 &=
-\int_0^1 \int_a^1 G(a, b) f(a, b) \, db \, da +
-\int_0^1 \int_0^a L(a, b) f(a, b) \, db \, da.
+\int_0^1 \int_a^1 G(a, b) p(a, b) \, db \, da +
+\int_0^1 \int_0^a L(a, b) p(a, b) \, db \, da.
 \end{align}
 $$
 
@@ -82,11 +82,11 @@ $$
 \begin{align}
 E(U(A, B)) =
 &
-w_g \int_0^1 \int_a^1 b \, f(a, b) \, db \, da -
-w_g \int_0^1 \int_a^1 a \, f(a, b) \, db \, da + {} \\
+w_g \int_0^1 \int_a^1 b \, p(a, b) \, db \, da -
+w_g \int_0^1 \int_a^1 a \, p(a, b) \, db \, da + {} \\
 &
-w_l \int_0^1 \int_0^a b \, f(a, b) \, db \, da -
-w_l \int_0^1 \int_0^a a \, f(a, b) \, db \, da.
+w_l \int_0^1 \int_0^a b \, p(a, b) \, db \, da -
+w_l \int_0^1 \int_0^a a \, p(a, b) \, db \, da.
 \end{align}
 $$
 
@@ -115,7 +115,7 @@ test. Assume further that, given the parameters, the variables are independent.
 In this case,
 
 $$
-f(a, b) =
+p(a, b) =
 \frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
 \frac{b^{\alpha_b - 1} (1 - b)^{\beta_b - 1}}{B(\alpha_b, \beta_b)}.
 $$
