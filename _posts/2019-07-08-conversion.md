@@ -261,7 +261,7 @@ $$
 # Conclusion
 
 The decision-maker is now well equipped to take the decision. Having done
-Bayesian analysis and obtained the posterior distributions of the conversion
+Bayesian inference and obtained the posterior distributions of the conversion
 rates, the derived formula allows one to choose which variant to keep, while
 taking the company’s preferences into account.
 
