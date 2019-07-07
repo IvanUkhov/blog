@@ -160,8 +160,15 @@ $$
 \end{align}
 $$
 
-The function $$h$$ has an analytical expression that can be found in the blog
-posts mentioned above. Similarly,
+The function $$h$$ can be computed analytically, as shown in the blog posts
+mentioned above. Specifically,
+
+$$
+h(\alpha_1, \beta_1, \alpha_2, \beta_2) =
+\sum_{i = 0}^{\alpha_2 - 1} \frac{B(\alpha_1 + i, \beta_1 + \beta_2)}{(\beta_2 + i) B(1 + i, \beta_2) B(\alpha_1, \beta_1)}.
+$$
+
+Similarly,
 
 $$
 G_2 =
