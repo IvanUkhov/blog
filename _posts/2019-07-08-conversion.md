@@ -260,10 +260,17 @@ $$
 
 # Conclusion
 
-The decision-maker is now well equipped to take the decision. Having done
-Bayesian inference and obtained the posterior distributions of the conversion
-rates, the derived formula allows one to choose which variant to keep, while
-taking the company’s preferences into account.
+The decision-maker is now better equipped to take action. Having obtained the
+posterior distributions of the conversion rates of the two variants, the derived
+formula allows one to assess whether variant B is worth switching to,
+considering its utility to the business at hand.
+
+The reason the expected utility $$E(U(A, B))$$ can be evaluated in closed form
+in this case is the linearity of the utility function $$U(a, b)$$. More nuanced
+preferences require a different approach. The most flexible candidate is
+simulation, which is straightforward and should arguably be the go-to tool
+regardless of the availability of a closed-form solution, as it is less error
+prone.
 
 Please feel free to reach out if you have any thoughts or suggestions.
 
