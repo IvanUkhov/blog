@@ -98,12 +98,21 @@ E(U(A, B)) = w_g \, G_1 - w_g \, G_2 + w_l \, L_1 - w_l \, L_2.
 $$
 
 Now, assume $$A$$ has a beta distribution with parameters $$\alpha_a$$ and
-$$\beta_a$$; similarly, let $$B$$ has a beta distribution with parameters
-$$\alpha_b$$ and $$\beta_b$$. In practice, these distributions are posterior
-distributions due to Bayesian analysis. They combine the prior knowledge of the
-decision-maker and the knowledge obtained from the data that is continuously
-streaming from the A/B test. Assume further that, given the parameters, the
-variables are independent. In this case,
+$$\beta_a$$, and $$B$$ has a beta distribution with parameters $$\alpha_b$$ and
+$$\beta_b$$. In other words,
+
+$$
+\begin{align}
+& A \sim \text{Beta}(\alpha_a, \beta_a) \text{ and} \\
+& B \sim \text{Beta}(\alpha_b, \beta_b).
+\end{align}
+$$
+
+In practice, these distributions are posterior distributions due to Bayesian
+analysis. They combine the prior knowledge of the decision-maker and the
+knowledge obtained from the data that is continuously streaming from the A/B
+test. Assume further that, given the parameters, the variables are independent.
+In this case,
 
 $$
 f(a, b) =
