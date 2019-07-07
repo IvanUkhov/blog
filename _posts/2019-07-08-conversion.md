@@ -213,7 +213,8 @@ h(\alpha_b, \beta_b, \alpha_a + 1, \beta_a).
 \end{align}
 $$
 
-It is worth noting that, in the case of the assumed linear model, we have the
+At this point, we could call it a day, but there is some room for
+simplification. Note that, in the case of the assumed linear model, we have the
 following relationship between $$G$$ and $$L$$:
 
 $$
