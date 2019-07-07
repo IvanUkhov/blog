@@ -5,8 +5,8 @@ date: 2019-07-08
 math: true
 ---
 
-It can be not only extremely useful but also deeply satisfying to dust off one’s
-math skills from time to time. In this article, we approach the classical
+It can be not only extremely useful but also deeply satisfying to occasionally
+dust off one’s own math skills. In this article, we approach the classical
 problem of conversion rate optimization—which is frequently faced by companies
 operating online—and derive the expected utility of switching from variant A to
 variant B under some modeling assumptions. This information can subsequently be
