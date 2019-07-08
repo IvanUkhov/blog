@@ -270,8 +270,8 @@ The reason the expected utility $$E(U(A, B))$$ can be evaluated in closed form
 in this case is the linearity of the utility function $$U(a, b)$$. More nuanced
 preferences require a different approach. The most flexible candidate is
 simulation, which is straightforward and should arguably be the go-to tool
-regardless of the availability of a closed-form solution, as it is less error
-prone.
+regardless of the availability of a closed-form solution, as it is less
+error-prone.
 
 Please feel free to reach out if you have any thoughts or suggestions.
 
