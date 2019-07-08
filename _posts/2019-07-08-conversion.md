@@ -6,13 +6,14 @@ math: true
 ---
 
 It can be not only extremely useful but also deeply satisfying to occasionally
-dust off one’s own math skills. In this article, we approach the classical
-problem of conversion rate optimization—which is frequently faced by companies
-operating online—and derive the expected utility of switching from variant A to
-variant B under some modeling assumptions. This information can subsequently be
-utilized in order to support the corresponding decision-making process.
+dust off one’s math skills. In this article, we approach the classical problem
+of conversion rate optimization—which is frequently faced by companies operating
+online—and derive the expected utility of switching from variant A to variant B
+under some modeling assumptions. This information can subsequently be utilized
+in order to support the corresponding decision-making process.
 
-An R implementation of the math below can be found in the following repository:
+An R implementation of the math below and more can be found in the following
+repository:
 
 * [conversion-rate].
 
