@@ -11,6 +11,12 @@ twitter_username: IvanUkhov
 google_analytics: UA-47932672-9
 disqus: {shortname: good-news-everyone}
 
+exclude:
+  - '*.Rmd'
+  - .rstudio
+  - _caches
+  - _scripts
+
 future: true
 markdown: kramdown
 show_excerpts: true
