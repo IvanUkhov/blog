@@ -641,23 +641,23 @@ Thank you!
 [Docker]: https://www.docker.com/
 [Stackdriver]: https://cloud.google.com/stackdriver/
 
-[example-prediction]: https://github.com/IvanUkhov/example-prediction
-[example-prediction-service]: https://github.com/IvanUkhov/example-prediction-service
+[example-prediction]: https://github.com/chain-rule/example-prediction
+[example-prediction-service]: https://github.com/chain-rule/example-prediction-service
 
-[create an issue]: https://github.com/IvanUkhov/example-prediction-service/issues
-[open a pull request]: https://github.com/IvanUkhov/example-prediction-service/pulls
+[create an issue]: https://github.com/chain-rule/example-prediction-service/issues
+[open a pull request]: https://github.com/chain-rule/example-prediction-service/pulls
 
-[`Makefile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/Makefile
-[`container/Dockerfile`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/Dockerfile
-[`container/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container
-[`container/run.sh`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/run.sh
-[`container/wait.sh`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/container/wait.sh
-[`main`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/main.py
-[`model`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/model.py
-[`prediction/`]: https://github.com/IvanUkhov/example-prediction/tree/master/prediction
-[`scheduler/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler
-[`scheduler/configs/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/configs
-[`scheduler/configs/training.json`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/configs/training.json
-[`scheduler/graph.py`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/scheduler/graph.py
-[`service/`]: https://github.com/IvanUkhov/example-prediction-service/tree/master/service
-[`task`]: https://github.com/IvanUkhov/example-prediction/blob/master/prediction/task.py
+[`Makefile`]: https://github.com/chain-rule/example-prediction-service/tree/master/Makefile
+[`container/Dockerfile`]: https://github.com/chain-rule/example-prediction-service/tree/master/container/Dockerfile
+[`container/`]: https://github.com/chain-rule/example-prediction-service/tree/master/container
+[`container/run.sh`]: https://github.com/chain-rule/example-prediction-service/tree/master/container/run.sh
+[`container/wait.sh`]: https://github.com/chain-rule/example-prediction-service/tree/master/container/wait.sh
+[`main`]: https://github.com/chain-rule/example-prediction/blob/master/prediction/main.py
+[`model`]: https://github.com/chain-rule/example-prediction/blob/master/prediction/model.py
+[`prediction/`]: https://github.com/chain-rule/example-prediction/tree/master/prediction
+[`scheduler/`]: https://github.com/chain-rule/example-prediction-service/tree/master/scheduler
+[`scheduler/configs/`]: https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/configs
+[`scheduler/configs/training.json`]: https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/configs/training.json
+[`scheduler/graph.py`]: https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/graph.py
+[`service/`]: https://github.com/chain-rule/example-prediction-service/tree/master/service
+[`task`]: https://github.com/chain-rule/example-prediction/blob/master/prediction/task.py
