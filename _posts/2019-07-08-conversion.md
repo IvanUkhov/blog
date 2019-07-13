@@ -3,6 +3,11 @@ layout: post
 title: On the expected utility in conversion rate optimization
 date: 2019-07-08
 math: true
+keywords:
+  - Bayesian statistics
+  - conversion rate optimization
+  - data science
+  - decision-making
 ---
 
 It can be not only extremely useful but also deeply satisfying to occasionally

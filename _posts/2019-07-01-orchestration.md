@@ -2,6 +2,12 @@
 layout: post
 title: A poor man’s orchestration of predictive models, or do it yourself
 date: 2019-07-01
+keywords:
+  - Apache Airflow
+  - Docker
+  - Google Cloud Platform
+  - data science
+  - machine learning
 ---
 
 As a data scientist focusing on developing data products, you naturally want
