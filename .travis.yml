@@ -1,8 +1,5 @@
 os: osx
-
 language: ruby
-rvm:
-  - 2.6.3
 
 branches:
   only:
