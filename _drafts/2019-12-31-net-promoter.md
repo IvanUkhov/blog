@@ -269,15 +269,15 @@ next.
 # Implementation
 
 In this section, we implement the model using the probabilistic programming
-language [Stan]. Stan is easy to integrate into one’s workflow, as it has
-interfaces for many programming language, including Python and R. Here we only
-highlight the main points of the implementation and leave it to the curious
-reader to discover more about Stan on their own.
+language [Stan]. Stan is straightforward to integrate into one’s workflow, as it
+has interfaces for many general-purpose programming languages, including Python
+and R. Here we only highlight the main points of the implementation and leave it
+to the curious reader to discover Stan on their own.
 
-The following listing shows a complete implementation of the model:
+The following listing is a complete implementation of the model:
 
 ```c
-// The input data
+// The data
 data {
   int<lower = 0> m; // The number of segments
   int<lower = 0> n; // The number of categories, which is always three
@@ -291,7 +291,7 @@ parameters {
   simplex[n] theta[m];
 }
 
-// The parameters that are computed based on the above ones
+// The parameters that are computed using the above ones
 transformed parameters {
   vector<lower = 0>[n] phi;
   phi = mu / sigma^2;
@@ -312,7 +312,7 @@ It can be seen that the code is very laconic and follows closely the development
 in the previous section, including the notation. It is worth noting that, in the
 modeling section, we seemingly use unconstrained uniform and Cauchy
 distributions; however, the constraints are enforced by the definitions of the
-corresponding hyperparameters, $$\mu$$ and $$\sigma$$.
+corresponding hyperparameters, `mu` and `sigma`.
 
 This is practically all that is needed; the rest will be taken care of by Stan,
 which is a lot of work, including an adequate initialization, an efficient
@@ -320,14 +320,29 @@ execution, and necessary diagnostics and quality checks. Under the hood, the
 sampling of the posterior is based on the Hamiltonian Monte Carlo algorithm and
 the no-U-turn sampler, which are considered to be the state-of-the-art.
 
-The final output is a set of draws from the posterior distribution, which is,
-again, exhaustive information about the net promoter score in the segments of
-interest. In particular, one can quantify the uncertainty in any statement one
-makes. For instance, if a concise summary is needed, one could compute the mean
-of the score and accompany it with a high-posterior-density credible interval,
-capturing the true value with a certain probability.
+The output of the sampling procedure is a set of draws from the posterior
+distribution, which, again, is exhaustive information about the net promoter
+score in the segments of interest. In particular, one can quantify the
+uncertainty in any statement one makes about the score. For instance, if a
+concise summary is needed, one could compute the mean of the score and accompany
+it with a high-posterior-density credible interval, capturing the true value
+with a predefined probability. However, if applicable, the full distribution
+should be integrated into the decision-making process.
 
 # Conclusion
+
+In this article, we have constructed a hierarchical Bayesian model for inferring
+the net promoter score for an arbitrary segmentation of the customer base. The
+model features shared parameters, which enable information exchange between the
+segments. This allows for a more robust estimation of the score, especially in
+the case of segments with few observations. The final output of the inference is
+a probability distribution over all possible values for the score in each
+segment, which lays a solid foundation for the subsequent decision-making. We
+have also seen how seamlessly the model can be implemented in practice using
+modern tools for statistical inference, such as Stan.
+
+Lastly, it is worth noting that the presented model is only one alternative;
+there are many other.
 
 Thank you for making all the way to the end!
 
