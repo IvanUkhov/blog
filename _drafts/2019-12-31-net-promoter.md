@@ -56,7 +56,7 @@ taken when analyzing the results. In this article, however, we focus on the
 inference of the net promoter score under the assumption that the given sample
 of responses is representative of the target population.
 
-# Modeling
+# Problem
 
 In practice, one is interested to know the net promoter scope for different
 subpopulations of customers, such as countries of operation and age groups,
@@ -85,17 +85,90 @@ $$
 $$
 
 However, this observed score is a point estimate calculated using $$d_i + n_i +
-p_i$$ data points, which is typically a small subset of the corresponding
-subpopulation. It may or may not correspond well to the actual net promoter
-score of that subpopulation. Even if it does, the problem is that we do not know
-that. The above estimate alone does not tell us anything about the uncertainty
-associated with it. Uncertainty quantification is essential for sound
-decision-making, which is what we are after.
+p_i$$ data points, which is only a subset of the corresponding subpopulation. It
+may or may not correspond well to the actual net promoter score of that
+subpopulation. We have no reason to trust it, since the above estimate alone
+does not tell us anything about the uncertainty associated with it. Uncertainty
+quantification is essential for sound decision-making, which is what we are
+after.
 
 Ideally, for each segment, given the observed data, we would like to have a
 distribution of all possible values of the score with probabilities attached.
-Such a probability distribution is exhaustive information, from which any other
-statistic can be easily derived.
+Such a probability distribution would be exhaustive information, from which any
+other statistic could be easily derived. Here we tackle the problem by means of
+Bayesian inference, which we discuss next.
+
+# Solution
+
+In order to perform Bayesian inference of the net promoter score, we need to
+decide on an adequate Bayesian model for the problem at hand. Recall first that
+we are interested in inferring scores for several segments. Even though there
+might be segment-specific variations in the product, such as special offers in
+certain countries, or in customers’ perception of the product, such as
+age-related preferences, it is conceptually the same product that the customers
+were asked to evaluate. It is then sensible to expect scores in different
+segments to have something in common. With this in mind, we construct a
+hierarchical model with parameters shared by the segments.
+
+First, let
+
+$$
+\theta_i = (\theta_{id}, \theta_{in}, \theta_{ip})
+$$
+
+be a triplet of parameters corresponding to the proportions of detractors,
+neutrals, and promoters in segment $$i$$, respectively, with the constraint that
+they have to sum up to one, which makes them a simplex. These are the main
+parameters we are interested in inferring. If the true value of $$\theta_i$$ was
+known, the net promoter score would be computed as follows:
+
+$$
+\hat{s}_i = 100 \times (\theta_{ip} - \theta_{id}).
+$$
+
+Parameter $$\theta_i$$ can also be thought of as a vector of probabilities of
+observing one of the three types of customers in segment $$i$$, that is,
+detractors, neutrals, and promoters. Then the natural model for the observed
+data is a multinomial distribution with $$d_i + n_i + p_i$$ trials and
+probabilities $$\theta_i$$:
+
+$$
+y_i | \theta_i \sim \text{Multinomial}(d_i + n_i + p_i, \theta_i)
+$$
+
+where $$y_i$$ refers to the $$i$$th row of matrix $$y$$ introduced earlier. The
+family of multinomial distributions is a generalization of the family of
+binomial distribution to more than two outcomes.
+
+The above gives a data distribution. In order to complete the modeling part, we
+need to decide on a prior distribution for $$\theta_i$$. Each $$\theta_i$$ is a
+simplex of probabilities. In such a case, a reasonable choice is a Dirichlet
+distribution:
+
+$$
+\theta_i | \phi \sim \text{Dirichlet}(\phi)
+$$
+
+where $$\phi = (\phi_d, \phi_n, \phi_p) \in \mathbb{R}_{+}^3$$ is a vector of
+parameters. This familiy of distributions is a generalization of the family of
+beta distributions to more than two categories. Note that $$\phi$$ is the same
+for all segments, which is what enables information sharing. In particular, it
+means that the less reliable estimates for segments with fewer observations will
+be shrunk toward the more reliable estimates for segments with more
+observations. In other words, with this architecture, segments with fewer
+observations are able to draw strength from those with more observations.
+
+We are not done yet. How about $$\phi$$? This triplet is a characteristic of the
+product irrespective of the segment. Its individual components can be used in
+order to encode one’s prior knowledge about the net promoter score.
+Specifically, $$\phi_d$$, $$\phi_n$$, and $$\phi_p$$ could be set to imaginary
+observations of detractors, neutrals, and promoters, respectively, reflecting
+our beliefs. The higher these imaginary counts are, the more certain we claim to
+be about the actual score. One could certainly set these hyperparameters to
+fixed values; however, let us proceed under the assumption that we have little
+knowledge about the score. Even if there were surveys in the past, it is still a
+valid choice, especially when the product rapidly evolves, rendering prior
+surveys marginally relevant.
 
 # Implementation
 
@@ -128,3 +201,5 @@ model {
 ```
 
 # Conclusion
+
+Thank you for making all the way to the end!
