@@ -233,7 +233,43 @@ y_i | \theta_i & \sim \text{Multinomial}(d_i + n_i + p_i, \theta_i), \\
 \end{align}
 $$
 
+The posterior distribution factorizes as follows:
+
+$$
+p(\theta_1, \dots, \theta_m, \mu, \sigma | y) \propto
+p(y | \theta_1, \dots, \theta_m) \,
+p(\theta_1 | \mu, \sigma) \cdots
+p(\theta_m | \mu, \sigma) \,
+p(\mu) \,
+p(\sigma),
+$$
+
+which relies on the usual assumption of independence given the parameters.
+
+The above posterior distribution is our ultimate goal. It is the one that gives
+us a complete picture of what the true net promoter score in each segment might
+be given the available evidence, that is, the responses from the survey. All
+that is left is to draw a large enough sample from this distribution and start
+to summarize and visualize results for the subsequent delivery to the
+decision-makers.
+
+Unfortunately, as one might probably suspect, drawing samples from the posterior
+is not an easy task. It does not correspond to any standard distribution and
+hence does not have a readily available random number generator. Fortunately,
+the topic is mature, and there have been developed techniques for sampling
+complex distributions, such as Markov chain Monte Carlo methods. Unfortunately,
+the most effective and efficient of these techniques are notoriously complex by
+themselves, and it might be extremely difficult and tedious to implement and
+apply them correctly in practice. Fortunately, the need for versatile tools for
+modeling and inference with the focus on the problem at hand and not on
+implementation details has been recognized and addressed. Nontrivial scenarios
+can be tackled with a surprisingly small amount of effort, which we illustrate
+next.
+
 # Implementation
+
+Probabilistic programming languages
+
 
 ```c
 data {
