@@ -113,14 +113,15 @@ hierarchical model with parameters shared by the segments.
 First, let
 
 $$
-\theta_i = (\theta_{id}, \theta_{in}, \theta_{ip})
+\theta_i = (\theta_{id}, \theta_{in}, \theta_{ip}) \in \langle 0, 1 \rangle^3
 $$
 
 be a triplet of parameters corresponding to the proportions of detractors,
 neutrals, and promoters in segment $$i$$, respectively, with the constraint that
-they have to sum up to one, which makes them a simplex. These are the main
-parameters we are interested in inferring. If the true value of $$\theta_i$$ was
-known, the net promoter score would be computed as follows:
+they have to sum up to one. The constraint makes the triplet a simplex, which is
+what is emphasized by the angle brackets. These are the main parameters we are
+interested in inferring. If the true value of $$\theta_i$$ was known, the net
+promoter score would be computed as follows:
 
 $$
 \hat{s}_i = 100 \times (\theta_{ip} - \theta_{id}).
@@ -163,12 +164,74 @@ product irrespective of the segment. Its individual components can be used in
 order to encode one’s prior knowledge about the net promoter score.
 Specifically, $$\phi_d$$, $$\phi_n$$, and $$\phi_p$$ could be set to imaginary
 observations of detractors, neutrals, and promoters, respectively, reflecting
-our beliefs. The higher these imaginary counts are, the more certain we claim to
-be about the actual score. One could certainly set these hyperparameters to
-fixed values; however, let us proceed under the assumption that we have little
-knowledge about the score. Even if there were surveys in the past, it is still a
-valid choice, especially when the product rapidly evolves, rendering prior
-surveys marginally relevant.
+one’s beliefs prior to the survey. The higher these imaginary counts are, the
+more certain one claims to be about the actual score. One could certainly set
+these hyperparameters to fixed values; however, a more comprehensive solution is
+to infer them from the data as well, giving the model more flexibility and
+making it hierarchical. In addition, by inspecting the inferred $$\phi$$, one
+could gain insights about the product.
+
+We now need to specify a prior, or rather a hyperprior, for $$\phi$$. We proceed
+under the assumption that we have little knowledge about the score. Even if
+there were surveys in the past, it is still a valid choice, especially when the
+product rapidly evolves, rendering prior surveys marginally relevant.
+
+It is more convenient to think in terms of expected values and variances instead
+of imaginary counts, which is what $$\phi$$ represents. Let us then find a
+suitable parameterization of the Dirichlet distribution. The expected value of
+this distribution is as follows:
+
+$$
+\mu = (\mu_d, \mu_n, \mu_p) = \frac{\phi}{\phi_d + \phi_n + \phi_p} \in \langle 0, 1 \rangle^3.
+$$
+
+It can be seen that it is a simplex of proportions of detractors, neutrals, and
+promoters of the whole population, which is similar to $$\theta_i$$ describing
+segment $$i$$. Regarding the variance,
+
+$$
+\sigma^2 = \frac{1}{\phi_d + \phi_n + \phi_p}
+$$
+
+is considered to be sufficient for practical purposes. Solving the system of the
+last two equations for $$\phi$$ yields the following result:
+
+$$
+\phi = \frac{\mu}{\sigma^2}.
+$$
+
+The prior for $$\theta_i$$ can then be rewritten as follows:
+
+$$
+\theta_i | \mu, \sigma \sim \text{Dirichlet}\left(\frac{\mu}{\sigma^2}\right).
+$$
+
+This new parameterization requires two hyperpriors: one is for $$\mu$$, and one
+is for $$\sigma$$. For $$\mu$$, a reasonable choice is a uniform distribution
+(over a simplex), and for $$\sigma$$, a half-Cauchy distribution:
+
+$$
+\begin{align}
+& \mu \sim \text{Uniform}(\langle 0, 1 \rangle^3) \text{ and} \\
+& \sigma \sim \text{half-Cauchy}(0, 1).
+\end{align}
+$$
+
+The two distributions are relatively week, which is intended to let the data
+speak for themselves.
+
+At last, there are no more parameters! Of course, one could go further if the
+problem at hand had a deeper structure; however, in this case, it is arguably
+not justifiable. The final model is as follows:
+
+$$
+\begin{align}
+y_i | \theta_i & \sim \text{Multinomial}(d_i + n_i + p_i, \theta_i), \\
+\theta_i | \mu, \sigma & \sim \text{Dirichlet}(\mu / \sigma^2), \\
+\mu & \sim \text{Uniform}(\langle 0, 1 \rangle^3), \text{ and} \\
+\sigma & \sim \text{half-Cauchy}(0, 1).
+\end{align}
+$$
 
 # Implementation
 
@@ -203,3 +266,13 @@ model {
 # Conclusion
 
 Thank you for making all the way to the end!
+
+# References
+
+* Andrew Gelman et al., _[Bayesian Data Analysis][book]_, Chapman and Hall/CRC,
+  2014.
+* Andrew Gelman, “[Some practical questions about prior distributions][blog],”
+  2009.
+
+[blog]: https://statmodeling.stat.columbia.edu/2009/10/21/some_practical/
+[book]: http://www.stat.columbia.edu/~gelman/book/
