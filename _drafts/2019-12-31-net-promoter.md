@@ -59,35 +59,27 @@ of responses is representative of the target population.
 # Modeling
 
 In practice, one is interested to know the net promoter scope for different
-subpopulations of customers, such as countries of operation, which is the
-scenario that we shall target. To this end, suppose that there are $$m$$
-segments identified by integers from 1 to $$m$$. Denote by $$s_{ij} \in \{0,
-\dots, 10\}$$ response $$j$$ in segment $$i$$, and let $$n_i$$ be the total
-number of responses in segment $$i$$. Let also
-
-$$
-\begin{align}
-& I_d = I_{\{0, \dots, 6\}}, \\
-& I_n = I_{\{7, 8\}}, \text{ and} \\
-& I_p = I_{\{9, 10\}} \\
-\end{align}
-$$
-
-be indicator functions of detractor, neutral, and promoter scores, respectively,
-meaning that, for instance, $$I_d(9) = 0$$, while $$I_p(9) = 1$$.
-
-The results of a net promoter survey can be losslessly summarized as the
-following $$m \times n$$ matrix with three columns corresponding to detractors,
-neutrals, and promoters, respectively:
+subpopulations of customers, such as countries of operation and age groups,
+which is the scenario that we shall target. To this end, suppose that there are
+$$m$$ segments. The results of a net promoter survey can then be summarized
+using the following $$m \times 3$$ matrix:
 
 $$
 y = \left(
 \begin{matrix}
-\sum_{j = 1}^{n_1} I_d(s_{1j}) & \sum_{j = 1}^{n_1} I_n(s_{1j}) & \sum_{j = 1}^{n_1} I_p(s_{1j}) \\
+d_1 & n_1 & p_1 \\
 \cdots & \cdots & \cdots \\
-\sum_{j = 1}^{n_m} I_d(s_{mj}) & \sum_{j = 1}^{n_m} I_n(s_{mj}) & \sum_{j = 1}^{n_m} I_p(s_{mj})
+d_m & n_m & p_m
 \end{matrix}
-\right).
+\right)
+$$
+
+where $$d_i$$, $$n_i$$, and $$p_i$$ denote the number of detractors, neutrals,
+and promoters in segment $$i$$, respectively. For segment $$i$$, the _observed_
+net promoter score can be computed as follows:
+
+$$
+\hat{s}_i = 100 \times \frac{p_i - d_i}{d_i + n_i + p_i}.
 $$
 
 # Implementation
