@@ -268,27 +268,36 @@ next.
 
 # Implementation
 
-Probabilistic programming languages
+In this section, we implement the model using the probabilistic programming
+language [Stan]. Stan is easy to integrate into one’s workflow, as it has
+interfaces for many programming language, including Python and R. Here we only
+highlight the main points of the implementation and leave it to the curious
+reader to discover more about Stan on their own.
 
+The following listing shows a complete implementation of the model:
 
 ```c
+// The input data
 data {
-  int<lower = 0> m;
-  int<lower = 0> n;
-  int y[m, n];
+  int<lower = 0> m; // The number of segments
+  int<lower = 0> n; // The number of categories, which is always three
+  int y[m, n]; // The observed counts of detractors, neutrals, and promoters
 }
 
+// The parameters and hyperparameters of the model
 parameters {
   simplex[n] mu;
   real<lower = 0> sigma;
   simplex[n] theta[m];
 }
 
+// The parameters that are computed based on the above ones
 transformed parameters {
   vector<lower = 0>[n] phi;
   phi = mu / sigma^2;
 }
 
+// The model
 model {
   mu ~ uniform(0, 1);
   sigma ~ cauchy(0, 1);
@@ -298,6 +307,25 @@ model {
   }
 }
 ```
+
+It can be seen that the code is very laconic and follows closely the development
+in the previous section, including the notation. It is worth noting that, in the
+modeling section, we seemingly use unconstrained uniform and Cauchy
+distributions; however, the constraints are enforced by the definitions of the
+corresponding hyperparameters, $$\mu$$ and $$\sigma$$.
+
+This is practically all that is needed; the rest will be taken care of by Stan,
+which is a lot of work, including an adequate initialization, an efficient
+execution, and necessary diagnostics and quality checks. Under the hood, the
+sampling of the posterior is based on the Hamiltonian Monte Carlo algorithm and
+the no-U-turn sampler, which are considered to be the state-of-the-art.
+
+The final output is a set of draws from the posterior distribution, which is,
+again, exhaustive information about the net promoter score in the segments of
+interest. In particular, one can quantify the uncertainty in any statement one
+makes. For instance, if a concise summary is needed, one could compute the mean
+of the score and accompany it with a high-posterior-density credible interval,
+capturing the true value with a certain probability.
 
 # Conclusion
 
@@ -310,5 +338,6 @@ Thank you for making all the way to the end!
 * Andrew Gelman, “[Some practical questions about prior distributions][blog],”
   2009.
 
+[Stan]: https://mc-stan.org/
 [blog]: https://statmodeling.stat.columbia.edu/2009/10/21/some_practical/
 [book]: http://www.stat.columbia.edu/~gelman/book/
