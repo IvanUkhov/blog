@@ -9,6 +9,21 @@ keywords:
   - Stan
   - data science
   - net promoter score
+javascript: >
+  window.onload = function() {
+    var keywords = ['data', 'model', 'parameters', 'transformed'];
+    var types = ['real', 'simplex', 'vector'];
+    document
+      .querySelectorAll('.language-c .n')
+      .forEach(function(element) {
+        if (keywords.indexOf(element.innerText) != -1) {
+          element.style.cssText = 'font-weight: 600';
+        }
+        if (types.indexOf(element.innerText) != -1) {
+          element.className += ' kt';
+        }
+      });
+  };
 ---
 
 The net promoter score is a widely adopted metric for gauging customers’
@@ -40,3 +55,39 @@ is prone to such biases as participation and response biases, great care must be
 taken when analyzing the results. In this article, however, we focus on the
 inference of the net promoter score under the assumption that the given sample
 of responses is representative of the target population.
+
+# Modeling
+
+Let us introduce some notation.
+
+# Implementation
+
+```c
+data {
+  int<lower = 1> m;
+  int<lower = 1> n;
+  int y[m, n];
+}
+
+parameters {
+  simplex[n] mu;
+  real<lower = 0> sigma;
+  simplex[n] theta[m];
+}
+
+transformed parameters {
+  vector<lower = 0>[n] phi;
+  phi = mu / sigma^2;
+}
+
+model {
+  mu ~ uniform(0, 1);
+  sigma ~ cauchy(0, 1);
+  for (i in 1:m) {
+    theta[i] ~ dirichlet(phi);
+    y[i] ~ multinomial(theta[i]);
+  }
+}
+```
+
+# Conclusion
