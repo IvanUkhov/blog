@@ -149,8 +149,8 @@ $$
 \theta_i | \phi \sim \text{Dirichlet}(\phi)
 $$
 
-where $$\phi = (\phi_d, \phi_n, \phi_p) \in \mathbb{R}_{+}^3$$ is a vector of
-parameters. This familiy of distributions is a generalization of the family of
+where $$\phi = (\phi_d, \phi_n, \phi_p)$$ is a vector of strictly positive
+parameters. This family of distributions is a generalization of the family of
 beta distributions to more than two categories. Note that $$\phi$$ is the same
 for all segments, which is what enables information sharing. In particular, it
 means that the less reliable estimates for segments with fewer observations will
