@@ -109,7 +109,7 @@ we are interested in inferring scores for several segments. Even though there
 might be segment-specific variations in the product, such as special offers in
 certain countries, or in customers’ perception of the product, such as
 age-related preferences, it is conceptually the same product that the customers
-were asked to evaluate. It is then sensible to expect scores in different
+were asked to evaluate. It is then sensible to expect the scores in different
 segments to have something in common. With this in mind, we construct a
 hierarchical model with parameters shared by the segments.
 
@@ -119,12 +119,12 @@ $$
 \theta_i = (\theta_{id}, \theta_{in}, \theta_{ip}) \in \langle 0, 1 \rangle^3
 $$
 
-be a triplet of parameters corresponding to the proportions of detractors,
+be a triplet of parameters corresponding to the proportion of detractors,
 neutrals, and promoters in segment $$i$$, respectively, with the constraint that
 they have to sum up to one. The constraint makes the triplet a simplex, which is
-what is emphasized by the angle brackets. These are the main parameters we are
-interested in inferring. If the true value of $$\theta_i$$ was known, the net
-promoter score would be computed as follows:
+what is emphasized by the angle brackets on the right-hand side. These are the
+main parameters we are interested in inferring. If the true value of
+$$\theta_i$$ was known, the net promoter score would be computed as follows:
 
 $$
 \hat{s}_i = 100 \times (\theta_{ip} - \theta_{id}).
@@ -142,12 +142,12 @@ $$
 
 where $$y_i$$ refers to the $$i$$th row of matrix $$y$$ introduced earlier. The
 family of multinomial distributions is a generalization of the family of
-binomial distribution to more than two outcomes.
+binomial distributions to more than two outcomes.
 
 The above gives a data distribution. In order to complete the modeling part, we
-need to decide on a prior distribution for $$\theta_i$$. Each $$\theta_i$$ is a
-simplex of probabilities. In such a case, a reasonable choice is a Dirichlet
-distribution:
+need to decide on a prior probability distribution for $$\theta_i$$. Each
+$$\theta_i$$ is a simplex of probabilities. In such a case, a reasonable choice
+is a Dirichlet distribution:
 
 $$
 \theta_i | \phi \sim \text{Dirichlet}(\phi)
@@ -162,27 +162,27 @@ be shrunk toward the more reliable estimates for segments with more
 observations. In other words, with this architecture, segments with fewer
 observations are able to draw strength from those with more observations.
 
-We are not done yet. How about $$\phi$$? This triplet is a characteristic of the
-product irrespective of the segment. Its individual components can be used in
-order to encode one’s prior knowledge about the net promoter score.
-Specifically, $$\phi_d$$, $$\phi_n$$, and $$\phi_p$$ could be set to imaginary
-observations of detractors, neutrals, and promoters, respectively, reflecting
-one’s beliefs prior to the survey. The higher these imaginary counts are, the
-more certain one claims to be about the actual score. One could certainly set
-these hyperparameters to fixed values; however, a more comprehensive solution is
-to infer them from the data as well, giving the model more flexibility and
-making it hierarchical. In addition, by inspecting the inferred $$\phi$$, one
-could gain insights about the product.
+How about $$\phi$$? This triplet is a characteristic of the product irrespective
+of the segment. Its individual components can be utilized in order to encode
+one’s prior knowledge about the net promoter score. Specifically, $$\phi_d$$,
+$$\phi_n$$, and $$\phi_p$$ could be set to imaginary observations of detractors,
+neutrals, and promoters, respectively, reflecting one’s beliefs prior to
+conducting the survey. The higher these imaginary counts are, the more certain
+one claims to be about the true score. One could certainly set these
+hyperparameters to fixed values; however, a more comprehensive solution is to
+infer them from the data as well, giving the model more flexibility by making it
+hierarchical. In addition, an inspection of $$\phi$$ afterward can provide
+insights into the overall satisfaction with the product.
 
 We now need to specify a prior, or rather a hyperprior, for $$\phi$$. We proceed
-under the assumption that we have little knowledge about the score. Even if
+under the assumption that we have little knowledge about the true score. Even if
 there were surveys in the past, it is still a valid choice, especially when the
-product rapidly evolves, rendering prior surveys marginally relevant.
+product evolves rapidly, rendering prior surveys marginally relevant.
 
-It is more convenient to think in terms of expected values and variances instead
-of imaginary counts, which is what $$\phi$$ represents. Let us then find a
-suitable parameterization of the Dirichlet distribution. The expected value of
-this distribution is as follows:
+Now, it is more convenient to think in terms of expected values and variances
+instead of imaginary counts, which is what $$\phi$$ represents. Let us find an
+alternative parameterization of the Dirichlet distribution. The expected value
+of this distribution is as follows:
 
 $$
 \mu = (\mu_d, \mu_n, \mu_p) = \frac{\phi}{\phi_d + \phi_n + \phi_p} \in \langle 0, 1 \rangle^3.
@@ -196,8 +196,8 @@ $$
 \sigma^2 = \frac{1}{\phi_d + \phi_n + \phi_p}
 $$
 
-is considered to be sufficient for practical purposes. Solving the system of the
-last two equations for $$\phi$$ yields the following result:
+is considered to capture it sufficiently well. Solving the system of the last
+two equations for $$\phi$$ yields the following result:
 
 $$
 \phi = \frac{\mu}{\sigma^2}.
@@ -220,12 +220,12 @@ $$
 \end{align}
 $$
 
-The two distributions are relatively week, which is intended to let the data
-speak for themselves.
+The two distributions are relatively week, which is intended in order to let the
+data speak for themselves. At this point, all parameters have been defined. Of
+course, one could go further if the problem at hand had a deeper structure;
+however, in this case, it is arguably not justifiable.
 
-At last, there are no more parameters! Of course, one could go further if the
-problem at hand had a deeper structure; however, in this case, it is arguably
-not justifiable. The final model is as follows:
+The final model is as follows:
 
 $$
 \begin{align}
@@ -247,27 +247,29 @@ p(\mu) \,
 p(\sigma),
 $$
 
-which relies on the usual assumption of independence given the parameters.
+which relies on the usual assumption of independence given the parameters. One
+could make a few simplifications by, for instance, leveraging the conjugacy of
+the Dirichlet distribution with respect to the multinomial distribution;
+however, it is not needed in practice, as we shall see shortly.
 
 The above posterior distribution is our ultimate goal. It is the one that gives
 us a complete picture of what the true net promoter score in each segment might
 be given the available evidence, that is, the responses from the survey. All
 that is left is to draw a large enough sample from this distribution and start
-to summarize and visualize results for the subsequent delivery to the
-decision-makers.
+to summarize and visualize the results.
 
 Unfortunately, as one might probably suspect, drawing samples from the posterior
 is not an easy task. It does not correspond to any standard distribution and
 hence does not have a readily available random number generator. Fortunately,
-the topic is mature, and there have been developed techniques for sampling
-complex distributions, such as Markov chain Monte Carlo methods. Unfortunately,
-the most effective and efficient of these techniques are notoriously complex by
-themselves, and it might be extremely difficult and tedious to implement and
-apply them correctly in practice. Fortunately, the need for versatile tools for
-modeling and inference with the focus on the problem at hand and not on
-implementation details has been recognized and addressed. Nontrivial scenarios
-can be tackled with a surprisingly small amount of effort, which we illustrate
-next.
+the topic is sufficiently mature, and there have been developed techniques for
+sampling complex distributions, such as the family of Markov chain Monte Carlo
+methods. Unfortunately, the most effective and efficient of these techniques are
+notoriously complex themselves, and it might be extremely difficult and tedious
+to implement and apply them correctly in practice. Fortunately, the need for
+versatile tools for modeling and inference with the focus on the problem at hand
+and not on implementation details has been recognized and addressed. Nontrivial
+scenarios can be tackled with a surprisingly small amount of effort nowadays,
+which we illustrate next.
 
 # Implementation
 
