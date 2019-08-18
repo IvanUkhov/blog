@@ -63,8 +63,9 @@ of responses is representative of the target population.
 In practice, one is interested to know the net promoter scope for different
 subpopulations of customers, such as countries of operation and age groups,
 which is the scenario that we shall target. To this end, suppose that there are
-$$m$$ segments. The results of a net promoter survey can then be summarized
-using the following $$m \times 3$$ matrix:
+$$m$$ segments of interest, and each customer belongs to strictly one of them.
+The results of a net promoter survey can then be summarized using the following
+$$m \times 3$$ matrix:
 
 $$
 y = \left(
@@ -86,13 +87,13 @@ $$
 \hat{s}_i = 100 \times \frac{p_i - d_i}{d_i + n_i + p_i}.
 $$
 
-However, this observed score is a point estimate calculated using $$d_i + n_i +
-p_i$$ data points, which is only a subset of the corresponding subpopulation. It
-may or may not correspond well to the actual net promoter score of that
-subpopulation. We have no reason to trust it, since the above estimate alone
-does not tell us anything about the uncertainty associated with it. Uncertainty
-quantification is essential for sound decision-making, which is what we are
-after.
+However, this observed score is a single scalar value calculated using $$d_i +
+n_i + p_i$$ data points, which is only a subset of the corresponding
+subpopulation. It may or may not correspond well to the actual net promoter
+score of that subpopulation. We have no reason to trust it, since the above
+estimate alone does not tell us anything about the uncertainty associated with
+it. Uncertainty quantification is essential for sound decision-making, which is
+what we are after.
 
 Ideally, for each segment, given the observed data, we would like to have a
 distribution of all possible values of the score with probabilities attached.
