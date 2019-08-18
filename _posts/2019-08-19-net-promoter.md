@@ -31,7 +31,7 @@ satisfaction with a product. The popularity of the score is arguably attributed
 to the simplicity of measurement and the intuitiveness of interpretation.
 Moreover, it is claimed to be correlated with revenue growth, which, ignoring
 causality, makes it even more appealing. In this article, we leverage Bayesian
-inference in order to estimate the net promoter score for an arbitrary
+statistics in order to infer the net promoter score for an arbitrary
 segmentation of a customer base. The outcome of the inference is a distribution
 over all possible values of the score weighted by probabilities, which provides
 exhaustive information for the subsequent decision-making.
