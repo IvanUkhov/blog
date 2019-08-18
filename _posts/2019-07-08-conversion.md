@@ -280,6 +280,14 @@ error-prone.
 
 Please feel free to reach out if you have any thoughts or suggestions.
 
+# References
+
+* Chris Stucchio, “[Easy evaluation of decision rules in Bayesian A/B
+  testing][Chris Stucchio],” 2014.
+* David Robinson, “[Is Bayesian A/B testing immune to peeking? Not
+  exactly][David Robinson],” 2015.
+* Evan Miller, “[Formulas for Bayesian A/B testing][Evan Miller],” 2014.
+
 [conversion-rate]: https://github.com/chain-rule/conversion-rate
 
 [Chris Stucchio]: https://www.chrisstucchio.com/blog/2014/bayesian_ab_decision_rule.html
