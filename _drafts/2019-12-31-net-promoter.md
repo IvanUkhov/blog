@@ -338,7 +338,7 @@ the full distribution should be integrated into the decision-making process.
 # Conclusion
 
 In this article, we have constructed a hierarchical Bayesian model for inferring
-the net promoter score for an arbitrary segmentation of the customer base. The
+the net promoter score for an arbitrary segmentation of a customer base. The
 model features shared parameters, which enable information exchange between the
 segments. This allows for a more robust estimation of the score, especially in
 the case of segments with few observations. The final output of the inference is
@@ -347,8 +347,9 @@ segment, which lays a solid foundation for the subsequent decision-making. We
 have also seen how seamlessly the model can be implemented in practice using
 modern tools for statistical inference, such as Stan.
 
-Lastly, it is worth noting that the presented model is only one alternative;
-there are many other.
+Lastly, note that the presented model is only one alternative; there are many
+other. How would _you_ model the net promoter score? What changes would you
+make? Make sure to leave a comment.
 
 # References
 
