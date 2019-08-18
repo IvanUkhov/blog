@@ -289,14 +289,14 @@ data {
   int y[m, n]; // The observed counts of detractors, neutrals, and promoters
 }
 
-// The parameters and hyperparameters of the model
+// The parameters of the model
 parameters {
   simplex[n] mu;
   real<lower = 0> sigma;
   simplex[n] theta[m];
 }
 
-// The parameters that are computed using the above ones
+// The parameters that are derived using the above ones
 transformed parameters {
   vector<lower = 0>[n] phi;
   phi = mu / sigma^2;
@@ -314,25 +314,26 @@ model {
 ```
 
 It can be seen that the code is very laconic and follows closely the development
-in the previous section, including the notation. It is worth noting that, in the
-modeling section, we seemingly use unconstrained uniform and Cauchy
+given in the previous section, including the notation. It is worth noting that,
+in the model block, we seemingly use unconstrained uniform and Cauchy
 distributions; however, the constraints are enforced by the definitions of the
 corresponding hyperparameters, `mu` and `sigma`.
 
 This is practically all that is needed; the rest will be taken care of by Stan,
-which is a lot of work, including an adequate initialization, an efficient
-execution, and necessary diagnostics and quality checks. Under the hood, the
-sampling of the posterior is based on the Hamiltonian Monte Carlo algorithm and
-the no-U-turn sampler, which are considered to be the state-of-the-art.
+which is actually a lot of work, including an adequate initialization, an
+efficient execution, and necessary diagnostics and quality checks. Under the
+hood, the sampling of the posterior in Stan is based on the Hamiltonian Monte
+Carlo algorithm and the no-U-turn sampler, which are considered to be the
+state-of-the-art.
 
 The output of the sampling procedure is a set of draws from the posterior
 distribution, which, again, is exhaustive information about the net promoter
 score in the segments of interest. In particular, one can quantify the
-uncertainty in any statement one makes about the score. For instance, if a
-concise summary is needed, one could compute the mean of the score and accompany
-it with a high-posterior-density credible interval, capturing the true value
-with a predefined probability. However, if applicable, the full distribution
-should be integrated into the decision-making process.
+uncertainty in and the probability of any statement one makes about the score.
+For instance, if a concise summary is needed, one could compute the mean of the
+score and accompany it with a high-posterior-density credible interval,
+capturing the true value with the desired probability. However, if applicable,
+the full distribution should be integrated into the decision-making process.
 
 # Conclusion
 
