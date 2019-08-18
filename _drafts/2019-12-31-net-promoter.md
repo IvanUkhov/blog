@@ -27,21 +27,23 @@ javascript: >
 ---
 
 The net promoter score is a widely adopted metric for gauging customers’
-satisfaction with a product. The popularity of the score is largely attributed
-to the simplicity of measurement and the easy of interpretation. Moreover, it is
-claimed to be correlated with revenue growth, which, ignoring causality, might
-make it even more appealing. In this article, we make use of Bayesian statistics
-in order to infer the net promoter score for an arbitrary segmentation of a
-customer base.
+satisfaction with a product. The popularity of the score is arguably attributed
+to the simplicity of measurement and the intuitiveness of interpretation.
+Moreover, it is claimed to be correlated with revenue growth, which, ignoring
+causality, makes it even more appealing. In this article, we leverage Bayesian
+inference in order to estimate the net promoter score for an arbitrary
+segmentation of a customer base. The outcome of the inference is a distribution
+over all possible values of the score weighted by probabilities, which provides
+exhaustive information for the subsequent decision-making.
 
 A bare-bones net promoter survey is composed of only one question: “How likely
 are you to recommend us to a friend?” The answer is an integer ranging from 0 to
-10 inclusively. If the answer is between 0 and 6 inclusively, the person in
+10 inclusively. If the grade is between 0 and 6 inclusively, the person in
 question is said to be a detractor. If it is 7 or 8, the person is said to be a
-neutral. Lastly, if it is 9 or 10, the person is said to be a promoter. The net
+neutral. Lastly, if it is 9 or 10, the person is deemed a promoter. The net
 promoter score itself is then the percentage of promoters minus the percentage
 of detractors. The minimum and maximum attainable values of the score are −100
-and 100, respectively.
+and 100, respectively. In this case, the greater, the better.
 
 As it is usually the case with surveys, a small but representative subset of
 customers is reached out to, and the collected responses are then used to draw
@@ -336,7 +338,7 @@ the net promoter score for an arbitrary segmentation of the customer base. The
 model features shared parameters, which enable information exchange between the
 segments. This allows for a more robust estimation of the score, especially in
 the case of segments with few observations. The final output of the inference is
-a probability distribution over all possible values for the score in each
+a probability distribution over all possible values of the score in each
 segment, which lays a solid foundation for the subsequent decision-making. We
 have also seen how seamlessly the model can be implemented in practice using
 modern tools for statistical inference, such as Stan.
