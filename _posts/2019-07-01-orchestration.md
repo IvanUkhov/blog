@@ -633,9 +633,6 @@ like to share your thoughts, please leave a comment below or send an e-mail.
 Feel also free to [create an issue] or [open a pull request] on GitHub. Any
 feedback is very much appreciated!
 
-
-Thank you!
-
 [Airflow]: https://airflow.apache.org/
 [BigQuery]: https://cloud.google.com/bigquery/
 [Cloud Composer]: https://cloud.google.com/composer/

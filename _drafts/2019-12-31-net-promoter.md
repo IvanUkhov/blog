@@ -344,8 +344,6 @@ modern tools for statistical inference, such as Stan.
 Lastly, it is worth noting that the presented model is only one alternative;
 there are many other.
 
-Thank you for making all the way to the end!
-
 # References
 
 * Andrew Gelman et al., _[Bayesian Data Analysis][book]_, Chapman and Hall/CRC,
