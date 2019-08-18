@@ -28,3 +28,10 @@ body {
 .home p:nth-child(1) {
   text-indent: -0.4em;
 }
+
+.post p, .post-list p {
+  text-align: justify;
+  -webkit-hyphens: auto;
+  -ms-hyphens: auto;
+  hyphens: auto;
+}
