@@ -22,5 +22,8 @@ markdown: kramdown
 show_excerpts: true
 theme: minima
 
+minima:
+  date_format: '%B %-d, %Y'
+
 plugins:
   - jekyll-feed
