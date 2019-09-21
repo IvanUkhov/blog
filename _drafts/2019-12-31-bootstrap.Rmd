@@ -1,0 +1,33 @@
+---
+layout: post
+title: Sample size determination using historical data and simulation
+date: 2019-12-31
+math: true
+---
+
+In order to be able to test a hypothesis, one has to design and execute an
+adequate experiment. Typically, it is neither feasible nor desirable to involve
+the entire population in question. Instead, a small yet sufficiently large and
+necessarily representative subset of the population is considered, and if done
+right, relevant conclusions can then be drawn with respect to the whole
+population given the outcome for this small sample. A necessary question to
+answer is then, What is the minimal sample size needed? At this point, one might
+reach for a thick book in statistics, match the situation at hand with a
+statistical test, agree to the terms and conditions of the test, and proceed to
+estimating the sample size using the corresponding formulae. In what follows,
+however, we shall answer the question posed above without any mathematical
+formulae. The only prerequisites are historical data describing the status quo
+and the ability to write a few lines of code in a programming language of
+choice.
+
+This article is inspired by “[There is only one test!][Allen Downey]” by Allen
+Downey and “[Statistics without the agonizing pain][John Rauser]” by John
+Rauser.
+
+# Acknowledgments
+
+I would like to thank [Aaron Rendahl] for the help with the implementation.
+
+[Aaron Rendahl]: http://users.stat.umn.edu/~rend0020/
+[Allen Downey]: http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html
+[John Rauser]: https://www.youtube.com/watch?v=5Dnw46eC-0o
