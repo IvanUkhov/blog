@@ -24,6 +24,60 @@ This article is inspired by “[There is only one test!][Allen Downey]” by All
 Downey and “[Statistics without the agonizing pain][John Rauser]” by John
 Rauser.
 
+# Implementation
+
+She sells seashells by the seashore.
+
+```{r, echo = TRUE, message = FALSE}
+library(tidyverse)
+
+set.seed(42)
+theme_set(theme_minimal())
+
+data <- tibble(value = rlnorm(20000))
+
+metric <- mean
+alpha <- 0.05
+beta <- 0.2
+effect <- 0.1 * metric(data$value)
+
+simulate <- function(n, N) {
+  run <- function() {
+    replicate(N, { metric(sample(data$value, n, replace = TRUE)) })
+  }
+  control_null <- run()
+  treatment_null <- run()
+  control_alternative <- run()
+  treatment_alternative <- run() + effect
+  effect_null <- treatment_null - control_null
+  effect_alternative <- treatment_alternative - control_alternative
+  critical_value <- quantile(effect_null, 1 - alpha)
+  beta <- mean(effect_alternative < critical_value)
+  list(effect_null = effect_null,
+       effect_alternative = effect_alternative,
+       critical_value = critical_value,
+       beta = beta)
+}
+
+replication_count <- 1000
+search_interval <- c(1, 10000)
+target <- function(n) beta - simulate(as.integer(n), replication_count)$beta
+sample_size <- as.integer(uniroot(target, interval = search_interval)$root)
+
+result <- simulate(sample_size, replication_count)
+tibble(Null = result$effect_null, Alternative = result$effect_alternative) %>%
+  gather(group, value) %>%
+  ggplot(aes(value, fill = group)) +
+  geom_density(alpha = 0.5, color = NA) +
+  geom_vline(xintercept = result$critical_value, linetype = 'dashed') +
+  labs(x = 'Effect size', y = 'Sampling distribution') +
+  theme(legend.title = element_blank())
+```
+
+# Conclusion
+
+She sells seashells by the seashore.
+
 # Acknowledgments
 
 I would like to thank [Aaron Rendahl] for the help with the implementation.
