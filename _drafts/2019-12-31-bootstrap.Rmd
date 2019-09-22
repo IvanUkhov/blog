@@ -71,9 +71,9 @@ is also what is expected of the treatment group provided that the null
 hypothesis is true, that is, when the proposed change has no effect. This
 realization can be leveraged in order to simulate what would happen if each
 group was limited to a certain number of participants. We can then vary this
-size parameter until we find the smallest value allowing the test to satisfy the
-requirements that were imposed on it; recall $$\alpha$$, $$\beta$$, and
-$$\delta$$ in the previous section.
+size parameter until we find the smallest value that makes the test well
+designed, that is, satisfying the requirements on $$\alpha$$, $$\beta$$, and
+$$\delta$$, as discussed in the previous section.
 
 To begin with, note that what we are interested in testing is the difference
 between the performance metric applied to the treatment group and the same
