@@ -19,24 +19,21 @@ any statistical formalism and any mathematical formulae. The only prerequisites
 are the availability of historical data describing the status quo and the
 ability to write a few lines of code in a programming language of choice.
 
-Before we proceed, this article is inspired by “[There is only one test!][Allen
-Downey]” by Allen Downey and “[Statistics without the agonizing pain][John
-Rauser]” by John Rauser.
-
 # Problem
 
 For concreteness, the following scenario is considered. Suppose we run a
 business and hypothesize that a certain change in the management of promotion
 campaigns will have a positive effect on a specific performance indicator of the
 business. In order to test the hypothesis, we decide to perform an A/B test.
-There are two groups: a control group and a treatment group. The former will be
-exposed to the current promotion policy, while the latter to the new one.
+There will be two groups: a control group and a treatment group. The former will
+be exposed to the current promotion policy, while the latter to the new one.
 
 We have a level of statistical significance $$\alpha$$ and a level of practical
 significance $$\delta$$ in mind. The former puts a limit on the false positive
-rate, and the latter prescribes how large the effect should be for us to care;
-anything smaller is of no interest to us. Furthermore, we know what statistical
-power we would like the test to have, which constrains the false negative rate.
+rate, and the latter indicates the smallest effect that we still care about;
+anything smaller is as good as zero for any practical purpose. Furthermore, we
+know what statistical power we would like the test to have, which constrains the
+false negative rate.
 
 What should the size of each group be?
 
@@ -125,7 +122,10 @@ She sells seashells by the seashore.
 
 # Acknowledgments
 
-I would like to thank [Aaron Rendahl] for the help with the implementation.
+This article is inspired by “[There is only one test!][Allen Downey]” by Allen
+Downey and “[Statistics without the agonizing pain][John Rauser]” by John
+Rauser. I also would like to thank [Aaron Rendahl] for the help with the
+implementation.
 
 [Aaron Rendahl]: http://users.stat.umn.edu/~rend0020/
 [Allen Downey]: http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html
