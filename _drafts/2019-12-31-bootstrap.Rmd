@@ -43,7 +43,11 @@ about; anything smaller is as good as zero for any practical purpose. In
 addition, we require the test to have a prescribed statistical power $$(1 -
 \beta)$$, which enforces a constraint on false negatives.
 
-Now, what should the size of each group be?
+The test is said to be well designed if it is able to detect a difference as
+small as $$\delta$$ while controlling the false positive and false negative
+rates to levels $$\alpha$$ and $$\beta$$, respectively.
+
+Now, what should the size of each group be for the test to be well designed?
 
 # Solution
 
