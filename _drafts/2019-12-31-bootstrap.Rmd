@@ -3,6 +3,12 @@ layout: post
 title: Sample size determination using historical data and simulation
 date: 2019-12-31
 math: true
+keywords:
+  - R
+  - bootstrap
+  - hypothesis testing
+  - sample size determination
+  - simulation
 ---
 
 In order to test a hypothesis, one has to design and execute an adequate
