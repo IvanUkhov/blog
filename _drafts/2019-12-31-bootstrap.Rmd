@@ -5,30 +5,48 @@ date: 2019-12-31
 math: true
 ---
 
-In order to be able to test a hypothesis, one has to design and execute an
-adequate experiment. Typically, it is neither feasible nor desirable to involve
-the entire population in question. Instead, a small yet sufficiently large and
-necessarily representative subset of the population is considered, and if done
-right, relevant conclusions can then be drawn with respect to the whole
-population given the outcome for this small sample. A necessary question to
-answer is then, What is the minimal sample size needed? At this point, one might
-reach for a thick book in statistics, match the situation at hand with a
-statistical test, agree to the terms and conditions of the test, and proceed to
-estimating the sample size using the corresponding formulae. In what follows,
-however, we shall answer the question posed above without any mathematical
-formulae. The only prerequisites are historical data describing the status quo
-and the ability to write a few lines of code in a programming language of
-choice.
+In order to test a hypothesis, one has to design and execute an adequate
+experiment. Typically, it is neither feasible nor desirable to involve the whole
+population. Instead, a relatively small subset of the population is studied, and
+given the outcome for this small sample, conclusions are drawn with respect to
+the population. An important question to answer is then, What is the minimal
+sample size needed for the experiment to succeed? At this point, one might reach
+for a thick book in statistics, match the situation at hand with a statistical
+test, agree to the terms and conditions of the test, and proceed to estimating
+the sample size using the corresponding formulae either manually or via a
+software package. In what follows, we shall answer the above question without
+any statistical formalism and any mathematical formulae. The only prerequisites
+are the availability of historical data describing the status quo and the
+ability to write a few lines of code in a programming language of choice.
 
-This article is inspired by “[There is only one test!][Allen Downey]” by Allen
-Downey and “[Statistics without the agonizing pain][John Rauser]” by John
-Rauser.
+Before we proceed, this article is inspired by “[There is only one test!][Allen
+Downey]” by Allen Downey and “[Statistics without the agonizing pain][John
+Rauser]” by John Rauser.
+
+# Problem
+
+For concreteness, the following scenario is considered. Suppose we run a
+business and hypothesize that a certain change in the management of promotion
+campaigns will have a positive effect on a specific performance indicator of the
+business. In order to test the hypothesis, we decide to perform an A/B test.
+There are two groups: a control group and a treatment group. The former will be
+exposed to the current promotion policy, while the latter to the new one.
+
+We have a level of statistical significance $$\alpha$$ and a level of practical
+significance $$\delta$$ in mind. The former puts a limit on the false positive
+rate, and the latter prescribes how large the effect should be for us to care;
+anything smaller is of no interest to us. Furthermore, we know what statistical
+power we would like the test to have, which constrains the false negative rate.
+
+What should the size of each group be?
+
+# Solution
 
 # Implementation
 
 She sells seashells by the seashore.
 
-```{r, echo = TRUE, message = FALSE}
+```{r, cache = TRUE, echo = TRUE}
 library(tidyverse)
 
 set.seed(42)
@@ -83,6 +101,8 @@ sample_size <- as.integer(uniroot(target, interval = search_interval)$root)
 ```
 
 ```{r sampling-distribution}
+library(tidyverse)
+
 theme_set(theme_minimal(base_size = 14))
 
 result <- simulate(sample_size, replication_count)
