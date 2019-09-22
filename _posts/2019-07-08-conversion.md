@@ -25,10 +25,6 @@ repository:
 However, it was written for personal exploratory purposes and has no
 documentation at the moment. If you decide to dive in, you will be on your own.
 
-Lastly, this article is largely inspired by a series of excellent blog posts by
-[Evan Miller], [Chris Stucchio], and [David Robinson], which are strongly
-recommended.
-
 # Problem
 
 Suppose, as a business, you send communications to your customers in order to
@@ -279,6 +275,11 @@ regardless of the availability of a closed-form solution, as it is less
 error-prone.
 
 Please feel free to reach out if you have any thoughts or suggestions.
+
+# Acknowledgments
+
+This article is largely inspired by a series of excellent blog posts by [Evan
+Miller], [Chris Stucchio], and [David Robinson], which are strongly recommended.
 
 # References
 
