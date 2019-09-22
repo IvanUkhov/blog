@@ -8,36 +8,48 @@ math: true
 In order to test a hypothesis, one has to design and execute an adequate
 experiment. Typically, it is neither feasible nor desirable to involve the whole
 population. Instead, a relatively small subset of the population is studied, and
-given the outcome for this small sample, conclusions are drawn with respect to
-the population. An important question to answer is then, What is the minimal
-sample size needed for the experiment to succeed? At this point, one might reach
-for a thick book in statistics, match the situation at hand with a statistical
-test, agree to the terms and conditions of the test, and proceed to estimating
-the sample size using the corresponding formulae either manually or via a
-software package. In what follows, we shall answer the above question without
-any statistical formalism and any mathematical formulae. The only prerequisites
-are the availability of historical data describing the status quo and the
-ability to write a few lines of code in a programming language of choice.
+given the outcome for this small sample, relevant conclusions are drawn with
+respect to the population. An important question to answer is then, What is the
+minimal sample size needed for the experiment to succeed? At this point, one
+might reach for a thick book in statistics, match the situation at hand with a
+statistical test, agree to the terms and conditions of the test, and proceed to
+estimating the sample size using the corresponding formulae either manually or
+via software packages. In what follows, we shall answer the question posed above
+without any statistical formalism and any mathematical formulae. The only
+prerequisites are the availability of historical data describing the status quo
+and the ability to write a few lines of code in a programming language of
+choice.
 
 # Problem
 
 For concreteness, the following scenario is considered. Suppose we run a
 business and hypothesize that a certain change in the management of promotion
-campaigns will have a positive effect on a specific performance indicator of the
-business. In order to test the hypothesis, we decide to perform an A/B test.
-There will be two groups: a control group and a treatment group. The former will
-be exposed to the current promotion policy, while the latter to the new one.
+campaigns will have a positive effect on a specific performance metric, such as
+the average amount of deposits. In order to test the hypothesis, we decide to
+perform an A/B test. There will be two groups: a control group and a treatment
+group. The former will be exposed to the current promotion policy, while the
+latter to the new one.
 
 We have a level of statistical significance $$\alpha$$ and a level of practical
-significance $$\delta$$ in mind. The former puts a limit on the false positive
-rate, and the latter indicates the smallest effect that we still care about;
-anything smaller is as good as zero for any practical purpose. Furthermore, we
-know what statistical power we would like the test to have, which constrains the
-false negative rate.
+significance $$\delta$$ in mind. The former puts a limit on false positives, and
+the latter indicates the smallest effect that we still care about; anything
+smaller is as good as zero for any practical purpose. Furthermore, we require
+the test to have a prescribed statistical power $$(1 - \beta)$$, which enforces
+a constraint on false negatives.
 
-What should the size of each group be?
+Now, what should the size of each group be?
 
 # Solution
+
+To begin with, note that what we are interested in testing is the difference
+between the performance metric applied to the treatment group and the same
+metric applied to the control group. This quantity will be referred to as the
+test statistic in what follows. Large positive values of the test statistic
+speak in favor of the new policy, while those that are close to zero suggest
+that the treatment is futile.
+
+Suppose we have historical data $$\mathcal{D}$$ on the performance of the
+current policy.
 
 # Implementation
 
@@ -52,7 +64,7 @@ set.seed(42)
 observation_count <- 20000
 data <- tibble(value = rlnorm(observation_count))
 
-# Metric of interest
+# Performance metric
 metric <- mean
 # Statistical significance
 alpha <- 0.05
@@ -97,6 +109,8 @@ target <- function(n) power - simulate(as.integer(n), replication_count)$power
 sample_size <- as.integer(uniroot(target, interval = search_interval)$root)
 ```
 
+Let us plot the final simulation results:
+
 ```{r sampling-distribution}
 library(tidyverse)
 
@@ -115,6 +129,14 @@ tibble(Null = result$delta_null, Alternative = result$delta_alternative) %>%
   scale_fill_manual(values=c('#ef8a62', '#67a9cf')) +
   theme(legend.title = element_blank(), legend.position = c(0.9, 0.9))
 ```
+
+Here one can see the sampling distribution of the test statistic for two cases:
+one is when the null is true (in blue), and one is when the alternative is true
+(in red). The dashed line denotes the critical value. When the test statistic
+falls to the right of the line, we reject the null hypothesis; otherwise, we
+fail to reject it. The blue and red areas to the right of the critical value
+correspond to the desired significance level $$\alpha$$ and statistical power,
+respectively.
 
 # Conclusion
 
