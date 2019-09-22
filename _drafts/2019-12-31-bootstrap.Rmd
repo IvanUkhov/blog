@@ -11,35 +11,65 @@ population. Instead, a relatively small subset of the population is studied, and
 given the outcome for this small sample, relevant conclusions are drawn with
 respect to the population. An important question to answer is then, What is the
 minimal sample size needed for the experiment to succeed? At this point, one
-might reach for a thick book in statistics, match the situation at hand with a
-statistical test, agree to the terms and conditions of the test, and proceed to
-estimating the sample size using the corresponding formulae either manually or
-via software packages. In what follows, we shall answer the question posed above
-without any statistical formalism and any mathematical formulae. The only
+might reach for a thick textbook in statistics, match the situation at hand with
+a statistical test, agree to the terms and conditions of the test, and proceed
+to estimating the sample size using the corresponding formulae either manually
+or via software packages. In what follows, we shall answer the question posed
+above without any statistical formalism and any mathematical formulae. The only
 prerequisites are the availability of historical data describing the status quo
 and the ability to write a few lines of code in a programming language of
 choice.
 
 # Problem
 
-For concreteness, the following scenario is considered. Suppose we run a
-business and hypothesize that a certain change in the management of promotion
-campaigns will have a positive effect on a specific performance metric, such as
-the average amount of deposits. In order to test the hypothesis, we decide to
-perform an A/B test. There will be two groups: a control group and a treatment
-group. The former will be exposed to the current promotion policy, while the
-latter to the new one.
+For concreteness, suppose we run a business and hypothesize that a certain
+change in promotion campaigns will have a positive effect on a certain
+performance metric, such as the average deposit. This means that there are the
+following two competing hypotheses.
 
-We have a level of statistical significance $$\alpha$$ and a level of practical
-significance $$\delta$$ in mind. The former puts a limit on false positives, and
-the latter indicates the smallest effect that we still care about; anything
-smaller is as good as zero for any practical purpose. Furthermore, we require
-the test to have a prescribed statistical power $$(1 - \beta)$$, which enforces
-a constraint on false negatives.
+* The null hypothesis postulates that the change has no effect on the metric.
+
+* The alternative hypothesis postulates that the change has a positive effect on
+  the metric.
+
+In order to resolve the quandary in a statistically sound way, we decide to
+perform an A/B test. There will be two groups of customers: a control group and
+a treatment group. The former will be exposed to the current promotion policy,
+while the latter to the new one. There are certain requirements imposed on the
+test. First, we have a level of statistical significance $$\alpha$$ and a level
+of practical significance $$\delta$$ in mind. The former puts a limit on false
+positives, and the latter indicates the smallest effect that we still care
+about; anything smaller is as good as zero for any practical purpose. In
+addition, we require the test to have a prescribed statistical power $$(1 -
+\beta)$$, which enforces a constraint on false negatives.
 
 Now, what should the size of each group be?
 
 # Solution
+
+Depending on the distribution of the data and on the chosen metric, one might or
+might not be able to find a suitable test among the standard ones, while
+ensuring that the test’s assumptions can safely be considered satisfied. More
+importantly, an analytical solution might not be the most intuitive one, which,
+in particular, might lead to misuse of the test. It is the understanding that
+matters.
+
+Here we take a more pragmatic and rather general approach that circumvents the
+above concerns. We only need historical data and basic programming skills.
+Despite its simplicity, the method below goes straight to the core of what the
+famed statistical tests are doing behind all the math. The approach belongs to
+the class of so-called bootstrap techniques and is as follows.
+
+Suppose we have historical data on customers’ behavior under the current
+promotion policy, which is commonplace in practice. An important realization is
+that this data set represents what we expect to observe in the control group. It
+is also what is expected of the treatment group provided that the null
+hypothesis is true, that is, when the proposed change has no effect. This
+realization can be leveraged in order to simulate what would happen if each
+group was limited to a certain number of participants. We can then vary this
+size parameter until we find the smallest value allowing the test to satisfy the
+requirements that were imposed on it; recall $$\alpha$$, $$\beta$$, and
+$$\delta$$ in the previous section.
 
 To begin with, note that what we are interested in testing is the difference
 between the performance metric applied to the treatment group and the same
@@ -47,9 +77,6 @@ metric applied to the control group. This quantity will be referred to as the
 test statistic in what follows. Large positive values of the test statistic
 speak in favor of the new policy, while those that are close to zero suggest
 that the treatment is futile.
-
-Suppose we have historical data $$\mathcal{D}$$ on the performance of the
-current policy.
 
 # Implementation
 
