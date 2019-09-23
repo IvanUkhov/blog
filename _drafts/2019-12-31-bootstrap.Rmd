@@ -28,32 +28,35 @@ choice.
 
 # Problem
 
-For concreteness, suppose we run a business and hypothesize that a certain
-change in promotion campaigns will have a positive effect on a certain
-performance metric, such as the average deposit. This means that there are the
-following two competing hypotheses.
+For concreteness, consider the following scenario. We run an online business and
+hypothesize that a specific change in promotion campaigns, such as making them
+personalized, will have a positive effect on a specific performance metric, such
+as the average deposit. In order to investigate if it is actually the case, we
+decide to perform an A/B test. There are the following two competing hypotheses.
 
 * The null hypothesis postulates that the change has no effect on the metric.
 
 * The alternative hypothesis postulates that the change has a positive effect on
   the metric.
 
-In order to resolve the quandary in a statistically sound way, we decide to
-perform an A/B test. There will be two groups of customers: a control group and
-a treatment group. The former will be exposed to the current promotion policy,
-while the latter to the new one. There are certain requirements imposed on the
-test. First, we have a level of statistical significance $$\alpha$$ and a level
-of practical significance $$\delta$$ in mind. The former puts a limit on false
-positives, and the latter indicates the smallest effect that we still care
-about; anything smaller is as good as zero for any practical purpose. In
-addition, we require the test to have a prescribed statistical power $$(1 -
-\beta)$$, which enforces a constraint on false negatives.
+There will be two groups: a control group and a treatment group. The former will
+be exposed to the current promotion policy, while the latter to the new one.
+There are also certain requirements imposed on the test. First, we have a level
+of statistical significance $$\alpha$$ and a level of practical significance
+$$\delta$$ in mind. The former puts a limit on false positives, and the latter
+indicates the smallest effect that we still care about; anything smaller is as
+good as zero for any practical purpose. In addition, we require the test to have
+a prescribed statistical power $$(1 - \beta)$$, which constrains false
+negatives.
 
-The test is said to be well designed if it is able to detect a difference as
-small as $$\delta$$ while controlling the false positive and false negative
-rates to levels $$\alpha$$ and $$\beta$$, respectively.
+The test is said to be well designed if it is capable of detecting a difference
+as small as $$\delta$$ so that the false positive and false negative rates are
+controlled to levels $$\alpha$$ and $$\beta$$, respectively. Typically,
+parameters $$\alpha$$ and $$\delta$$ are held constant, and the desired
+statistical power $$(1 - \beta)$$ is attained by varying the number of
+participants in each group, which we denote by $$n$$.
 
-Now, what should the size of each group be for the test to be well designed?
+So what should $$n$$ be for the test to be well designed?
 
 # Solution
 
