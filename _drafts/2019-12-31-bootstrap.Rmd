@@ -49,26 +49,28 @@ good as zero for any practical purpose. In addition, we require the test to have
 a prescribed statistical power $$(1 - \beta)$$, which constrains false
 negatives.
 
-The test is said to be well designed if it is capable of detecting a difference
-as small as $$\delta$$ so that the false positive and false negative rates are
-controlled to levels $$\alpha$$ and $$\beta$$, respectively. Typically,
-parameters $$\alpha$$ and $$\delta$$ are held constant, and the desired
-statistical power $$(1 - \beta)$$ is attained by varying the number of
-participants in each group, which we denote by $$n$$.
+For our purposes, the test is considered well designed if it is capable of
+detecting a difference as small as $$\delta$$ so that the false positive and
+false negative rates are controlled to levels $$\alpha$$ and $$\beta$$,
+respectively. Typically, parameters $$\alpha$$ and $$\delta$$ are held constant,
+and the desired statistical power $$(1 - \beta)$$ is attained by varying the
+number of participants in each group, which we denote by $$n$$. Note that we do
+not want any of the parameters to be smaller than the prescribed values, as it
+would be wasteful.
 
-So what should $$n$$ be for the test to be well designed?
+So what should the sample size be for the test to be well designed?
 
 # Solution
 
 Depending on the distribution of the data and on the chosen metric, one might or
 might not be able to find a suitable test among the standard ones, while
 ensuring that the test’s assumptions can safely be considered satisfied. More
-importantly, an analytical solution might not be the most intuitive one, which,
-in particular, might lead to misuse of the test. It is the understanding that
+importantly, a textbook solution might not be the most intuitive one, which, in
+particular, might lead to misuse of the test. It is the understanding that
 matters.
 
 Here we take a more pragmatic and rather general approach that circumvents the
-above concerns. We only need historical data and basic programming skills.
+above concerns. It requires only historical data and basic programming skills.
 Despite its simplicity, the method below goes straight to the core of what the
 famed statistical tests are doing behind all the math. The approach belongs to
 the class of so-called bootstrap techniques and is as follows.
@@ -78,18 +80,58 @@ promotion policy, which is commonplace in practice. An important realization is
 that this data set represents what we expect to observe in the control group. It
 is also what is expected of the treatment group provided that the null
 hypothesis is true, that is, when the proposed change has no effect. This
-realization can be leveraged in order to simulate what would happen if each
-group was limited to a certain number of participants. We can then vary this
-size parameter until we find the smallest value that makes the test well
-designed, that is, satisfying the requirements on $$\alpha$$, $$\beta$$, and
+realization enables one to simulate what would happen if each group was limited
+to an arbitrary number of participants. Then, by varying this size parameter, it
+is possible to find the smallest value that makes the test well designed, that
+is, make the test satisfy the requirements on $$\alpha$$, $$\beta$$, and
 $$\delta$$, as discussed in the previous section.
 
-To begin with, note that what we are interested in testing is the difference
-between the performance metric applied to the treatment group and the same
-metric applied to the control group. This quantity will be referred to as the
-test statistic in what follows. Large positive values of the test statistic
-speak in favor of the new policy, while those that are close to zero suggest
-that the treatment is futile.
+This is all. The rest is an elaboration of the above idea.
+
+The simulation entails the following. To begin with, note that what we are
+interested in testing is the difference between the performance metric applied
+to the treatment group and the same metric applied to the control group, which
+is referred to as the test statistic:
+
+```
+Test statistic = Metric(Treatment sample) - Metric(Control sample).
+```
+
+Here, `Treatment sample` and `Control sample` stand for collections of
+observations, which the performance metric is based on. For instance, each
+observation could be the total deposit of a customer, and the metric is the
+average deposit per customer:
+
+```
+Metric(Sample) = Sum of observations / Number of observations.
+```
+
+A sample corresponding to the status quo (that is, the current policy) can be
+easily obtained by drawing $$n$$ samples with replacement from the data:
+
+```
+Sample = Choose random with replacement(Data, N).
+```
+
+This expression is used for `Control sample` under both the null and alternative
+hypotheses. As alluded to earlier, this is also how `Treatment sample` is
+obtained under the null. Regarding the alternative hypothesis being true, one
+has to express the hypothesized outcome as a distribution for the case of the
+minimal detectable difference, $$\delta$$. The simplest and reasonable solution
+is to sample the data again, apply the metric, and then adjust the result to
+reflect the alternative hypothesis:
+
+```
+Metric(Choose random with replacement(Data, N)) + Delta.
+```
+
+Large positive values of the test statistic speak in favor of the new policy,
+while those that are close to zero suggest that the treatment is futile. The
+goal of simulation is to obtain the distribution of the test statistic for two
+cases: under the null hypothesis and under the alternative hypothesis. Given
+these two distributions, which are referred to as sampling distributions, and
+keeping $$\alpha$$ and $$\delta$$ set to the prescribed values, one can work out
+the corresponding statistical power $$(1 - \beta)$$.
 
 # Implementation
 
