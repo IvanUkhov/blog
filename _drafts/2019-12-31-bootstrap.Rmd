@@ -213,12 +213,22 @@ Optimize N until Attained beta is close to Target beta {
 }
 ```
 
-An example of how this technique could be implemented in practice is given in
-the appendix.
+This concludes the calculation of the size that the control and treatment groups
+should have in order for the upcoming A/B test in promotion campaigns to be well
+designed in terms of the level of statistical significance $$\alpha$$, the false
+negative rate $$\beta$$, and the level of practical significance $$\delta$$.
+
+An example of how this technique could be implemented in practice can be found
+in the appendix.
 
 # Conclusion
 
-She sells seashells by the seashore.
+In this article, we have discussed an approach to sample size determination that
+is based historical data and simulation rather than mathematical formulae
+accompanied by stringent assumptions. The algorithm is straightforward from a
+programmer’s perspective. It surely requires prior knowledge of the key concepts
+in null hypothesis significance testing and statistics in general, such as false
+positives, false negatives, sampling distributions, and critical values.
 
 # Acknowledgments
 
