@@ -97,17 +97,26 @@ is referred to as the test statistic:
 Test statistic = Metric(Treatment sample) - Metric(Control sample).
 ```
 
-Here, `Treatment sample` and `Control sample` stand for collections of
-observations, which the performance metric is based on. For instance, each
-observation could be the total deposit of a customer, and the metric is the
-average deposit per customer:
+`Treatment sample` and `Control sample` stand for sets of observations, and
+`Metric(Sample)` stands for computing the performance metric given such a
+sample. For instance, each observation could be the total deposit of a customer,
+and the metric could the average value:
 
 ```
 Metric(Sample) = Sum of observations / Number of observations.
 ```
 
-A sample corresponding to the status quo (that is, the current policy) can be
-easily obtained by drawing $$n$$ samples with replacement from the data:
+Note, however, that is is an example; the metric can be arbitrary, and this is a
+prominent advantage of this approach to sample size determination based on data
+and simulation.
+
+Large positive values of the test statistic speak in favor of the treatment
+(that is, the new promotion policy in our example), while those that are close
+to zero suggest that the treatment is futile.
+
+A sample of $$n$$ observations corresponding to the status quo (that is, the
+current policy in our example) can be easily obtained by drawing $$n$$ data
+points with replacement from the historical data:
 
 ```
 Sample = Choose random with replacement(Data, N).
@@ -125,10 +134,8 @@ reflect the alternative hypothesis:
 Metric(Choose random with replacement(Data, N)) + Delta.
 ```
 
-Large positive values of the test statistic speak in favor of the new policy,
-while those that are close to zero suggest that the treatment is futile. The
-goal of simulation is to obtain the distribution of the test statistic for two
-cases: under the null hypothesis and under the alternative hypothesis. Given
+The goal of simulation is to obtain the distribution of the test statistic for
+two cases: under the null hypothesis and under the alternative hypothesis. Given
 these two distributions, which are referred to as sampling distributions, and
 keeping $$\alpha$$ and $$\delta$$ set to the prescribed values, one can work out
 the corresponding statistical power $$(1 - \beta)$$.
