@@ -100,15 +100,15 @@ Test statistic = Metric(Treatment sample) - Metric(Control sample).
 `Treatment sample` and `Control sample` stand for sets of observations, and
 `Metric(Sample)` stands for computing the performance metric given such a
 sample. For instance, each observation could be the total deposit of a customer,
-and the metric could the average value:
+and the metric could be the average value:
 
 ```
 Metric(Sample) = Sum of observations / Number of observations.
 ```
 
-Note, however, that is is an example; the metric can be arbitrary, and this is a
-prominent advantage of this approach to sample size determination based on data
-and simulation.
+Note, however, that it is an example; the metric can be arbitrary, and this is a
+huge advantage of this approach to sample size determination based on data and
+simulation.
 
 Large positive values of the test statistic speak in favor of the treatment
 (that is, the new promotion policy in our example), while those that are close
@@ -134,11 +134,54 @@ reflect the alternative hypothesis:
 Metric(Choose random with replacement(Data, N)) + Delta.
 ```
 
-The goal of simulation is to obtain the distribution of the test statistic for
-two cases: under the null hypothesis and under the alternative hypothesis. Given
-these two distributions, which are referred to as sampling distributions, and
-keeping $$\alpha$$ and $$\delta$$ set to the prescribed values, one can work out
-the corresponding statistical power $$(1 - \beta)$$.
+Here, again, one is free to change the logic under the alternative according to
+situation at hand. For instance, instead of an additive effect, one could
+simulate a multiplicative one.
+
+The above is a way to simulate a single instance of the experiment under either
+the null or alternative hypothesis; the result is a single value for the test
+statistic. The next step is to estimate how the test statistic would vary if the
+experiment was repeated many times in the two scenarios. This simply means that
+the procedure should be repeated multiple times:
+
+```
+Repeat many times:
+  Sample 1 = Choose random with replacement(Data, N)
+  Sample 2 = Choose random with replacement(Data, N)
+  Metric 1 = Metric(Sample 1)
+  Metric 2 = Metric(Sample 2)
+  Test statistic under null = Metric 1 - Metric 2
+
+  Sample 3 = Choose random with replacement(Data, N)
+  Sample 4 = Choose random with replacement(Data, N)
+  Metric 3 = Metric(Sample 3) + Delta
+  Metric 4 = Metric(Sample 4)
+  Test statistic under alternative = Metric 3 - Metric 4
+```
+
+This yields a collection of values for the test statistic under the null
+hypothsis and a collection of values for the test statistic under the
+alternative hypothesis. Each one contains realizations from the so-called
+sampling distribution in the corresponding scenario. These two distributions are
+what we are after, as they allow one to compute the statistical power. First,
+given $$\alpha$$, the sampling distribution under the null is used in order to
+find a value beyond which the probability mass is equal to $$\alpha$$:
+
+```
+Critical value = Quantile({ Test statistic under null }, 1 - alpha).
+```
+
+`Quantile` computes the quantile specified by the second argument given a set of
+observations. This quantity is called the critical value of the test. Second,
+the sampling distribution under the alternative is used in order to compute the
+false negative rate, $$\beta$$:
+
+```
+Beta = Mean({ Test statistic under alternative < Critical value }).
+```
+
+It corresponds to the probability mass of the alternative distribution to the
+left of the critical value.
 
 # Implementation
 
