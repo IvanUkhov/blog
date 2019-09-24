@@ -145,7 +145,7 @@ experiment was repeated many times in the two scenarios. This simply means that
 the procedure should be repeated multiple times:
 
 ```
-Repeat many times:
+Repeat many times {
   Sample 1 = Choose random with replacement(Data, N)
   Sample 2 = Choose random with replacement(Data, N)
   Metric 1 = Metric(Sample 1)
@@ -157,6 +157,7 @@ Repeat many times:
   Metric 3 = Metric(Sample 3) + Delta
   Metric 4 = Metric(Sample 4)
   Test statistic under alternative = Metric 3 - Metric 4
+}
 ```
 
 This yields a collection of values for the test statistic under the null
@@ -168,7 +169,7 @@ given $$\alpha$$, the sampling distribution under the null is used in order to
 find a value beyond which the probability mass is equal to $$\alpha$$:
 
 ```
-Critical value = Quantile({ Test statistic under null }, 1 - alpha).
+Critical value = Quantile([Test statistic under null], 1 - alpha).
 ```
 
 `Quantile` computes the quantile specified by the second argument given a set of
@@ -177,11 +178,26 @@ the sampling distribution under the alternative is used in order to compute the
 false negative rate:
 
 ```
-Beta prime = Mean({ Test statistic under alternative < Critical value }).
+Attained beta = Mean([Test statistic under alternative < Critical value]).
 ```
 
 It corresponds to the probability mass of the alternative distribution to the
 left of the critical value.
+
+The final step is to put the above procedure in an optimization loop minimizing
+the distance between the target and attained $$\beta$$’s with respect to the
+sample size:
+
+```
+Optimize N until Attained beta is close to Target beta {
+  Repeat many times {
+    Test statistic under null = ...
+    Test statistic under alternative = ...
+  }
+  Critical value = ...
+  Attained beta = ...
+}
+```
 
 # Implementation
 
