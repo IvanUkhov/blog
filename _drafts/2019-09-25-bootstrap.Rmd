@@ -43,17 +43,17 @@ There will be two groups: a control group and a treatment group. The former will
 be exposed to the current promotion policy, while the latter to the new one.
 There are also certain requirements imposed on the test. First, we have a level
 of statistical significance $$\alpha$$ and a level of practical significance
-$$\delta$$ in mind. The former puts a limit on the false positive rate, and the
+$$\delta$$ in mind. The former puts a limit on the false-positive rate, and the
 latter indicates the smallest effect that we still care about; anything smaller
 is as good as zero for any practical purpose. In addition, we require the test
-to have a prescribed false negative rate $$\beta$$, ensuring that the test has
+to have a prescribed false-negative rate $$\beta$$, ensuring that the test has
 enough statistical power.
 
 For our purposes, the test is considered well designed if it is capable of
-detecting a difference as small as $$\delta$$ so that the false positive and
-false negative rates are controlled to levels $$\alpha$$ and $$\beta$$,
+detecting a difference as small as $$\delta$$ so that the false-positive and
+false-negative rates are controlled to levels $$\alpha$$ and $$\beta$$,
 respectively. Typically, parameters $$\alpha$$ and $$\delta$$ are held constant,
-and the desired false positive rate $$\beta$$ is attained by varying the number
+and the desired false-positive rate $$\beta$$ is attained by varying the number
 of participants in each group, which we denote by $$n$$. Note that we do not
 want any of the parameters to be smaller than the prescribed values, as it would
 be wasteful.
@@ -173,7 +173,7 @@ red one is the sampling distribution under the alternative hypothesis. We shall
 come back to this figure shortly.
 
 These two distributions of the test statistic are what we are after, as they
-allow one to compute the false positive rate and eventually choose a sample
+allow one to compute the false-positive rate and eventually choose a sample
 size. First, given $$\alpha$$, the sampling distribution under the null (the
 blue one) is used in order to find a value beyond which the probability mass is
 equal to $$\alpha$$:
@@ -188,7 +188,7 @@ figure above, it is denoted by a dashed line. When the test statistic falls to
 the right of the critical value, we reject the null hypothesis; otherwise, we
 fail to reject it. Second, the sampling distribution in the case of the
 alternative hypothesis being true (the red one) is used in order to compute the
-false negative rate:
+false-negative rate:
 
 ```
 Attained beta = Mean([Test statistic under alternative < Critical value]).
@@ -215,8 +215,9 @@ Optimize N until Attained beta is close to Target beta {
 
 This concludes the calculation of the size that the control and treatment groups
 should have in order for the upcoming A/B test in promotion campaigns to be well
-designed in terms of the level of statistical significance $$\alpha$$, the false
-negative rate $$\beta$$, and the level of practical significance $$\delta$$.
+designed in terms of the level of statistical significance $$\alpha$$, the
+false-negative rate $$\beta$$, and the level of practical significance
+$$\delta$$.
 
 An example of how this technique could be implemented in practice can be found
 in the appendix.
@@ -254,7 +255,7 @@ data <- tibble(value = rlnorm(observation_count))
 metric <- mean
 # Statistical significance
 alpha <- 0.05
-# False negative rate
+# False-negative rate
 beta <- 0.2
 # Practical significance
 delta <- 0.1 * metric(data$value)
@@ -277,7 +278,7 @@ simulate <- function(sample_size, replication_count) {
 
   # Computation of the critical value
   critical_value <- quantile(difference_null, 1 - alpha)
-  # Computation of the false negative rate
+  # Computation of the false-negative rate
   beta <- mean(difference_alternative < critical_value)
 
   list(difference_null = difference_null,
