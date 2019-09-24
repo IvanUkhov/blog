@@ -31,8 +31,8 @@ choice.
 For concreteness, consider the following scenario. We run an online business and
 hypothesize that a specific change in promotion campaigns, such as making them
 personalized, will have a positive effect on a specific performance metric, such
-as the average deposit. In order to investigate if it is actually the case, we
-decide to perform an A/B test. There are the following two competing hypotheses.
+as the average deposit. In order to investigate if it is the case, we decide to
+perform an A/B test. There are the following two competing hypotheses.
 
 * The null hypothesis postulates that the change has no effect on the metric.
 
@@ -46,7 +46,7 @@ of statistical significance $$\alpha$$ and a level of practical significance
 $$\delta$$ in mind. The former puts a limit on the false positive rate, and the
 latter indicates the smallest effect that we still care about; anything smaller
 is as good as zero for any practical purpose. In addition, we require the test
-to have a prescribed false negative rate $$\beta$$, ensiring that the test have
+to have a prescribed false negative rate $$\beta$$, ensuring that the test has
 enough statistical power.
 
 For our purposes, the test is considered well designed if it is capable of
@@ -135,7 +135,7 @@ Metric(Choose random with replacement(Data, N)) + Delta.
 ```
 
 Here, again, one is free to change the logic under the alternative according to
-situation at hand. For instance, instead of an additive effect, one could
+the situation at hand. For instance, instead of an additive effect, one could
 simulate a multiplicative one.
 
 The above is a way to simulate a single instance of the experiment under either
@@ -224,7 +224,7 @@ in the appendix.
 # Conclusion
 
 In this article, we have discussed an approach to sample size determination that
-is based historical data and simulation rather than mathematical formulae
+is based on historical data and simulation rather than mathematical formulae
 accompanied by stringent assumptions. The algorithm is straightforward from a
 programmer’s perspective. It surely requires prior knowledge of the key concepts
 in null hypothesis significance testing and statistics in general, such as false
