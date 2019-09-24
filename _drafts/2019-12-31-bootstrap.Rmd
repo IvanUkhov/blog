@@ -43,20 +43,20 @@ There will be two groups: a control group and a treatment group. The former will
 be exposed to the current promotion policy, while the latter to the new one.
 There are also certain requirements imposed on the test. First, we have a level
 of statistical significance $$\alpha$$ and a level of practical significance
-$$\delta$$ in mind. The former puts a limit on false positives, and the latter
-indicates the smallest effect that we still care about; anything smaller is as
-good as zero for any practical purpose. In addition, we require the test to have
-a prescribed statistical power $$(1 - \beta)$$, which constrains false
-negatives.
+$$\delta$$ in mind. The former puts a limit on the false positive rate, and the
+latter indicates the smallest effect that we still care about; anything smaller
+is as good as zero for any practical purpose. In addition, we require the test
+to have a prescribed false negative rate $$\beta$$, ensiring that the test have
+enough statistical power.
 
 For our purposes, the test is considered well designed if it is capable of
 detecting a difference as small as $$\delta$$ so that the false positive and
 false negative rates are controlled to levels $$\alpha$$ and $$\beta$$,
 respectively. Typically, parameters $$\alpha$$ and $$\delta$$ are held constant,
-and the desired statistical power $$(1 - \beta)$$ is attained by varying the
-number of participants in each group, which we denote by $$n$$. Note that we do
-not want any of the parameters to be smaller than the prescribed values, as it
-would be wasteful.
+and the desired false positive rate $$\beta$$ is attained by varying the number
+of participants in each group, which we denote by $$n$$. Note that we do not
+want any of the parameters to be smaller than the prescribed values, as it would
+be wasteful.
 
 So what should the sample size be for the test to be well designed?
 
@@ -163,7 +163,7 @@ This yields a collection of values for the test statistic under the null
 hypothsis and a collection of values for the test statistic under the
 alternative hypothesis. Each one contains realizations from the so-called
 sampling distribution in the corresponding scenario. These two distributions are
-what we are after, as they allow one to compute the statistical power. First,
+what we are after, as they allow one to compute the false positive rate. First,
 given $$\alpha$$, the sampling distribution under the null is used in order to
 find a value beyond which the probability mass is equal to $$\alpha$$:
 
@@ -174,10 +174,10 @@ Critical value = Quantile({ Test statistic under null }, 1 - alpha).
 `Quantile` computes the quantile specified by the second argument given a set of
 observations. This quantity is called the critical value of the test. Second,
 the sampling distribution under the alternative is used in order to compute the
-false negative rate, $$\beta$$:
+false negative rate:
 
 ```
-Beta = Mean({ Test statistic under alternative < Critical value }).
+Beta prime = Mean({ Test statistic under alternative < Critical value }).
 ```
 
 It corresponds to the probability mass of the alternative distribution to the
@@ -200,8 +200,8 @@ data <- tibble(value = rlnorm(observation_count))
 metric <- mean
 # Statistical significance
 alpha <- 0.05
-# Statistical power
-power <- 0.8
+# False negative rate
+beta <- 0.2
 # Practical significance
 delta <- 0.1 * metric(data$value)
 
@@ -223,21 +223,21 @@ simulate <- function(sample_size, replication_count) {
 
   # Computation of the critical value
   critical_value <- quantile(delta_null, 1 - alpha)
-  # Computation of the statistical power
-  power <- 1 - mean(delta_alternative < critical_value)
+  # Computation of the false negative rate
+  beta <- mean(delta_alternative < critical_value)
 
   list(delta_null = delta_null,
        delta_alternative = delta_alternative,
        critical_value = critical_value,
-       power = power)
+       beta = beta)
 }
 
 # Number of replications
 replication_count <- 1000
 # Interval of possible values for the sample size
 search_interval <- c(1, 10000)
-# Root finding to attain the desired power by varying the sample size
-target <- function(n) power - simulate(as.integer(n), replication_count)$power
+# Root finding to attain the desired value by varying the sample size
+target <- function(n) beta - simulate(as.integer(n), replication_count)$beta
 sample_size <- as.integer(uniroot(target, interval = search_interval)$root)
 ```
 
