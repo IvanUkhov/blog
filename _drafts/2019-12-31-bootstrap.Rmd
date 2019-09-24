@@ -161,32 +161,46 @@ Repeat many times {
 ```
 
 This yields a collection of values for the test statistic under the null
-hypothsis and a collection of values for the test statistic under the
+hypothesis and a collection of values for the test statistic under the
 alternative hypothesis. Each one contains realizations from the so-called
-sampling distribution in the corresponding scenario. These two distributions are
-what we are after, as they allow one to compute the false positive rate. First,
-given $$\alpha$$, the sampling distribution under the null is used in order to
-find a value beyond which the probability mass is equal to $$\alpha$$:
+sampling distribution in the corresponding scenario. The following figure gives
+an illustration:
+
+![](/assets/images/2019-12-31-bootstrap/sampling-distribution-1.svg)
+
+The blue shape is the sampling distribution under the null hypothesis, and the
+red one is the sampling distribution under the alternative hypothesis. We shall
+come back to this figure shortly.
+
+These two distributions of the test statistic are what we are after, as they
+allow one to compute the false positive rate and eventually choose a sample
+size. First, given $$\alpha$$, the sampling distribution under the null (the
+blue one) is used in order to find a value beyond which the probability mass is
+equal to $$\alpha$$:
 
 ```
 Critical value = Quantile([Test statistic under null], 1 - alpha).
 ```
 
 `Quantile` computes the quantile specified by the second argument given a set of
-observations. This quantity is called the critical value of the test. Second,
-the sampling distribution under the alternative is used in order to compute the
+observations. This quantity is called the critical value of the test. In the
+figure above, it is denoted by a dashed line. When the test statistic falls to
+the right of the critical value, we reject the null hypothesis; otherwise, we
+fail to reject it. Second, the sampling distribution in the case of the
+alternative hypothesis being true (the red one) is used in order to compute the
 false negative rate:
 
 ```
 Attained beta = Mean([Test statistic under alternative < Critical value]).
 ```
 
-It corresponds to the probability mass of the alternative distribution to the
-left of the critical value.
+It corresponds to the probability mass of the sampling distribution under the
+alternative to the left of the critical value. In the figure, it is the red area
+to the left of the dashed line.
 
-The final step is to put the above procedure in an optimization loop minimizing
-the distance between the target and attained $$\beta$$’s with respect to the
-sample size:
+The final step is to put the above procedure in an optimization loop that
+minimizes the distance between the target and attained $$\beta$$’s with respect
+to the sample size:
 
 ```
 Optimize N until Attained beta is close to Target beta {
@@ -199,9 +213,23 @@ Optimize N until Attained beta is close to Target beta {
 }
 ```
 
-# Implementation
+An example of how this technique could be implemented in practice is given in
+the appendix.
+
+# Conclusion
 
 She sells seashells by the seashore.
+
+# Acknowledgments
+
+This article is inspired by “[There is only one test!][Allen Downey]” by Allen
+Downey and “[Statistics without the agonizing pain][John Rauser]” by John
+Rauser. I also would like to thank [Aaron Rendahl] for the help with the
+implementation.
+
+# Appendix
+
+The following listing shows an implementation of the bootstrap approach in R:
 
 ```{r, cache = TRUE, echo = TRUE}
 library(tidyverse)
@@ -230,20 +258,20 @@ simulate <- function(sample_size, replication_count) {
   # Simulation under the null hypothesis
   control_null <- run_many()
   treatment_null <- run_many()
-  delta_null <- treatment_null - control_null
+  difference_null <- treatment_null - control_null
 
   # Simulation under the alternative hypothesis
   control_alternative <- run_many()
   treatment_alternative <- run_many() + delta
-  delta_alternative <- treatment_alternative - control_alternative
+  difference_alternative <- treatment_alternative - control_alternative
 
   # Computation of the critical value
-  critical_value <- quantile(delta_null, 1 - alpha)
+  critical_value <- quantile(difference_null, 1 - alpha)
   # Computation of the false negative rate
-  beta <- mean(delta_alternative < critical_value)
+  beta <- mean(difference_alternative < critical_value)
 
-  list(delta_null = delta_null,
-       delta_alternative = delta_alternative,
+  list(difference_null = difference_null,
+       difference_alternative = difference_alternative,
        critical_value = critical_value,
        beta = beta)
 }
@@ -257,15 +285,14 @@ target <- function(n) beta - simulate(as.integer(n), replication_count)$beta
 sample_size <- as.integer(uniroot(target, interval = search_interval)$root)
 ```
 
-Let us plot the final simulation results:
-
-```{r sampling-distribution}
+```{r sampling-distribution, include = FALSE}
 library(tidyverse)
 
 theme_set(theme_minimal(base_size = 14))
 
 result <- simulate(sample_size, replication_count)
-tibble(Null = result$delta_null, Alternative = result$delta_alternative) %>%
+tibble(Null = result$difference_null,
+       Alternative = result$difference_alternative) %>%
   gather(group, value) %>%
   ggplot(aes(value, fill = group)) +
   geom_density(alpha = 0.7, color = NA) +
@@ -278,24 +305,9 @@ tibble(Null = result$delta_null, Alternative = result$delta_alternative) %>%
   theme(legend.title = element_blank(), legend.position = c(0.9, 0.9))
 ```
 
-Here one can see the sampling distribution of the test statistic for two cases:
-one is when the null is true (in blue), and one is when the alternative is true
-(in red). The dashed line denotes the critical value. When the test statistic
-falls to the right of the line, we reject the null hypothesis; otherwise, we
-fail to reject it. The blue and red areas to the right of the critical value
-correspond to the desired significance level $$\alpha$$ and statistical power,
-respectively.
-
-# Conclusion
-
-She sells seashells by the seashore.
-
-# Acknowledgments
-
-This article is inspired by “[There is only one test!][Allen Downey]” by Allen
-Downey and “[Statistics without the agonizing pain][John Rauser]” by John
-Rauser. I also would like to thank [Aaron Rendahl] for the help with the
-implementation.
+The illustrative figure shown in the solution section displays the sampling
+distribution of the test statistic under the null and alternative for the sample
+size found by this code snippet.
 
 [Aaron Rendahl]: http://users.stat.umn.edu/~rend0020/
 [Allen Downey]: http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html
