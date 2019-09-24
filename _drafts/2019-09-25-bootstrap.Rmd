@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Sample size determination using historical data and simulation
-date: 2019-12-31
+date: 2019-09-25
 math: true
 keywords:
   - R
@@ -166,7 +166,7 @@ alternative hypothesis. Each one contains realizations from the so-called
 sampling distribution in the corresponding scenario. The following figure gives
 an illustration:
 
-![](/assets/images/2019-12-31-bootstrap/sampling-distribution-1.svg)
+![](/assets/images/2019-09-25-bootstrap/sampling-distribution-1.svg)
 
 The blue shape is the sampling distribution under the null hypothesis, and the
 red one is the sampling distribution under the alternative hypothesis. We shall
