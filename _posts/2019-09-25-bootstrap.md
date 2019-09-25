@@ -38,7 +38,7 @@ For concreteness, consider the following scenario. We run an online business and
 hypothesize that a specific change in promotion campaigns, such as making them
 personalized, will have a positive effect on a specific performance metric, such
 as the average deposit. In order to investigate if it is the case, we decide to
-perform an A/B test. There are the following two competing hypotheses.
+perform a two-sample test. There are the following two competing hypotheses.
 
 * The null hypothesis postulates that the change has no effect on the metric.
 
@@ -220,7 +220,7 @@ Optimize N until Attained beta is close to Target beta {
 ```
 
 This concludes the calculation of the size that the control and treatment groups
-should have in order for the upcoming A/B test in promotion campaigns to be well
+should have in order for the upcoming test in promotion campaigns to be well
 designed in terms of the level of statistical significance $$\alpha$$, the
 false-negative rate $$\beta$$, and the level of practical significance
 $$\delta$$.
