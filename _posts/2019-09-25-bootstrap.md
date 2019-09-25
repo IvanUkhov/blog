@@ -17,7 +17,7 @@ population. Instead, a relatively small subset of the population is studied, and
 given the outcome for this small sample, relevant conclusions are drawn with
 respect to the population. An important question to answer is then, What is the
 minimal sample size needed for the experiment to succeed? In what follows, we
-shall answer this question using solely historical data and computer simulation,
+answer this question using solely historical data and computer simulation,
 without invoking any classical statistical procedures.
 
 Although, as we shall see, the ideas are straightforward, direct calculations
