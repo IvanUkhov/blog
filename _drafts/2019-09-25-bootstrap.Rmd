@@ -17,16 +17,16 @@ population. Instead, a relatively small subset of the population is studied, and
 given the outcome for this small sample, relevant conclusions are drawn with
 respect to the population. An important question to answer is then, What is the
 minimal sample size needed for the experiment to succeed? In what follows, we
-shall answer this question using only historical data and computer simulation
+shall answer this question using solely historical data and computer simulation,
 without invoking any classical statistical procedures.
 
 Although, as we shall see, the ideas are straightforward, direct calculations
-were impossible to perform before computers. To be able to answer such questions
-back then, statisticians developed mathematical theories in order to approximate
-the calculations for specific situations. These approximations and the various
-terms and conditions under which they operate made up a large part of
-traditional textbooks and courses in statistics, since nothing else was
-possible. However, the advent of today’s computing power has made it possible to
+were impossible to perform before computers. To be able to answer this kind of
+questions back then, statisticians developed mathematical theories in order to
+approximate the calculations for specific situations. Since nothing else was
+possible, these approximations and the various terms and conditions under which
+they operate made up a large part of traditional textbooks and courses in
+statistics. However, the advent of today’s computing power has enabled one to
 estimate required sample sizes in a more direct and intuitive way, with the only
 prerequisites being an understanding of statistical inference, the availability
 of historical data describing the status quo, and the ability to write a few
