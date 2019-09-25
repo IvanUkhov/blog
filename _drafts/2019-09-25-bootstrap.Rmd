@@ -231,11 +231,13 @@ in the appendix.
 # Conclusion
 
 In this article, we have discussed an approach to sample size determination that
-is based on historical data and simulation rather than mathematical formulae
-accompanied by stringent assumptions. The algorithm is straightforward from a
-programmer’s perspective. It surely requires prior knowledge of the key concepts
-in null hypothesis significance testing and statistics in general, such as false
-positives, false negatives, sampling distributions, and critical values.
+is based on historical data and computer simulation rather than on mathematical
+formulae tailored for specific situations. It is general and straightforward to
+implement. More importantly, the technique is intuitive, since it directly
+follows the narrative of null hypothesis significance testing. It does require
+prior knowledge of the key concepts in statistical inference. However, this
+knowledge is arguably essential for those who are involved in stientific
+experimentation. It constitutes the core of statistical literacy.
 
 # Acknowledgments
 
