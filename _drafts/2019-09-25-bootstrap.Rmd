@@ -239,10 +239,17 @@ positives, false negatives, sampling distributions, and critical values.
 
 # Acknowledgments
 
-This article is inspired by “[There is only one test!][Allen Downey]” by Allen
-Downey and “[Statistics without the agonizing pain][John Rauser]” by John
-Rauser. I also would like to thank [Aaron Rendahl] for the help with the
-implementation.
+This article was inspired by a blog post authored by [Allen Downey] and a talk
+given by [John Rauser]. I also would like to thank [Aaron Rendahl] for his
+feedback on the introduction to the method presented here and for his help with
+the implementation given in the appendix.
+
+# References
+
+* Allen Downey, “[There is only one test!][Allen Downey],” 2011.
+* John Rauser, “[Statistics without the agonizing pain][John Rauser],” 2014.
+* Joseph Lee Rodgers, “[The bootstrap, the jackknife, and the randomization
+  test: A sampling taxonomy][Joseph Rodgers],” 2010.
 
 # Appendix
 
@@ -329,3 +336,4 @@ size found by this code snippet.
 [Aaron Rendahl]: http://users.stat.umn.edu/~rend0020/
 [Allen Downey]: http://allendowney.blogspot.com/2011/05/there-is-only-one-test.html
 [John Rauser]: https://www.youtube.com/watch?v=5Dnw46eC-0o
+[Joseph Rodgers]: https://doi.org/10.1207/S15327906MBR3404_2
