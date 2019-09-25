@@ -236,7 +236,7 @@ formulae tailored for specific situations. It is general and straightforward to
 implement. More importantly, the technique is intuitive, since it directly
 follows the narrative of null hypothesis significance testing. It does require
 prior knowledge of the key concepts in statistical inference. However, this
-knowledge is arguably essential for those who are involved in stientific
+knowledge is arguably essential for those who are involved in scientific
 experimentation. It constitutes the core of statistical literacy.
 
 # Acknowledgments
