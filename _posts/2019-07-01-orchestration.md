@@ -638,7 +638,7 @@ feedback is very much appreciated!
 Since its publication, the workflow presented in this article has been
 significantly simplified. More specifically, on July 16, 2019, it became
 possible to execute arbitrary Docker images on Google [AI Platform]. The
-platform takes care of the whole life-cycle of the container, obviating the need
+platform takes care of the whole life cycle of the container, obviating the need
 for any wait scripts and ad-hoc communication mechanisms via Stackdriver. Refer
 to “[How to run serverless batch jobs on Google Cloud][Lak Lakshmanan]” by Lak
 Lakshmanan for further details.
