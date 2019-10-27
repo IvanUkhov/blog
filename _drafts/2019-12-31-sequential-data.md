@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Ingestion of sequential data into neural networks
+title: Ingestion of ragged sequential data from BigQuery into TensorFlow
 date: 2019-12-31
 keywords:
   - BigQuery
