@@ -643,6 +643,11 @@ for any wait scripts and ad-hoc communication mechanisms via Stackdriver. Refer
 to “[How to run serverless batch jobs on Google Cloud][Lak Lakshmanan]” by Lak
 Lakshmanan for further details.
 
+# References
+
+* Lak Lakshmanan, “[How to run serverless batch jobs on Google Cloud][Lak
+  Lakshmanan],” 2019.
+
 [AI Platform]: https://cloud.google.com/ai-platform/
 [Airflow]: https://airflow.apache.org/
 [BigQuery]: https://cloud.google.com/bigquery/
