@@ -1,21 +1,22 @@
 ---
 layout: post
-title: Ingestion of ragged sequential data from BigQuery into TensorFlow
+title: Ingestion of sequential data from BigQuery into TensorFlow
 date: 2019-12-31
 keywords:
   - BigQuery
   - Cloud Dataflow
   - Cloud Storage
   - Google Cloud Platform
-  - Keras
   - TensorFlow
   - data science
   - machine learning
-  - neural network
 ---
 
-How hard can it be to efficiently ingest sequential data into a TensorFlow
-model?
+How hard can it be to ingest sequential data into a [TensorFlow] model? As
+always, the answer is, “It depends.” Where are the sequences stored? Can they
+fit in the main memory? Are they of the same length? In what follows, we shall
+start with [BigQuery] as our data warehouse and show how to channel sequential
+observations into a TensorFlow graph in a flexible, scalable fashion.
 
 # Processing
 
