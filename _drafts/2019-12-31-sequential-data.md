@@ -42,14 +42,15 @@ The final chain of states and operations is as follows:
 
 3. The sequences are read, analyzed, and transformed by [Cloud Dataflow].
 
-    * The data are split into a training set and a testing set.
+    * The input data are split into a training set, a validation set, and a
+      testing set.
 
     * The training set is used to compute statistics needed for transforming the
-      measurements to a form suitable for neural networks.
+      measurements to a form suitable for neural networks and, in particular,
+      for standardizing the data.
 
-    * Both the training and testing sets are transformed using the statistics
-      from the previous step. In particular, the temperature values are
-      standardized.
+    * The training, validation, and testing sets of temperature sequences are
+      transformed using the statistics computed from the training set.
 
 4. The processed sequences are written by Dataflow to [Cloud Storage] in the
    [TFRecord] format, which is a serialization format native to TensorFlow.
@@ -57,6 +58,10 @@ The final chain of states and operations is as follows:
 5. The files containing TFRecords are read by the [tf.data] API of TensorFlow
    and eventually transformed into a dataset of appropriately padded batches of
    sequential data.
+
+The above workflow is not as simple as reading data from a Pandas DataFrame
+comfortably fitted in the main memory; however, it is much scalable. This
+pipeline can handle arbitrary amounts of data.
 
 The source code of what follows can be found in the following repository:
 
