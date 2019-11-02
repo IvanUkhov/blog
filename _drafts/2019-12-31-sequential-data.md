@@ -52,10 +52,10 @@ The final chain of states and operations is as follows:
       standardized.
 
 4. The processed sequences are written by Dataflow to [Cloud Storage] in the
-   [TFRecord] format, which is a serialization format preferred by TensorFlow.
+   [TFRecord] format, which is a serialization format native to TensorFlow.
 
 5. The files containing TFRecords are read by the [tf.data] API of TensorFlow
-   and eventually transformed into a dataset of appropriated padded batches of
+   and eventually transformed into a dataset of appropriately padded batches of
    sequential data.
 
 The source code of what follows can be found in the following repository:
