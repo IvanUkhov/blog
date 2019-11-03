@@ -142,21 +142,30 @@ FROM
   data_2
 ```
 
-The queries fetches the peak temperatures, `temperature`, for all available
-weather stations between June and August in 2010–2019. We also compute the
-number of days since the previous measurement, which is denoted by `duration` in
-the query. Ideally, `duration` should always be one (except for the first day);
-however, this is not the case, which makes the resulting time series vary in
-length. In addition, in order to illustrate the generality of this approach, two
-contextual (that is, non-sequential) explanatory variables are added: `latitude`
-and `longitude`. They are not repeated but stored side by side with `duration`
-and `temperature`. The crucial part is the usage of `ARRAY_AGG`, which is what
-make it possible to gather all relevant data about a specific station and a
-specific year in the same row.
+The query fetches peak temperatures, denoted by `temperature`, for all available
+weather stations between June and August in 2010–2019. The crucial part is the
+usage of `ARRAY_AGG`, which is what make it possible to gather all relevant data
+about a specific station and a specific year in the same row. The number of days
+since the previous measurement, which is denoted by `duration`, is also
+computed. Ideally, `duration` should always be one (except for the first day,
+which has no predecessor); however, this is not the case, which makes the
+resulting time series vary in length.
 
-Another important moment in the final `SELECT` statement. See “[Repeatable
-sampling of data sets in BigQuery for machine learning][Lak Lakshmanan]” by Lak
-Lakshmanan for further details.
+In addition, in order to illustrate the generality of this approach, two
+contextual (that is, nonsequential) explanatory variables are added: `latitude`
+and `longitude`. They are scalars stored side by side with `duration` and
+`temperature`, which are arrays.
+
+Another important moment in the final `SELECT` statement, which defines a column
+called `mode`. This column indicates what each example is used for. For
+instance, observations prior to 2019 are reserved for training, while the rest
+is split pseudo-randomly and reproducibly into two approximately equal parts:
+one is for validation, and one is for testing. This last operation is explained
+in detail in “[Repeatable sampling of data sets in BigQuery for machine
+learning][Lak Lakshmanan]” by Lak Lakshmanan.
+
+The `mode` column enables one to use the same query for different purposes,
+which also prevents inconsistances that might arise with multiple queries.
 
 # Processing
 
