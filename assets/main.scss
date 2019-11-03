@@ -11,6 +11,15 @@ body {
   font-style: normal;
 }
 
+h1 {
+  &[id] > a {
+    display: none;
+  }
+  &[id]:hover > a {
+    display: inline;
+  }
+}
+
 .site-title {
   letter-spacing: unset;
 }

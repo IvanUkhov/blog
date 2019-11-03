@@ -15,4 +15,12 @@
       {{ page.javascript }}
     </script>
   {%- endif -%}
+  <script type="text/javascript">
+    function anchor() {
+      for (let header of document.querySelectorAll('h1[id]')) {
+        header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+      }
+    }
+    window.onload = anchor;
+  </script>
 </html>
