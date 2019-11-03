@@ -33,7 +33,7 @@ aforementioned network readily available in a TensorFlow graph. The chain of
 states and operations is roughly as follows:
 
 1. Historical temperature measurements from the Global Historical Climatology
-   Network are stored in a [public dataset][ghcn-d] in BigQuery. Each row
+   Network are stored in a [public data set][ghcn-d] in BigQuery. Each row
    corresponds to a weather station and a date. There are missing observations
    due to such reasons as measurements not passing quality checks.
 
@@ -61,7 +61,7 @@ states and operations is roughly as follows:
    a format native to TensorFlow.
 
 5. The files containing TFRecords are read by the [tf.data] API of TensorFlow
-   and eventually transformed into a dataset of appropriately padded batches of
+   and eventually transformed into a data set of appropriately padded batches of
    examples.
 
 The above workflow is not as simple as reading data from a Pandas DataFrame
@@ -154,13 +154,23 @@ and `temperature`. The crucial part is the usage of `ARRAY_AGG`, which is what
 make it possible to gather all relevant data about a specific station and a
 specific year in the same row.
 
+Another important moment in the final `SELECT` statement. See “[Repeatable
+sampling of data sets in BigQuery for machine learning][Lak Lakshmanan]” by Lak
+Lakshmanan for further details.
+
 # Processing
 
 # Ingestion
 
 # Conclusion
 
+# References
+
+* Lak Lakshmanan, “[Repeatable sampling of data sets in BigQuery for machine
+  learning][Lak Lakshmanan],” 2016.
+
 [Global Historical Climatology Network]: https://www.ncdc.noaa.gov/data-access/land-based-station-data/land-based-datasets/global-historical-climatology-network-ghcn
+[Lak Lakshmanan]: https://www.oreilly.com/learning/repeatable-sampling-of-data-sets-in-bigquery-for-machine-learning
 
 [BigQuery]: https://cloud.google.com/bigquery/
 [Cloud Dataflow]: https://cloud.google.com/dataflow/
