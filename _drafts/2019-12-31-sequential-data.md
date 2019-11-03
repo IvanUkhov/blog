@@ -19,12 +19,12 @@ shall build a flexible and scalable workflow for feeding sequential observations
 into a TensorFlow graph starting from [BigQuery] as the data warehouse.
 
 To make the discussion tangible, consider the following problem. Suppose the
-goal is to predict the average temperature at an arbitrary weather station
-present in the [Global Historical Climatology Network] for each day between June
-1 and August 31. More concretely, given observations from June 1 up to an
-arbitrary day before August 31, the objective is to complete the sequence until
-August 31. For instance, if we find ourselves in Stockholm on June 12, we ask
-for the daily averages from June 12 to August 31 given the temperature values
+goal is to predict the peak temperature at an arbitrary weather station present
+in the [Global Historical Climatology Network] for each day between June 1 and
+August 31. More concretely, given observations from June 1 up to an arbitrary
+day before August 31, the objective is to complete the sequence until August 31.
+For instance, if we find ourselves in Stockholm on June 12, we ask for the
+maximum temperatures from June 12 to August 31 given the temperature values
 between June 1 to June 11 at a weather station in Stockholm.
 
 To set the expectations right, in this article, we are not going to build a
@@ -73,6 +73,86 @@ In the rest of the article, the aforementioned steps will be described in more
 detail. The corresponding source code can be found in the following repository:
 
 * [example-weather-forecast].
+
+# Data
+
+It all starts with the data. The data come from the Global Historical
+Climatology Network, which is [available in BigQuery][ghcn-d] for public use.
+Steps 1 and 2 in the list above are covered by the following query:
+
+```sql
+WITH
+-- Select relevant measurements
+data_1 AS (
+  SELECT
+    id,
+    date,
+    -- Find the date of the previous observation
+    LAG(date) OVER (station_year) AS date_last,
+    latitude,
+    longitude,
+    -- Convert to degrees Celsius
+    value / 10 AS temperature
+  FROM
+    `bigquery-public-data.ghcn_d.ghcnd_201*`
+  INNER JOIN
+    `bigquery-public-data.ghcn_d.ghcnd_stations` USING (id)
+  WHERE
+    -- Take years from 2010 to 2019
+    CAST(_TABLE_SUFFIX AS INT64) BETWEEN 0 AND 9
+    -- Take months from June to August
+    AND EXTRACT(MONTH FROM date) BETWEEN 6 AND 8
+    -- Take the maximum temperature
+    AND element = 'TMAX'
+    -- Take observations passed spatio-temporal quality-control checks
+    AND qflag IS NULL
+  WINDOW
+    station_year AS (
+      PARTITION BY id, EXTRACT(YEAR FROM date)
+      ORDER BY date
+    )
+),
+-- Group into complete examples
+data_2 AS (
+  SELECT
+    id,
+    MIN(date) AS date,
+    latitude,
+    longitude,
+    -- Compute gaps between observations
+    ARRAY_AGG(
+      DATE_DIFF(date, IFNULL(date_last, date), DAY)
+      ORDER BY date
+    ) AS duration,
+    ARRAY_AGG(temperature ORDER BY date) AS temperature
+  FROM
+    data_1
+  GROUP BY
+    id, latitude, longitude, EXTRACT(YEAR FROM date)
+)
+-- Partition into training, validation, and testing sets
+SELECT
+  *,
+  CASE
+    WHEN EXTRACT(YEAR FROM date) < 2019 THEN 'analysis,training'
+    WHEN MOD(ABS(FARM_FINGERPRINT(id)), 100) < 50 THEN 'validation'
+    ELSE 'testing'
+  END AS mode
+FROM
+  data_2
+```
+
+The queries fetches the peak temperatures, `temperature`, for all available
+weather stations between June and August in 2010–2019. We also compute the
+number of days since the previous measurement, which is denoted by `duration` in
+the query. Ideally, `duration` should always be one (except for the first day);
+however, this is not the case, which makes the resulting time series vary in
+length. In addition, in order to illustrate the generality of this approach, two
+contextual (that is, non-sequential) explanatory variables are added: `latitude`
+and `longitude`. They are not repeated but stored side by side with `duration`
+and `temperature`. The crucial part is the usage of `ARRAY_AGG`, which is what
+make it possible to gather all relevant data about a specific station and a
+specific year in the same row.
 
 # Processing
 
