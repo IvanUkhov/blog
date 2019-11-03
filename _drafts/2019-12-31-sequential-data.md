@@ -3,6 +3,7 @@ layout: post
 title: Ingestion of sequential data from BigQuery into TensorFlow
 date: 2019-12-31
 keywords:
+  - Apache Beam
   - BigQuery
   - Cloud Dataflow
   - Cloud Storage
@@ -78,7 +79,7 @@ detail. The corresponding source code can be found in the following repository:
 
 It all starts with the data. The data come from the Global Historical
 Climatology Network, which is [available in BigQuery][ghcn-d] for public use.
-Steps 1 and 2 in the list above are covered by the following query:
+Steps 1 and 2 in the list above are covered by the [following query][data.sql]:
 
 ```sql
 WITH
@@ -152,22 +153,140 @@ which has no predecessor); however, this is not the case, which makes the
 resulting time series vary in length.
 
 In addition, in order to illustrate the generality of this approach, two
-contextual (that is, nonsequential) explanatory variables are added: `latitude`
+contextual (that is, non-sequential) explanatory variables are added: `latitude`
 and `longitude`. They are scalars stored side by side with `duration` and
 `temperature`, which are arrays.
 
 Another important moment in the final `SELECT` statement, which defines a column
-called `mode`. This column indicates what each example is used for. For
-instance, observations prior to 2019 are reserved for training, while the rest
-is split pseudo-randomly and reproducibly into two approximately equal parts:
-one is for validation, and one is for testing. This last operation is explained
-in detail in “[Repeatable sampling of data sets in BigQuery for machine
-learning][Lak Lakshmanan]” by Lak Lakshmanan.
+called `mode`. This column indicates what each example is used for, enabling one
+to use the same query for different purposes and also to avoid inconsistencies
+across multiple queries. In this case, observations prior to 2019 are reserved
+for training, while the rest is split pseudo-randomly and reproducibly into two
+approximately equal parts: one is for validation, and one is for testing. This
+last operation is explained in detail in “[Repeatable sampling of data sets in
+BigQuery for machine learning][Lak Lakshmanan]” by Lak Lakshmanan.
 
-The `mode` column enables one to use the same query for different purposes,
-which also prevents inconsistances that might arise with multiple queries.
+# Preprocessing
 
-# Processing
+In this section, we cover steps 4 and 5 in the list given at the beginning. This
+job is done by [TensorFlow Extended], which is a library for building
+machine-learning pipelines. Internally, it relies on [Apache Beam] as a language
+for defining pipelines. Once a pipeline is created, it can be executed using an
+executor, and the executor that we shall use is [Cloud Dataflow].
+
+Before we proceed to the pipeline itself, the construction process is
+orchestrated by a [configuration file][preprocessing.json], which will
+be referred to as `config` in the pipeline code:
+
+```json
+{
+  "pipeline": {
+    "project": "example-cloud-project",
+    "region": "europe-west1",
+    "zone": "europe-west1-b",
+    "job_name": "example-weather-forecast-%Y-%m-%d-%H-%M-%S",
+    "num_workers": 4
+  },
+  "data": {
+    "path": "configs/training/data.sql",
+    "schema": [
+      { "name": "latitude", "kind": "float32", "transform": "z" },
+      { "name": "longitude", "kind": "float32", "transform": "z" },
+      { "name": "duration", "kind": ["float32"], "transform": "z" },
+      { "name": "temperature", "kind": ["float32"], "transform": "z" }
+    ]
+  },
+  "modes": [
+    { "name": "analysis" },
+    { "name": "training", "transform": "analysis", "shuffle": true },
+    { "name": "validation", "transform": "analysis" },
+    { "name": "testing", "transform": "identity" }
+  ],
+  "output": {
+    "path": "gs://example-weather-forecast/data/training/%Y-%m-%d-%H-%M-%S"
+  }
+}
+```
+
+The `pipeline` block configures Dataflow. For instance, in this case, the data
+are processed using four machines; however, this could be set to auto-scale
+according to the workload.
+
+The `data` block describes where the data can be found and their schema. At this
+point, it might be helpful to recall the SQL query given earlier. For instance,
+`latitude` is a scale of type `FLOAT32`, while `temperature` is a sequence of
+type `FLOAT32`. Both are standardized to have a zero mean and a unit standard
+deviation, which is what `"transform": "z"` indicates.
+
+Below is an excerpt from a [Python class][pipeline.py] responsible for building
+the pipeline.
+
+```python
+import apache_beam as beam
+import tensorflow_transform as tft
+
+from tensorflow_transform.beam import impl as tt_beam
+from tensorflow_transform.beam.tft_beam_io import transform_fn_io
+from tensorflow_transform.tf_metadata import dataset_metadata
+from tensorflow_transform.tf_metadata import dataset_schema
+
+# config = ...
+# schema = ...
+
+# Read the SQL code
+query = open(config['data']['path']).read()
+# Create a BigQuery source
+source = beam.io.BigQuerySource(query=query, use_standard_sql=True)
+# Create metadata needed later
+spec = schema.to_feature_spec()
+meta = dataset_metadata.DatasetMetadata(
+    schema=dataset_schema.from_feature_spec(spec))
+# Read data from BigQuery
+data = pipeline \
+    | 'read' >> beam.io.Read(source)
+
+# Loop over modes whose purpose is analysis
+transform_functions = {}
+for mode in config['modes']:
+    if 'transform' in mode:
+        continue
+    name = mode['name']
+    # Select examples that belong to the current mode
+    data_ = data \
+        | '%s-filter' % name >> beam.Filter(partial(_filter, mode))
+    # Analyze the examples
+    transform_functions[name] = (data_, meta) \
+        | '%s-analyze' % name >> tt_beam.AnalyzeDataset(_analyze)
+    path = _locate(config, name, 'transform')
+    # Store the transform function
+    transform_functions[name] \
+        | '%s-write-transform' % name >> transform_fn_io.WriteTransformFn(path)
+
+# Loop over modes whose purpose is transformation
+for mode in config['modes']:
+    if not 'transform' in mode:
+        continue
+    name = mode['name']
+    # Select examples that belong to the current mode
+    data_ = data \
+        | '%s-filter' % name >> beam.Filter(partial(_filter, mode))
+    # Shuffle examples if needed
+    if mode.get('shuffle', False):
+        data_ = data_ \
+            | '%s-shuffle' % name >> beam.transforms.Reshuffle()
+    # Transform the examples using an appropriate transform function
+    if mode['transform'] == 'identity':
+        coder = tft.coders.ExampleProtoCoder(meta.schema)
+    else:
+        data_, meta_ = ((data_, meta), transform_functions[mode['transform']]) \
+            | '%s-transform' % name >> tt_beam.TransformDataset()
+        coder = tft.coders.ExampleProtoCoder(meta_.schema)
+    path = _locate(config, name, 'records', 'part')
+    # Store the transformed examples as TFRecords
+    data_ \
+        | '%s-encode' % name >> beam.Map(coder.encode) \
+        | '%s-write-records' % name >> beam.io.tfrecordio.WriteToTFRecord(path)
+```
 
 # Ingestion
 
@@ -181,12 +300,18 @@ which also prevents inconsistances that might arise with multiple queries.
 [Global Historical Climatology Network]: https://www.ncdc.noaa.gov/data-access/land-based-station-data/land-based-datasets/global-historical-climatology-network-ghcn
 [Lak Lakshmanan]: https://www.oreilly.com/learning/repeatable-sampling-of-data-sets-in-bigquery-for-machine-learning
 
+[Apache Beam]: https://beam.apache.org/
 [BigQuery]: https://cloud.google.com/bigquery/
 [Cloud Dataflow]: https://cloud.google.com/dataflow/
 [Cloud Storage]: https://cloud.google.com/storage/
 [TFRecord]: https://www.tensorflow.org/tutorials/load_data/tfrecord
+[TensorFlow Extended]: https://www.tensorflow.org/tfx
 [TensorFlow]: https://www.tensorflow.org
 [ghcn-d]: https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d
 [tf.data]: https://www.tensorflow.org/guide/data
 
 [example-weather-forecast]: https://github.com/chain-rule/example-weather-forecast
+
+[data.sql]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/data.sql
+[pipeline.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py
+[preprocessing.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json
