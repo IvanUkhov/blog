@@ -289,7 +289,82 @@ is not something standard that comes with TensorFlow or Beam. It is a
 convenience that we build for ourselves in order to keep the main logic reusable
 and extendable without touching the code.
 
-# Ingestion
+# Training
+
+```json
+{
+  "data": {
+    "schema": [
+      { "name": "latitude", "kind": "float32" },
+      { "name": "longitude", "kind": "float32" },
+      { "name": "duration", "kind": ["float32"] },
+      { "name": "temperature", "kind": ["float32"] }
+    ],
+    "modes": {
+      "training": {
+        "spec": "transformed",
+        "shuffle_macro": { "buffer_size": 100 },
+        "interleave": { "cycle_length": 100, "num_parallel_calls": -1 },
+        "shuffle_micro": { "buffer_size": 512 },
+        "map": { "num_parallel_calls": -1 },
+        "batch": { "batch_size": 128 },
+        "prefetch": { "buffer_size": 1 },
+        "repeat": {}
+      },
+      "validation": {
+        "spec": "transformed",
+        "shuffle_macro": { "buffer_size": 100 },
+        "interleave": { "cycle_length": 100, "num_parallel_calls": -1 },
+        "map": { "num_parallel_calls": -1 },
+        "batch": { "batch_size": 128 },
+        "prefetch": { "buffer_size": 1 },
+        "repeat": {}
+      },
+      "testing": {
+        "spec": "original",
+        "interleave": { "cycle_length": 100, "num_parallel_calls": -1 },
+        "map": { "num_parallel_calls": -1 },
+        "batch": { "batch_size": 128 },
+        "prefetch": { "buffer_size": 1 }
+      }
+    }
+  }
+}
+```
+
+Below is an excerpt from a [Python class][data.py] responsible for building the
+pipeline:
+
+```python
+# config = ...
+
+# List all files matching a given pattern
+pattern = [self.path, name, 'records', 'part-*']
+dataset = tf.data.Dataset.list_files(os.path.join(*pattern))
+# Shuffle the files if needed
+if 'shuffle_macro' in config:
+    dataset = dataset.shuffle(**config['shuffle_macro'])
+# Convert the files into datasets of examples stored as TFRecords and
+# amalgamate these datasets into one dataset of examples
+dataset = dataset \
+    .interleave(tf.data.TFRecordDataset, **config['interleave'])
+# Shuffle the examples if needed
+if 'shuffle_micro' in config:
+    dataset = dataset.shuffle(**config['shuffle_micro'])
+dataset = dataset \
+    # Preprocess the examples with respect to a given spec
+    .map(locals()['_preprocess_' + config['spec']], **config['map']) \
+    # Pad the examples and form batches of different sizes
+    .padded_batch(padded_shapes=_shape(), **config['batch']) \
+    # Postprocess the batches
+    .map(_postprocess, **config['map'])
+# Prefetch the batches if needed
+if 'prefetch' in config:
+    dataset = dataset.prefetch(**config['prefetch'])
+# Repeat the data once the source is exhausted
+if 'repeat' in config:
+    dataset = dataset.repeat(**config['repeat'])
+```
 
 # Conclusion
 
@@ -313,6 +388,7 @@ and extendable without touching the code.
 
 [example-weather-forecast]: https://github.com/chain-rule/example-weather-forecast
 
+[data.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/data.py
 [data.sql]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/data.sql
 [pipeline.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py
 [preprocessing.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json
