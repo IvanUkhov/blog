@@ -168,7 +168,7 @@ BigQuery for machine learning][Lak Lakshmanan]” by Lak Lakshmanan.
 
 # Preprocessing
 
-In this section, we cover steps 4 and 5 in the list given at the beginning. This
+In this section, we cover Steps 4 and 5 in the list given at the beginning. This
 job is done by [TensorFlow Extended], which is a library for building
 machine-learning pipelines. Internally, it relies on [Apache Beam] as a language
 for defining pipelines. Once a pipeline is created, it can be executed using an
@@ -176,7 +176,7 @@ executor, and the executor that we shall use is [Cloud Dataflow].
 
 Before we proceed to the pipeline itself, the construction process is
 orchestrated by a [configuration file][preprocessing.json], which will
-be referred to as `config` in the pipeline code:
+be referred to as `config` in the pipeline code (to be discussed shortly):
 
 ```json
 {
@@ -212,14 +212,26 @@ The `pipeline` block configures Dataflow. For instance, in this case, the data
 are processed using four machines; however, this could be set to auto-scale
 according to the workload.
 
-The `data` block describes where the data can be found and their schema. At this
-point, it might be helpful to recall the SQL query given earlier. For instance,
-`latitude` is a scale of type `FLOAT32`, while `temperature` is a sequence of
-type `FLOAT32`. Both are standardized to have a zero mean and a unit standard
-deviation, which is what `"transform": "z"` indicates.
+The `data` block describes where the data can be found and provides a schema for
+the columns that are actually used. (Recall the SQL query given earlier and note
+that `id`, `date`, and `partition` are omitted.) For instance, `latitude` is a
+scale of type `FLOAT32`, while `temperature` is a sequence of type `FLOAT32`.
+Both are standardized to have a zero mean and a unit standard deviation, which
+is indicated by `"transform": "z"` and typically needed for training neural
+netrorks.
+
+The `modes` block defines four passes over the data, corresponding to four
+operating modes. In each mode, a specific subset of examples is considered,
+which is given by the `mode` column returned by the query. There are two types
+of modes: analysis and transform; recall Step 3. Whenever the `transform` key is
+present, it is a transform mode; otherwise, it is an analysis mode. In this
+example, there is one analysis and three transform passes.
+
+Lastly, the `output` block prescribes a location on Cloud Storage where the
+result should be stored.
 
 Below is an excerpt from a [Python class][pipeline.py] responsible for building
-the pipeline.
+the pipeline:
 
 ```python
 import apache_beam as beam
@@ -287,6 +299,22 @@ for mode in config['modes']:
         | name + '-encode' >> beam.Map(coder.encode) \
         | name + '-write-records' >> beam.io.tfrecordio.WriteToTFRecord(path)
 ```
+
+At the very beginning, a BigQuery source is created, which is then branched out
+according to the operating modes found in the configuration file. Specifically,
+the first `for` loop corresponds to the analysis modes, and the second `for`
+loop goes over the transform modes. The former ends with `WriteTransformFn`,
+which saves the resulting transform, and the latter ends with `WriteToTFRecord`,
+which writes the resulting examples as `TFRecord`s.
+
+The [repository][example-weather-forecast] provides a wrapper for executing the
+pipeline on Cloud Dataflow. The outcome is a hierarchy of files on Cloud
+Storage, whose usage we discuss in the following section.
+
+It is worth noting that this way of working with a separate configuration file
+is not something standard that comes with TensorFlow or Beam. It is a
+convenience that we build for ourselves in order to keep the main logic reusable
+and extendable without touching the code.
 
 # Ingestion
 
