@@ -180,13 +180,6 @@ be referred to as `config` in the pipeline code (to be discussed shortly):
 
 ```json
 {
-  "pipeline": {
-    "project": "example-cloud-project",
-    "region": "europe-west1",
-    "zone": "europe-west1-b",
-    "job_name": "example-weather-forecast-%Y-%m-%d-%H-%M-%S",
-    "num_workers": 4
-  },
   "data": {
     "path": "configs/training/data.sql",
     "schema": [
@@ -201,16 +194,9 @@ be referred to as `config` in the pipeline code (to be discussed shortly):
     { "name": "training", "transform": "analysis", "shuffle": true },
     { "name": "validation", "transform": "analysis" },
     { "name": "testing", "transform": "identity" }
-  ],
-  "output": {
-    "path": "gs://example-weather-forecast/data/training/%Y-%m-%d-%H-%M-%S"
-  }
+  ]
 }
 ```
-
-The `pipeline` block configures Dataflow. For instance, in this case, the data
-are processed using four machines; however, this could be set to auto-scale
-according to the workload.
 
 The `data` block describes where the data can be found and provides a schema for
 the columns that are actually used. (Recall the SQL query given earlier and note
@@ -218,7 +204,7 @@ that `id`, `date`, and `partition` are omitted.) For instance, `latitude` is a
 scale of type `FLOAT32`, while `temperature` is a sequence of type `FLOAT32`.
 Both are standardized to have a zero mean and a unit standard deviation, which
 is indicated by `"transform": "z"` and typically needed for training neural
-netrorks.
+networks.
 
 The `modes` block defines four passes over the data, corresponding to four
 operating modes. In each mode, a specific subset of examples is considered,
@@ -227,21 +213,10 @@ of modes: analysis and transform; recall Step 3. Whenever the `transform` key is
 present, it is a transform mode; otherwise, it is an analysis mode. In this
 example, there is one analysis and three transform passes.
 
-Lastly, the `output` block prescribes a location on Cloud Storage where the
-result should be stored.
-
 Below is an excerpt from a [Python class][pipeline.py] responsible for building
 the pipeline:
 
 ```python
-import apache_beam as beam
-import tensorflow_transform as tft
-
-from tensorflow_transform.beam import impl as tt_beam
-from tensorflow_transform.beam.tft_beam_io import transform_fn_io
-from tensorflow_transform.tf_metadata import dataset_metadata
-from tensorflow_transform.tf_metadata import dataset_schema
-
 # config = ...
 # schema = ...
 
@@ -256,7 +231,6 @@ meta = dataset_metadata.DatasetMetadata(
 # Read data from BigQuery
 data = pipeline \
     | 'read' >> beam.io.Read(source)
-
 # Loop over modes whose purpose is analysis
 transform_functions = {}
 for mode in config['modes']:
@@ -273,7 +247,6 @@ for mode in config['modes']:
     # Store the transform function
     transform_functions[name] \
         | name + '-write-transform' >> transform_fn_io.WriteTransformFn(path)
-
 # Loop over modes whose purpose is transformation
 for mode in config['modes']:
     if not 'transform' in mode:
