@@ -286,8 +286,8 @@ and it shows the data flow with respect to all four modes:
 
 ![](/assets/images/2019-12-31-sequential-data/dataflow.svg)
 
-The outcome of the pipeline is a hierarchy of files on Cloud Storage, whose
-usage we discuss in the following section.
+The outcome is a hierarchy of files on Cloud Storage, whose usage we discuss in
+the following section.
 
 It is worth noting that this way of working with a separate configuration file
 is not something standard that comes with TensorFlow or Beam. It is a
