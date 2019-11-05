@@ -55,13 +55,13 @@ states and operations is roughly as follows:
     * The training and validation sets are transformed using the statistics
       computed with respect to the training set to avoid performing these
       computations during the training-with-validation phase. The corresponding
-      transform is available for the testing and application phrases.
+      transform is available for the testing phrase.
 
 4. The processed training and validation examples and the raw testing examples
    are written by Dataflow to [Cloud Storage] in the [TFRecord] format, which is
    a format native to TensorFlow.
 
-5. The files containing TFRecords are read by the [tf.data] API of TensorFlow
+5. The files containing TFRecords are read by the [`tf.data`] API of TensorFlow
    and eventually transformed into a data set of appropriately padded batches of
    examples.
 
@@ -275,21 +275,32 @@ for mode in config['modes']:
 
 At the very beginning, a BigQuery source is created, which is then branched out
 according to the operating modes found in the configuration file. Specifically,
-the first `for` loop corresponds to the analysis modes, and the second `for`
-loop goes over the transform modes. The former ends with `WriteTransformFn`,
-which saves the resulting transform, and the latter ends with `WriteToTFRecord`,
-which writes the resulting examples as `TFRecord`s.
+the first for-loop corresponds to the analysis modes, and the second for-loop
+goes over the transform modes. The former ends with `WriteTransformFn`, which
+saves the resulting transform, and the latter ends with `WriteToTFRecord`, which
+writes the resulting examples as TFRecords.
 
 The [repository][example-weather-forecast] provides a wrapper for executing the
-pipeline on Cloud Dataflow. The outcome is a hierarchy of files on Cloud
-Storage, whose usage we discuss in the following section.
+pipeline on Cloud Dataflow. The following figure is taken from Cloud DataFlow,
+and it shows the data flow with respect to all four modes:
+
+![](/assets/images/2019-12-31-sequential-data/dataflow.svg)
+
+The outcome of the pipeline is a hierarchy of files on Cloud Storage, whose
+usage we discuss in the following section.
 
 It is worth noting that this way of working with a separate configuration file
 is not something standard that comes with TensorFlow or Beam. It is a
 convenience that we build for ourselves in order to keep the main logic reusable
 and extendable without touching the code.
 
-# Training
+# Execution
+
+At this point, the data have made it all the way to the execution phase, which
+is referred to one of training, validation, and testing; however, the data are
+yet to be injected into a TensorFlow graph. As with the preprocessing, various
+configuration parameters are kept in a [separate configuration
+file][execution.json]:
 
 ```json
 {
@@ -332,8 +343,18 @@ and extendable without touching the code.
 }
 ```
 
+It can be seen that the file contains only one block, `data`, which is
+sufficient for our purposes. However, it is meant to cover the construction of
+the model in mind, including its hyperparameters, and the execution process,
+including the optimizer and evaluation metrics, as well.
+
+The `data` block is similar to the one we saw before; however, `modes` now
+describes various calls to the [`tf.data`] API related to shuffling, batching,
+and so on, which those familiar with the API would probably immediately
+recognize. It is instructive to go straight to the Python code.
+
 Below is an excerpt from a [Python class][data.py] responsible for building the
-pipeline:
+pipeline on the TensorFlow side:
 
 ```python
 # config = ...
@@ -384,11 +405,12 @@ if 'repeat' in config:
 [TensorFlow Extended]: https://www.tensorflow.org/tfx
 [TensorFlow]: https://www.tensorflow.org
 [ghcn-d]: https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d
-[tf.data]: https://www.tensorflow.org/guide/data
+[`tf.data`]: https://www.tensorflow.org/guide/data
 
 [example-weather-forecast]: https://github.com/chain-rule/example-weather-forecast
 
 [data.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/data.py
 [data.sql]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/data.sql
+[execution.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/execution.json
 [pipeline.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py
 [preprocessing.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json
