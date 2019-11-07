@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Ingestion of sequential data from BigQuery into TensorFlow
-date: 2019-12-31
+date: 2019-11-08
 keywords:
   - Apache Beam
   - BigQuery
@@ -291,7 +291,7 @@ The [repository][example-weather-forecast] provides a wrapper for executing the
 pipeline on Cloud Dataflow. The following figure is taken from Cloud Dataflow,
 and it shows the data flow with respect to all four modes:
 
-![](/assets/images/2019-12-31-sequential-data/dataflow.svg)
+![](/assets/images/2019-11-08-sequential-data/dataflow.svg)
 
 The outcome is a hierarchy of files on Cloud Storage, whose usage we discuss in
 the following section.
