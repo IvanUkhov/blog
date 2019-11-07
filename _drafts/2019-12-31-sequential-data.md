@@ -281,7 +281,7 @@ saves the resulting transform, and the latter ends with `WriteToTFRecord`, which
 writes the resulting examples as TFRecords.
 
 The [repository][example-weather-forecast] provides a wrapper for executing the
-pipeline on Cloud Dataflow. The following figure is taken from Cloud DataFlow,
+pipeline on Cloud Dataflow. The following figure is taken from Cloud Dataflow,
 and it shows the data flow with respect to all four modes:
 
 ![](/assets/images/2019-12-31-sequential-data/dataflow.svg)
