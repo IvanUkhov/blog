@@ -297,9 +297,9 @@ and extendable without touching the code.
 # Execution
 
 At this point, the data have made it all the way to the execution phase, which
-is referred to one of training, validation, and testing; however, the data are
-yet to be injected into a TensorFlow graph. As with the preprocessing, various
-configuration parameters are kept in a [separate configuration
+is referred to training, validation, and testing; however, the data are yet to
+be injected into a TensorFlow graph, which is the topic of this section. As
+before, relevant parameters are kept in a [separate configuration
 file][execution.json]:
 
 ```json
@@ -343,14 +343,14 @@ file][execution.json]:
 }
 ```
 
-It can be seen that the file contains only one block, `data`, which is
-sufficient for our purposes. However, it is meant to cover the construction of
-the model in mind, including its hyperparameters, and the execution process,
-including the optimizer and evaluation metrics, as well.
+It can be seen that the file contains only one block: `data`. This is sufficient
+for the purposes of this article; however, it is also meant to cover the
+construction of the model in mind, including its hyperparameters, and the
+execution process, including the optimizer and evaluation metrics.
 
-The `data` block is similar to the one we saw before; however, `modes` now
+The `data` block is similar to the one we saw before. In this case, `modes`
 describes various calls to the [`tf.data`] API related to shuffling, batching,
-and so on, which those familiar with the API would probably immediately
+and so on, which those who are familiar with the API will probably immediately
 recognize. It is instructive to go straight to the Python code.
 
 Below is an excerpt from a [Python class][data.py] responsible for building the
@@ -387,7 +387,7 @@ if 'repeat' in config:
 ```
 
 In the case of this pipeline, it is also worth discussing the preprocessing and
-postprocessing mappings, which are before and after the padding step,
+postprocessing mappings, which one can see before and after the padding step,
 respectively.
 
 ```python
