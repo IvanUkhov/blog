@@ -71,7 +71,8 @@ pipeline can handle arbitrary amounts of data. Moreover, it operates on
 complete examples, not on individual measurements.
 
 In the rest of the article, the aforementioned steps will be described in more
-detail. The corresponding source code can be found in the following repository:
+detail. The corresponding source code can be found in the following GitHub
+repository:
 
 * [example-weather-forecast].
 
@@ -387,14 +388,15 @@ dataset = dataset \
 # Prefetch the batches if needed
 if 'prefetch' in config:
     dataset = dataset.prefetch(**config['prefetch'])
-# Repeat the data once the source is exhausted
+# Repeat the data once the source is exhausted if needed
 if 'repeat' in config:
     dataset = dataset.repeat(**config['repeat'])
 ```
 
-In the case of this pipeline, it is also worth discussing the preprocessing and
-postprocessing mappings, which one can see before and after the padding step,
-respectively.
+The pipeline is self-explanatory. It is chaining operations one after another.
+It is, however, worth taking a closer look at the preprocessing and
+postprocessing mappings, which can be seen before and after the padding step,
+respectively:
 
 ```python
 def _preprocess(proto):
@@ -419,7 +421,33 @@ def _postprocess(contextual, sequential):
     return {**contextual, **sequential}
 ```
 
+Currently, `tf.data` does not support padding sparse tensors, which is the
+representation used for sequential features in TensorFlow. In the running
+example about forecasting weather, such features are `duration` and
+`temprature`. This is the reason such features are converted to their dense
+counterparts in `_preprocess`. However, the final representation has to be
+sparse still. Therefore, the sequential features are converted back to the
+sparse format in `_postprocess`. Hopefully, this back-and-forth conversion will
+be rendered obsolete in future versions.
+
+Having executed the above steps, we have an instance of [`tf.data.Dataset`],
+which is the ultimate goal, as it is the standard way of ingesting data into a
+TensorFlow graph. At this point, one might create a Keras model leveraging
+[`tf.keras.layers.DenseFeatures`] and [`tf.keras.experimental.SequenceFeatures`]
+for constructing the input layer and then pass the data set to the `fit`
+function the resulting model. A [skeleton][model.py] for this part can be found
+in the repository.
+
 # Conclusion
+
+In this article, we have discussed a scalable approach to the ingestion of
+sequential observations from BigQuery into a TensorFlow graph. The key tools
+that have been used to this end are TensorFlow Extended in combination with
+Cloud Dataflow and the `tf.data` API of TensorFlow.
+
+In addition, the provided code has been written to be general and easily
+customizable. It has been achieved by separating the configuration from the
+implementation.
 
 # References
 
@@ -438,14 +466,18 @@ def _postprocess(contextual, sequential):
 [TensorFlow]: https://www.tensorflow.org
 [ghcn-d]: https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d
 [`tf.data`]: https://www.tensorflow.org/guide/data
+[`tf.data.Dataset`]: https://www.tensorflow.org/api_docs/python/tf/data/Dataset
 [`tf.io.FixedLenFeature`]: https://www.tensorflow.org/api_docs/python/tf/io/FixedLenFeature
 [`tf.io.VarLenFeature`]: https://www.tensorflow.org/api_docs/python/tf/io/VarLenFeature
+[`tf.keras.experimental.SequenceFeatures`]: https://www.tensorflow.org/api_docs/python/tf/keras/experimental/SequenceFeatures
+[`tf.keras.layers.DenseFeatures`]: https://www.tensorflow.org/api_docs/python/tf/keras/layers/DenseFeatures
 
 [example-weather-forecast]: https://github.com/chain-rule/example-weather-forecast
 
 [data.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/data.py
 [data.sql]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/data.sql
 [execution.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/execution.json
+[model.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/model.py
 [pipeline.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py
 [preprocessing.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json
 [schema.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/schema.py
