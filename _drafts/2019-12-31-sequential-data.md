@@ -280,6 +280,12 @@ goes over the transform modes. The former ends with `WriteTransformFn`, which
 saves the resulting transform, and the latter ends with `WriteToTFRecord`, which
 writes the resulting examples as TFRecords.
 
+The distinction between the contextual and sequential features is given by the
+[`schema`][schema.py] object created based on the `schema` block in the
+configuration file. The call `schema.to_feature_spec()` shown above alternates
+between [`tf.io.FixedLenFeature`] and [`tf.io.VarLenFeature`] and produces a
+feature specification that is understood by TensorFlow and TensorFlow Extended.
+
 The [repository][example-weather-forecast] provides a wrapper for executing the
 pipeline on Cloud Dataflow. The following figure is taken from Cloud Dataflow,
 and it shows the data flow with respect to all four modes:
@@ -432,6 +438,8 @@ def _postprocess(contextual, sequential):
 [TensorFlow]: https://www.tensorflow.org
 [ghcn-d]: https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d
 [`tf.data`]: https://www.tensorflow.org/guide/data
+[`tf.io.FixedLenFeature`]: https://www.tensorflow.org/api_docs/python/tf/io/FixedLenFeature
+[`tf.io.VarLenFeature`]: https://www.tensorflow.org/api_docs/python/tf/io/VarLenFeature
 
 [example-weather-forecast]: https://github.com/chain-rule/example-weather-forecast
 
@@ -440,3 +448,4 @@ def _postprocess(contextual, sequential):
 [execution.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/execution.json
 [pipeline.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py
 [preprocessing.json]: https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json
+[schema.py]: https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/schema.py
