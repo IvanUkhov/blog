@@ -55,7 +55,7 @@ states and operations is roughly as follows:
     * The training and validation sets are transformed using the statistics
       computed with respect to the training set to avoid performing these
       computations during the training-with-validation phase. The corresponding
-      transform is available for the testing phrase.
+      transform is available for the testing phase.
 
 4. The processed training and validation examples and the raw testing examples
    are written by Dataflow to [Cloud Storage] in the [TFRecord] format, which is
@@ -146,9 +146,9 @@ FROM
 
 The query fetches peak temperatures, denoted by `temperature`, for all available
 weather stations between June and August in 2010–2019. The crucial part is the
-usage of `ARRAY_AGG`, which is what make it possible to gather all relevant data
-about a specific station and a specific year in the same row. The number of days
-since the previous measurement, which is denoted by `duration`, is also
+usage of `ARRAY_AGG`, which is what makes it possible to gather all relevant
+data about a specific station and a specific year in the same row. The number of
+days since the previous measurement, which is denoted by `duration`, is also
 computed. Ideally, `duration` should always be one (except for the first day,
 which has no predecessor); however, this is not the case, which makes the
 resulting time series vary in length.
@@ -435,8 +435,8 @@ which is the ultimate goal, as it is the standard way of ingesting data into a
 TensorFlow graph. At this point, one might create a Keras model leveraging
 [`tf.keras.layers.DenseFeatures`] and [`tf.keras.experimental.SequenceFeatures`]
 for constructing the input layer and then pass the data set to the `fit`
-function the resulting model. A [skeleton][model.py] for this part can be found
-in the repository.
+function of the resulting model. A [skeleton][model.py] for this part can be
+found in the repository.
 
 # Conclusion
 
