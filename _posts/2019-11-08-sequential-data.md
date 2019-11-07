@@ -8,6 +8,7 @@ keywords:
   - Cloud Dataflow
   - Cloud Storage
   - Google Cloud Platform
+  - Keras
   - TensorFlow
   - data science
   - machine learning
@@ -30,18 +31,18 @@ between June 1 to June 11 at a weather station in Stockholm.
 
 To set the expectations right, in this article, we are not going to build a
 predictive model but to cater for its development by making the data from the
-aforementioned network readily available in a TensorFlow graph. The chain of
-states and operations is roughly as follows:
+aforementioned database readily available in a TensorFlow graph. The final chain
+of states and operations is as follows:
 
 1. Historical temperature measurements from the Global Historical Climatology
    Network are stored in a [public data set][ghcn-d] in BigQuery. Each row
    corresponds to a weather station and a date. There are missing observations
    due to such reasons as measurements not passing quality checks.
 
-2. Relevant measurements are grouped by the weather station and year. Therefore,
-   each row corresponds to a weather station and a year, implying that all
-   information about a particular example (a specific weather station on a
-   specific year) is gathered in one place.
+2. Relevant measurements are grouped in BigQuery by the weather station and
+   year. Therefore, each row corresponds to a weather station and a year,
+   implying that all information about a particular example (a specific weather
+   station on a specific year) is gathered in one place.
 
 3. The sequences are read, analyzed, and transformed by [Cloud Dataflow].
 
@@ -53,9 +54,9 @@ states and operations is roughly as follows:
       Standardization is used as an example.
 
     * The training and validation sets are transformed using the statistics
-      computed with respect to the training set to avoid performing these
-      computations during the training-with-validation phase. The corresponding
-      transform is available for the testing phase.
+      computed with respect to the training set in order to avoid performing
+      these computations during the training-with-validation phase. The
+      corresponding transform is available for the testing phase.
 
 4. The processed training and validation examples and the raw testing examples
    are written by Dataflow to [Cloud Storage] in the [TFRecord] format, which is
@@ -71,16 +72,16 @@ pipeline can handle arbitrary amounts of data. Moreover, it operates on
 complete examples, not on individual measurements.
 
 In the rest of the article, the aforementioned steps will be described in more
-detail. The corresponding source code can be found in the following GitHub
-repository:
+detail. The corresponding source code can be found in the following repository
+on GitHub:
 
 * [example-weather-forecast].
 
 # Data
 
-It all starts with the data. The data come from the Global Historical
-Climatology Network, which is [available in BigQuery][ghcn-d] for public use.
-Steps 1 and 2 in the list above are covered by the [following query][data.sql]:
+It all starts with data. The data come from the Global Historical Climatology
+Network, which is [available in BigQuery][ghcn-d] for public use. Steps 1 and 2
+in the list above are covered by the [following query][data.sql]:
 
 ```sql
 WITH
@@ -159,10 +160,10 @@ and `longitude`. They are scalars stored side by side with `duration` and
 `temperature`, which are arrays.
 
 Another important moment in the final `SELECT` statement, which defines a column
-called `mode`. This column indicates what each example is used for, enabling one
-to use the same query for different purposes and also to avoid inconsistencies
-across multiple queries. In this case, observations prior to 2019 are reserved
-for training, while the rest is split pseudo-randomly and reproducibly into two
+called `mode`. This column indicates what each example is used for, allowing one
+to use the same query for different purposes and to avoid inconsistencies due to
+multiple queries. In this case, observations prior to 2019 are reserved for
+training, while the rest is split pseudo-randomly and reproducibly into two
 approximately equal parts: one is for validation, and one is for testing. This
 last operation is explained in detail in “[Repeatable sampling of data sets in
 BigQuery for machine learning][Lak Lakshmanan]” by Lak Lakshmanan.
@@ -172,8 +173,8 @@ BigQuery for machine learning][Lak Lakshmanan]” by Lak Lakshmanan.
 In this section, we cover Steps 4 and 5 in the list given at the beginning. This
 job is done by [TensorFlow Extended], which is a library for building
 machine-learning pipelines. Internally, it relies on [Apache Beam] as a language
-for defining pipelines. Once a pipeline is created, it can be executed using an
-executor, and the executor that we shall use is [Cloud Dataflow].
+for defining pipelines. Once an adequate pipeline is created, it can be executed
+using an executor, and the executor that we shall use is [Cloud Dataflow].
 
 Before we proceed to the pipeline itself, the construction process is
 orchestrated by a [configuration file][preprocessing.json], which will
@@ -200,11 +201,11 @@ be referred to as `config` in the pipeline code (to be discussed shortly):
 ```
 
 The `data` block describes where the data can be found and provides a schema for
-the columns that are actually used. (Recall the SQL query given earlier and note
-that `id`, `date`, and `partition` are omitted.) For instance, `latitude` is a
-scale of type `FLOAT32`, while `temperature` is a sequence of type `FLOAT32`.
-Both are standardized to have a zero mean and a unit standard deviation, which
-is indicated by `"transform": "z"` and typically needed for training neural
+the columns that are used. (Recall the SQL query given earlier and note that
+`id`, `date`, and `partition` are omitted.) For instance, `latitude` is a scale
+of type `FLOAT32`, while `temperature` is a sequence of type `FLOAT32`. Both are
+standardized to have a zero mean and a unit standard deviation, which is
+indicated by `"transform": "z"` and is typically needed for training neural
 networks.
 
 The `modes` block defines four passes over the data, corresponding to four
@@ -212,7 +213,7 @@ operating modes. In each mode, a specific subset of examples is considered,
 which is given by the `mode` column returned by the query. There are two types
 of modes: analysis and transform; recall Step 3. Whenever the `transform` key is
 present, it is a transform mode; otherwise, it is an analysis mode. In this
-example, there is one analysis and three transform passes.
+example, there are one analysis and three transform modes.
 
 Below is an excerpt from a [Python class][pipeline.py] responsible for building
 the pipeline:
@@ -288,13 +289,13 @@ between [`tf.io.FixedLenFeature`] and [`tf.io.VarLenFeature`] and produces a
 feature specification that is understood by TensorFlow and TensorFlow Extended.
 
 The [repository][example-weather-forecast] provides a wrapper for executing the
-pipeline on Cloud Dataflow. The following figure is taken from Cloud Dataflow,
-and it shows the data flow with respect to all four modes:
+pipeline on Cloud Dataflow. The following figure shows the flow of the data with
+respect to the four operating modes:
 
 ![](/assets/images/2019-11-08-sequential-data/dataflow.svg)
 
 The outcome is a hierarchy of files on Cloud Storage, whose usage we discuss in
-the following section.
+the next section.
 
 It is worth noting that this way of working with a separate configuration file
 is not something standard that comes with TensorFlow or Beam. It is a
@@ -303,11 +304,10 @@ and extendable without touching the code.
 
 # Execution
 
-At this point, the data have made it all the way to the execution phase, which
-is referred to training, validation, and testing; however, the data are yet to
-be injected into a TensorFlow graph, which is the topic of this section. As
-before, relevant parameters are kept in a [separate configuration
-file][execution.json]:
+At this point, the data have made it all the way to the execution phase,
+referring to training, validation, and testing; however, the data are yet to be
+injected into a TensorFlow graph, which is the topic of this section. As before,
+relevant parameters are kept in a [separate configuration file][execution.json]:
 
 ```json
 {
@@ -357,8 +357,8 @@ execution process, including the optimizer and evaluation metrics.
 
 The `data` block is similar to the one we saw before. In this case, `modes`
 describes various calls to the [`tf.data`] API related to shuffling, batching,
-and so on, which those who are familiar with the API will probably immediately
-recognize. It is instructive to go straight to the Python code.
+and so on. Those who are familiar with the API will probably immediately
+recognize them. It is now instructive to go straight to the Python code.
 
 Below is an excerpt from a [Python class][data.py] responsible for building the
 pipeline on the TensorFlow side:
@@ -393,10 +393,10 @@ if 'repeat' in config:
     dataset = dataset.repeat(**config['repeat'])
 ```
 
-The pipeline is self-explanatory. It is chaining operations one after another.
-It is, however, worth taking a closer look at the preprocessing and
-postprocessing mappings, which can be seen before and after the padding step,
-respectively:
+The pipeline is self-explanatory. It is simply a chain of operations stacked on
+top of each other. It is, however, worth taking a closer look at the
+preprocessing and postprocessing mappings, which can be seen before and after
+the padding step, respectively:
 
 ```python
 def _preprocess(proto):
@@ -435,8 +435,8 @@ which is the ultimate goal, as it is the standard way of ingesting data into a
 TensorFlow graph. At this point, one might create a Keras model leveraging
 [`tf.keras.layers.DenseFeatures`] and [`tf.keras.experimental.SequenceFeatures`]
 for constructing the input layer and then pass the data set to the `fit`
-function of the resulting model. A [skeleton][model.py] for this part can be
-found in the repository.
+function of the model. A [skeleton][model.py] for this part can be found in the
+repository.
 
 # Conclusion
 
@@ -446,8 +446,8 @@ that have been used to this end are TensorFlow Extended in combination with
 Cloud Dataflow and the `tf.data` API of TensorFlow.
 
 In addition, the provided code has been written to be general and easily
-customizable. It has been achieved by separating the configuration from the
-implementation.
+customizable. It has been achieved by separating the configuration part from the
+implementation one.
 
 # References
 
