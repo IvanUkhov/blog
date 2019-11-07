@@ -113,7 +113,7 @@ data_1 AS (
       ORDER BY date
     )
 ),
--- Group into complete examples
+-- Group into examples (a specific station and a specific year)
 data_2 AS (
   SELECT
     id,
@@ -372,12 +372,11 @@ dataset = dataset \
 # Shuffle the examples if needed
 if 'shuffle_micro' in config:
     dataset = dataset.shuffle(**config['shuffle_micro'])
+# Preprocess the examples with respect to a given spec, pad the examples
+# and form batches of different sizes, and postprocess the batches
 dataset = dataset \
-    # Preprocess the examples with respect to a given spec
-    .map(locals()['_preprocess_' + config['spec']], **config['map']) \
-    # Pad the examples and form batches of different sizes
+    .map(_preprocess, **config['map']) \
     .padded_batch(padded_shapes=_shape(), **config['batch']) \
-    # Postprocess the batches
     .map(_postprocess, **config['map'])
 # Prefetch the batches if needed
 if 'prefetch' in config:
@@ -385,6 +384,33 @@ if 'prefetch' in config:
 # Repeat the data once the source is exhausted
 if 'repeat' in config:
     dataset = dataset.repeat(**config['repeat'])
+```
+
+In the case of this pipeline, it is also worth discussing the preprocessing and
+postprocessing mappings, which are before and after the padding step,
+respectively.
+
+```python
+def _preprocess(proto):
+    spec = self.transforms[config['transform']] \
+        .transformed_feature_spec()
+    example = tf.io.parse_single_example(proto, spec)
+    return (
+        {name: example[name] for name in self.contextual_names},
+        {
+            # Convert the sequential columns from sparse to dense
+            name: self.schema[name].to_dense(example[name])
+            for name in self.sequential_names
+        },
+    )
+
+def _postprocess(contextual, sequential):
+    sequential = {
+        # Convert the sequential columns from dense to sparse
+        name: self.schema[name].to_sparse(sequential[name])
+        for name in self.sequential_names
+    }
+    return {**contextual, **sequential}
 ```
 
 # Conclusion
