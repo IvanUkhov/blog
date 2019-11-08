@@ -294,8 +294,44 @@ respect to the four operating modes:
 
 ![](/assets/images/2019-11-08-sequential-data/dataflow.svg)
 
-The outcome is a hierarchy of files on Cloud Storage, whose usage we discuss in
-the next section.
+The outcome is a hierarchy of files on Cloud Storage:
+
+```
+.
+├── data/
+│   ├── application/... (not covered here)
+│   └── training/ (collectively refers to everything related to training)
+│       ├── ...
+│       ├── 2019-10-01-12-00-00/...
+│       └── 2019-11-01-12-00-00/
+│           ├── analysis/
+│           │   └── transform/
+│           │       ├── transform_fn/...
+│           │       └── transform_metadata/...
+│           ├── testing/
+│           │   └── records/
+│           │       ├── part-000000-of-00004
+│           │       ├── ...
+│           │       └── part-000003-of-00004
+│           ├── training/
+│           │   └── records/
+│           │       ├── part-000000-of-00006
+│           │       ├── ...
+│           │       └── part-000005-of-00006
+│           └── validation/
+│               └── records/
+│                   ├── part-000000-of-00004
+│                   ├── ...
+│                   └── part-000003-of-00004
+└── model/ (not covered here)
+    ├── application/...
+    └── training/...
+```
+
+The files whose name starts with `part-` are the ones containing TFRecords. It
+can be seen that, for each mode, the corresponding examples have been split into
+multiple files, which is done for more efficient access during the usage stage
+discussed in the next section.
 
 It is worth noting that this way of working with a separate configuration file
 is not something standard that comes with TensorFlow or Beam. It is a
