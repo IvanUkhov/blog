@@ -268,11 +268,11 @@ for mode in config['modes']:
         data_, meta_ = ((data_, meta), transform_functions[mode['transform']]) \
             | name + '-transform' >> tt_beam.TransformDataset()
         coder = tft.coders.ExampleProtoCoder(meta_.schema)
-    path = _locate(config, name, 'records', 'part')
+    path = _locate(config, name, 'examples', 'part')
     # Store the transformed examples as TFRecords
     data_ \
         | name + '-encode' >> beam.Map(coder.encode) \
-        | name + '-write-records' >> beam.io.tfrecordio.WriteToTFRecord(path)
+        | name + '-write-examples' >> beam.io.tfrecordio.WriteToTFRecord(path)
 ```
 
 At the very beginning, a BigQuery source is created, which is then branched out
@@ -309,17 +309,17 @@ The outcome is a hierarchy of files on Cloud Storage:
 │           │       ├── transform_fn/...
 │           │       └── transform_metadata/...
 │           ├── testing/
-│           │   └── records/
+│           │   └── examples/
 │           │       ├── part-000000-of-00004
 │           │       ├── ...
 │           │       └── part-000003-of-00004
 │           ├── training/
-│           │   └── records/
+│           │   └── examples/
 │           │       ├── part-000000-of-00006
 │           │       ├── ...
 │           │       └── part-000005-of-00006
 │           └── validation/
-│               └── records/
+│               └── examples/
 │                   ├── part-000000-of-00004
 │                   ├── ...
 │                   └── part-000003-of-00004
@@ -403,7 +403,7 @@ pipeline on the TensorFlow side:
 # config = ...
 
 # List all files matching a given pattern
-pattern = [self.path, name, 'records', 'part-*']
+pattern = [self.path, name, 'examples', 'part-*']
 dataset = tf.data.Dataset.list_files(os.path.join(*pattern))
 # Shuffle the files if needed
 if 'shuffle_macro' in config:
