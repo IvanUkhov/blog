@@ -200,6 +200,11 @@ be referred to as `config` in the pipeline code (to be discussed shortly):
 }
 ```
 
+It is worth noting that this way of working with a separate configuration file
+is not something standard that comes with TensorFlow or Beam. It is a
+convenience that we build for ourselves in order to keep the main logic reusable
+and extendable without touching the code.
+
 The `data` block describes where the data can be found and provides a schema for
 the columns that are used. (Recall the SQL query given earlier and note that
 `id`, `date`, and `partition` are omitted.) For instance, `latitude` is a scale
@@ -334,11 +339,6 @@ In the listing above, the files whose name starts with `part-` are the ones
 containing TFRecords. It can be seen that, for each mode, the corresponding
 examples have been split into multiple files, which is done for more efficient
 access during the usage stage discussed in the next section.
-
-It is worth noting that having a separate configuration file is not something
-standard that comes with TensorFlow or Beam. It is a convenience that we build
-for ourselves in order to keep the main logic reusable and extendable without
-touching the code.
 
 # Execution
 
