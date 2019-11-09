@@ -298,45 +298,47 @@ The outcome is a hierarchy of files on Cloud Storage:
 
 ```
 .
-├── data/
-│   ├── application/... (not covered here)
-│   └── training/ (collectively refers to everything related to training)
-│       ├── ...
-│       ├── 2019-10-01-12-00-00/...
-│       └── 2019-11-01-12-00-00/
-│           ├── analysis/
-│           │   └── transform/
-│           │       ├── transform_fn/...
-│           │       └── transform_metadata/...
-│           ├── testing/
-│           │   └── examples/
-│           │       ├── part-000000-of-00004
-│           │       ├── ...
-│           │       └── part-000003-of-00004
-│           ├── training/
-│           │   └── examples/
-│           │       ├── part-000000-of-00006
-│           │       ├── ...
-│           │       └── part-000005-of-00006
-│           └── validation/
-│               └── examples/
-│                   ├── part-000000-of-00004
-│                   ├── ...
-│                   └── part-000003-of-00004
-└── model/ (not covered here)
-    ├── application/...
-    └── training/...
+└── data/
+    └── training/
+        └── 2019-11-01-12-00-00/
+            ├── analysis/
+            │   └── transform/
+            │       ├── transform_fn/...
+            │       └── transform_metadata/...
+            ├── testing/
+            │   └── examples/
+            │       ├── part-000000-of-00004
+            │       ├── ...
+            │       └── part-000003-of-00004
+            ├── training/
+            │   └── examples/
+            │       ├── part-000000-of-00006
+            │       ├── ...
+            │       └── part-000005-of-00006
+            └── validation/
+                └── examples/
+                    ├── part-000000-of-00004
+                    ├── ...
+                    └── part-000003-of-00004
 ```
 
-The files whose name starts with `part-` are the ones containing TFRecords. It
-can be seen that, for each mode, the corresponding examples have been split into
-multiple files, which is done for more efficient access during the usage stage
-discussed in the next section.
+Here, `data/training` contains all data needed for the training phase, which
+collectively refers to training entwined with validation and followed by
+testing. Moving forward, this hierarchy is meant to accommodate the application
+phase as well by populating a `data/application` entry next to the
+`data/training` one. It can also accommodate trained models and the results of
+applying these models by having a `model` entry with a structure similar to the
+one of the `data` entry.
 
-It is worth noting that this way of working with a separate configuration file
-is not something standard that comes with TensorFlow or Beam. It is a
-convenience that we build for ourselves in order to keep the main logic reusable
-and extendable without touching the code.
+In the listing above, the files whose name starts with `part-` are the ones
+containing TFRecords. It can be seen that, for each mode, the corresponding
+examples have been split into multiple files, which is done for more efficient
+access during the usage stage discussed in the next section.
+
+It is worth noting that having a separate configuration file is not something
+standard that comes with TensorFlow or Beam. It is a convenience that we build
+for ourselves in order to keep the main logic reusable and extendable without
+touching the code.
 
 # Execution
 
