@@ -23,7 +23,7 @@ Then
 
 $$
 \begin{align}
-& y_i \sim \text{Multinomial}(n_i, \theta_i), \\
+& y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i), \\
 & \theta_i = \text{Softmax}\left(0, \mu^n_i, \mu^p_i\right), \\
 & \mu^n_i = b^n_0 + b^n_{\text{age}[i]}, \\
 & \mu^p_i = b^p_0 + b^p_{\text{age}[i]}, \\
