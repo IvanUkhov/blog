@@ -64,16 +64,20 @@ $$
 
 # References
 
-* Andrew Gelman and Thomas Little, “[Poststratification into many categories
-  using hierarchical logistic regression][MRP],” 1997.
+* Andrew Gelman et al., “[Using multilevel regression and poststratification to
+  estimate dynamic public opinion][MRT],” 2018.
 
 * Andrew Gelman and Jennifer Hill, _[Data Analysis Using Regression and
   Multilevel/Hierarchical Models][MLM]_, Cambridge University Press, 2006.
 
-* Andrew Gelman et al., “[Using multilevel regression and poststratification to
-  estimate dynamic public opinion][MRT],” 2018.
+* Andrew Gelman and Thomas Little, “[Poststratification into many categories
+  using hierarchical logistic regression][MRP],” 1997.
 
-[MLM]: http://www.stat.columbia.edu/~gelman/arm/
+* Paul-Christian Bürkner, “[brms: An R package for Bayesian multilevel models
+  using Stan][brms],” 2017.
+
+[MLM]: https://doi.org/10.1017/CBO9780511790942
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
 [article]: /2019/08/19/net-promoter.html
+[brms]: http://dx.doi.org/10.18637/jss.v080.i01
