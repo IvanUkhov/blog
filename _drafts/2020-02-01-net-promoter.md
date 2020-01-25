@@ -17,17 +17,23 @@ This article is a sequel to “[A Bayesian approach to the inference of the net
 promoter score][article],” where we built a hierarchical model for inferring the
 net promoter score for an arbitrary segmentation of a customer base. The reader
 is encouraged to skim over that article in order to recall the mechanics of the
-net promoter score and the structure of the model that was constructed. In that
-article, we made the assumption that the sample was representative of the
-population, which, as mentioned earlier, is often not the case. In this article,
-we mitigate this problem using a technique called poststratification. The
-technique works by matching proportions observed in the sample with those
+net promoter score and the structure of the model that was constructed. In the
+previous article, we made the assumption that the sample was representative of
+the population, which, as mentioned earlier, is often not the case. In this
+article, we mitigate this problem using a technique called poststratification.
+The technique works by matching proportions observed in the sample with those
 observed in the population with respect to multiple dimensions, such as age
-groups, countries, and gender. However, in order to be able to poststratify, the
-model has to encompass all these dimensions, which the previous model is not
-suitable for. To this end, we switch gears to multilevel multinomial regression.
+group, country, and gender. However, in order to be able to poststratify, the
+model has to encompass all these dimensions, which the model built earlier is
+not suitable for. To this end, we switch gears to multilevel multinomial
+regression.
 
 # Problem
+
+Suppose the survey targets a population that consists of $$N$$ customers. Each
+customer is described by $$M$$ categorical characteristics, such as demographics
+and business-specific indicators. For instance, each person might be
+characterized by their age group, gender, and subscription plan.
 
 # Solution
 
