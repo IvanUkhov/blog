@@ -3,6 +3,15 @@ layout: post
 title: Bayesian inference of the net promoter score via multilevel regression with poststratification
 date: 2020-02-01
 math: true
+keywords:
+  - Bayesian statistics
+  - R
+  - Stan
+  - brms
+  - data science
+  - multilevel modeling
+  - net promoter score
+  - poststratification
 ---
 
 Customer surveys are naturally prone to participation bias, which arises when
