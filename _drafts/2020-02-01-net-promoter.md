@@ -25,9 +25,11 @@ technique works by matching proportions observed in the sample with those
 observed in the population with respect to multiple dimensions, such as age
 groups, countries, and gender. However, in order to be able to poststratify, the
 model has to encompass all these dimensions, which the previous model is not
-suitable for. Here we switch gears to multilevel multinomial regression.
+suitable for. To this end, we switch gears to multilevel multinomial regression.
 
-# Model
+# Problem
+
+# Solution
 
 Let
 
@@ -56,4 +58,22 @@ $$
 \end{align}
 $$
 
+# Implementation
+
+# Conclusion
+
+# References
+
+* Andrew Gelman and Thomas Little, “[Poststratification into many categories
+  using hierarchical logistic regression][MRP],” 1997.
+
+* Andrew Gelman and Jennifer Hill, _[Data Analysis Using Regression and
+  Multilevel/Hierarchical Models][MLM]_, Cambridge University Press, 2006.
+
+* Andrew Gelman et al., “[Using multilevel regression and poststratification to
+  estimate dynamic public opinion][MRT],” 2018.
+
+[MLM]: http://www.stat.columbia.edu/~gelman/arm/
+[MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
+[MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
 [article]: /2019/08/19/net-promoter.html
