@@ -251,7 +251,8 @@ the implementation given in the appendix.
 * Allen Downey, “[There is only one test!][Allen Downey],” 2011.
 * John Rauser, “[Statistics without the agonizing pain][John Rauser],” 2014.
 * Joseph Lee Rodgers, “[The bootstrap, the jackknife, and the randomization
-  test: A sampling taxonomy][Joseph Rodgers],” 2010.
+  test: A sampling taxonomy][Joseph Rodgers],” Multivariate Behavioral Research,
+  2010.
 
 # Appendix
 
