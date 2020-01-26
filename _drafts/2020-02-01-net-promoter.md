@@ -51,13 +51,32 @@ to all customers who have not opted out of communications. Regardless of the
 decision, the resulting sample size, which we denote by $$n$$, is likely to be
 substantially smaller than $$N$$, as the response rate is typically low.
 Therefore, there is a lot of uncertainty about the opinion of those who
-abstained or were not targeted. Furthermore, ideally, a random sample is
-desired; however, certain subpopulations of customers might end up being
-significantly overrepresented due to such phenomena as participation bias,
-driving the score in their favor. The upshot is that the business cannot trust
-the results of the survey.
+abstained or were not targeted.
+
+More importantly, a random sample is desired; however, certain subpopulations of
+customers might end up being significantly overrepresented due to such phenomena
+as participation bias, driving the score in their favor. To formalize this, let
+us first take the Cartesian product of the $$M$$ factors. This results in
+$$K = \prod_i m_i$$ distinct combinations of the factors’ levels, which we shall
+referred to as cells. Next, we count the number of responses we have received in
+each cell and compare it with the one observed in the population. Denote the
+former by $$n_i$$ and the latter by $$N_i$$, for $$i = 1, \dots, K$$. Then the
+problem occurs when several of the following ratios largely disagree:
+
+$$
+\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K.
+$$
+
+The upshot is that the business cannot trust the results of the survey that has
+been conducted, since they misrepresent the population. So what do we do all
+these responses that have come in?
 
 # Solution
+
+The fact that the sample covers only a fraction of the population is, of course,
+no news, and the solution is standard: one has to infer the score for the
+population given the sample and domain knowledge. This is what was done in the
+[previous article][article] for one grouping factor.
 
 Let
 
