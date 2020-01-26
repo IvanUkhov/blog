@@ -54,18 +54,38 @@ Therefore, there is a lot of uncertainty about the opinion of those who
 abstained or were not targeted.
 
 More importantly, a random sample is desired; however, certain subpopulations of
-customers might end up being significantly overrepresented due to such phenomena
-as participation bias, driving the score in their favor. To formalize this, let
-us first take the Cartesian product of the $$M$$ factors. This results in
-$$K = \prod_i m_i$$ distinct combinations of the factors’ levels, which we shall
-referred to as cells. Next, we count the number of responses we have received in
-each cell and compare it with the one observed in the population. Denote the
-former by $$n_i$$ and the latter by $$N_i$$, for $$i = 1, \dots, K$$. Then the
-problem occurs when several of the following ratios largely disagree:
+customers might end up being significantly overrepresented due to participation
+bias, driving the score astray aspect. To formalize this aspect, let us first
+take the Cartesian product of the $$M$$ factors. This results in $$K = \prod_i
+m_i$$ distinct combinations of the factors’ levels, which we shall referred to
+as cells. Next, we count the number of detractors, neutrals, and promoters that
+have been observed in each cell:
+
+$$
+y = \left(
+\begin{matrix}
+d_1 & u_1 & p_1 \\
+\vdots & \vdots & \vdots \\
+d_i & u_i & p_i \\
+\vdots & \vdots & \vdots \\
+d_K & u_K & p_K
+\end{matrix}
+\right)
+$$
+
+where $$d_i$$, $$u_i$$, and $$p_i$$ correspond to detractors, neutrals, and
+promoters in cell $$i$$, respectively, totaling $$n_i = d_i + u_i + p_i$$
+responses. Lastly, we compare $$n_i$$ with its counterpart in the population,
+which is denoted by $$N_i$$. Then the problem occurs when several of the
+following pairs of ratios largely disagree:
 
 $$
 \frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K.
 $$
+
+It should noted, however, that equality within each pair does not guarantee
+absence of participation bias, as there might be other, potentially unobserved,
+dimensions along which there are deviations.
 
 The upshot is that the business cannot trust the results of the survey that has
 been conducted, since they misrepresent the population. So what do we do all
