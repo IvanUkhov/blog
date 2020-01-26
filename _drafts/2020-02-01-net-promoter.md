@@ -31,18 +31,31 @@ previous article, we made the assumption that the sample was representative of
 the population, which, as mentioned earlier, is often not the case. In this
 article, we mitigate this problem using a technique called poststratification.
 The technique works by matching proportions observed in the sample with those
-observed in the population with respect to multiple dimensions, such as age
-group, country, and gender. However, in order to be able to poststratify, the
-model has to encompass all these dimensions, which the model built earlier is
-not suitable for. To this end, we switch gears to multilevel multinomial
+observed in the population with respect to several dimensions, such as age,
+country, and gender. However, in order to be able to poststratify, the model has
+to have access to all these dimensions at once, which the model built earlier is
+not well suited for. To enable this, we switch gears to multilevel multinomial
 regression.
 
 # Problem
 
-Suppose the survey targets a population that consists of $$N$$ customers. Each
-customer is described by $$M$$ categorical characteristics, such as demographics
-and business-specific indicators. For instance, each person might be
-characterized by their age group, gender, and subscription plan.
+Suppose the survey is to measure the net promoter score for a population that
+consists of $$N$$ customers. The score is to be reported with respect to $$M$$
+grouping factors where factor $$i$$ has $$m_i$$ levels, for $$i = 1, \dots, M$$.
+For instance, it might be important to know the score for different age groups,
+in which case the factor would be the customer’s age with levels such as 18–25,
+26–35, and so on.
+
+Depending on the size of the business, one might or might not try to reach out
+to all customers who have not opted out of communications. Regardless of the
+decision, the resulting sample size, which we denote by $$n$$, is likely to be
+substantially smaller than $$N$$, as the response rate is typically low.
+Therefore, there is a lot of uncertainty about the opinion of those who
+abstained or were not targeted. Furthermore, ideally, a random sample is
+desired; however, certain subpopulations of customers might end up being
+significantly overrepresented due to such phenomena as participation bias,
+driving the score in their favor. The upshot is that the business cannot trust
+the results of the survey.
 
 # Solution
 
