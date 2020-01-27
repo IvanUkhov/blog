@@ -55,12 +55,18 @@ abstained or were not targeted.
 
 More importantly, a random sample is desired; however, certain subpopulations of
 customers might end up being significantly overrepresented due to participation
-bias, driving the score astray. In order to quantify this concern, let us take
-the Cartesian product of the $$M$$ factors. This results in $$K = \prod_i m_i$$
-distinct combinations of the factors’ levels, which are referred to as cells in
-what follows. Next, for each cell, the number of detractors, neutrals, and
-promoters that have been observed are counted, which results in the following
-matrix:
+bias, driving the score astray. Let us quantify this concern. We begin by taking
+the Cartesian product of the aforementioned $$M$$ factors. This results in $$K =
+\prod_i m_i$$ distinct combinations of the factors’ levels, which are referred
+to as cells in what follows. For each cell, the number of detractors, neutrals,
+and promoters that have been observed are computed and denoted by $$d_i$$,
+$$u_i$$, and $$p_i$$, respectively. The total count for call $$i$$ is then
+
+$$
+n_i = d_i + u_i + p_i, \quad \text{for } i = 1, \dots, K. \tag{1}
+$$
+
+For convenience, all counts are arranged into the following matrix:
 
 $$
 y = \left(
@@ -71,27 +77,40 @@ d_i & u_i & p_i \\
 \vdots & \vdots & \vdots \\
 d_K & u_K & p_K
 \end{matrix}
-\right)
+\right).
 $$
 
-where $$d_i$$, $$u_i$$, and $$p_i$$ correspond to detractors, neutrals, and
-promoters in cell $$i$$, respectively, totaling $$n_i = d_i + u_i + p_i$$
-responses in cell $$i$$. We can now compare $$n_i$$ with its counterpart in the
-population, which is denoted by $$N_i$$, taking into consideration the sample
-size $$n$$ and the population size $$N$$. Problems occur when the ratios within
-one or more of the following pairs largely disagree:
+Given such a matrix, the observed net promoter score for level $$j$$ of factor
+$$i$$ can be evaluated as follows:
+
+$$
+\hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{2}
+$$
+
+where the hat emphasizes the fact that it is an estimate from the data, and
+$$I_{ij}$$ is an index set traversing cells with factor $$i$$ set to level
+$$j$$, which has the effect of marginalizing out other factors conditioned on
+the chosen value of factor $$i$$, that is, on level $$j$$.
+
+We can now compare $$n_i$$, as shown in Equation (1), with its counterpart in
+the population, which is denoted by $$N_i$$ (the total number of customers who
+belong to cell $$i$$), taking into consideration the sample size $$n$$ and the
+population size $$N$$. Problems occur when the ratios within one or more of the
+following pairs largely disagree:
 
 $$
 \frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K.
 $$
 
-It should noted, however, that equality within each pair does not guarantee
-absence of participation bias, as there might be other, potentially unobserved,
-dimensions along which there are deviations.
+When this happens, the scores given by Equation (2) or any analyses oblivious of
+this disagreement cannot be trusted, since they misrepresent the population. (It
+should noted, however, that equality within each pair does not guarantee absence
+of participation bias, as there might be other, potentially unobserved,
+dimensions along which there are deviations.)
 
-The upshot is that the business cannot trust the results of the survey that has
-been conducted, since they misrepresent the population. So what do we do all
-these responses that have come in?
+The survey has been conducted, and there are deviations. What do we do all these
+responses that have come in? Discard and run a new survey, hoping that, this
+time, it would be different?
 
 # Solution
 
