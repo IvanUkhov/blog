@@ -47,19 +47,20 @@ in which case the factor would be the customer’s age with levels such as 18–
 26–35, and so on.
 
 Depending on the size of the business, one might or might not try to reach out
-to all customers who have not opted out of communications. Regardless of the
-decision, the resulting sample size, which we denote by $$n$$, is likely to be
-substantially smaller than $$N$$, as the response rate is typically low.
-Therefore, there is a lot of uncertainty about the opinion of those who
+to all customers, except for those who have opted out of communications.
+Regardless of the decision, the resulting sample size, which is denoted by
+$$n$$, is likely to be substantially smaller than $$N$$, as the response rate is
+typically low. Therefore, there is uncertainty about the opinion of those who
 abstained or were not targeted.
 
 More importantly, a random sample is desired; however, certain subpopulations of
 customers might end up being significantly overrepresented due to participation
-bias, driving the score astray aspect. To formalize this aspect, let us first
-take the Cartesian product of the $$M$$ factors. This results in $$K = \prod_i
-m_i$$ distinct combinations of the factors’ levels, which we shall referred to
-as cells. Next, we count the number of detractors, neutrals, and promoters that
-have been observed in each cell:
+bias, driving the score astray. In order to quantify this concern, let us take
+the Cartesian product of the $$M$$ factors. This results in $$K = \prod_i m_i$$
+distinct combinations of the factors’ levels, which are referred to as cells in
+what follows. Next, for each cell, the number of detractors, neutrals, and
+promoters that have been observed are counted, which results in the following
+matrix:
 
 $$
 y = \left(
@@ -75,9 +76,10 @@ $$
 
 where $$d_i$$, $$u_i$$, and $$p_i$$ correspond to detractors, neutrals, and
 promoters in cell $$i$$, respectively, totaling $$n_i = d_i + u_i + p_i$$
-responses. Lastly, we compare $$n_i$$ with its counterpart in the population,
-which is denoted by $$N_i$$. Then the problem occurs when several of the
-following pairs of ratios largely disagree:
+responses in cell $$i$$. We can now compare $$n_i$$ with its counterpart in the
+population, which is denoted by $$N_i$$, taking into consideration the sample
+size $$n$$ and the population size $$N$$. Problems occur when the ratios within
+one or more of the following pairs largely disagree:
 
 $$
 \frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K.
