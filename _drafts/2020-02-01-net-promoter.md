@@ -40,11 +40,12 @@ multinomial regression.
 # Problem
 
 Suppose the survey is to measure the net promoter score for a population that
-consists of $$N$$ customers. The score is to be reported with respect to $$M$$
-grouping factors where factor $$i$$ has $$m_i$$ levels, for $$i = 1, \dots, M$$.
-For instance, it might be important to know the score for different age groups,
-in which case the factor would be the customer’s age with levels such as 18–25,
-26–35, and so on.
+consists of $$N$$ customers. The score is to be reported with respect to
+individual levels of $$M$$ grouping factors where factor $$i$$ has $$m_i$$
+levels, for $$i = 1, \dots, M$$. For instance, it might be important to know the
+score for different age groups, in which case the factor would be the customer’s
+age with levels such as 18–25, 26–35, and so on. This implies that, in total,
+$$\sum_i m_i$$ scores have to be estimated.
 
 Depending on the size of the business, one might or might not try to reach out
 to all customers, except for those who have opted out of communications.
@@ -59,14 +60,15 @@ bias, driving the score astray. Let us quantify this concern. We begin by taking
 the Cartesian product of the aforementioned $$M$$ factors. This results in $$K =
 \prod_i m_i$$ distinct combinations of the factors’ levels, which are referred
 to as cells in what follows. For each cell, the number of detractors, neutrals,
-and promoters that have been observed are computed and denoted by $$d_i$$,
-$$u_i$$, and $$p_i$$, respectively. The total count for call $$i$$ is then
+and promoters that have been observed in the sample are computed and denoted by
+$$d_i$$, $$u_i$$, and $$p_i$$, respectively. The number of respondents in call
+$$i$$ is then
 
 $$
 n_i = d_i + u_i + p_i, \quad \text{for } i = 1, \dots, K. \tag{1}
 $$
 
-For convenience, all counts are arranged into the following matrix:
+For convenience, all counts are arranged in the following matrix:
 
 $$
 y = \left(
@@ -80,8 +82,8 @@ d_K & u_K & p_K
 \right).
 $$
 
-Given such a matrix, the observed net promoter score for level $$j$$ of factor
-$$i$$ can be evaluated as follows:
+Given $$y$$, the observed net promoter score for level $$j$$ of factor $$i$$ can
+be evaluated as follows:
 
 $$
 \hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{2}
@@ -92,32 +94,44 @@ $$I_{ij}$$ is an index set traversing cells with factor $$i$$ set to level
 $$j$$, which has the effect of marginalizing out other factors conditioned on
 the chosen value of factor $$i$$, that is, on level $$j$$.
 
-We can now compare $$n_i$$, as shown in Equation (1), with its counterpart in
-the population, which is denoted by $$N_i$$ (the total number of customers who
-belong to cell $$i$$), taking into consideration the sample size $$n$$ and the
-population size $$N$$. Problems occur when the ratios within one or more of the
-following pairs largely disagree:
+We can now compare $$n_i$$, computed according to Equation (1), with its
+counterpart in the population (the total number of customers who belong to cell
+$$i$$), which is denoted by $$N_i$$, taking into consideration the sample size
+$$n$$ and the population size $$N$$. Problems occur when the ratios within one
+or more of the following pairs largely disagree:
 
 $$
-\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K.
+\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K. \tag{3}
 $$
 
 When this happens, the scores given by Equation (2) or any analyses oblivious of
 this disagreement cannot be trusted, since they misrepresent the population. (It
 should noted, however, that equality within each pair does not guarantee absence
-of participation bias, as there might be other, potentially unobserved,
+of participation bias, since there might be other, potentially unobserved,
 dimensions along which there are deviations.)
 
-The survey has been conducted, and there are deviations. What do we do all these
-responses that have come in? Discard and run a new survey, hoping that, this
-time, it would be different?
+The survey has been conducted, and there are deviations. What do we do with all
+these responses that have come in? Should we discard and run a new survey,
+hoping that, this time, it would be different?
 
 # Solution
 
 The fact that the sample covers only a fraction of the population is, of course,
-no news, and the solution is standard: one has to infer the score for the
-population given the sample and domain knowledge. This is what was done in the
-[previous article][article] for one grouping factor.
+no news, and the solution is standard: one has to infer the net promoter score
+for the population given the sample and domain knowledge. This is what was done
+in the [previous article][article] for one grouping factor. However, due to
+participation bias, additional measures are needed as follows.
+
+Taking inspiration from political science, we proceed in two steps.
+
+1. Using a single model, $$K = \prod_i m_i$$ net promoter scores are
+   inferred—one for each cell, that is, for each combination of the grouping
+   factors’ levels.
+
+2. The $$\prod_i m_i$$ “cell-scores” are combined to produce $$\sum_i m_i$$
+   “level-scores”—one for each level of each factor, as desired. This is done in
+   such a way that the contribution of each cell is proportional to the one
+   observed in the population via the ratios given in Equation (3).
 
 Let
 
@@ -150,6 +164,11 @@ $$
 
 # Conclusion
 
+# Acknowledgments
+
+I also would like to thank [Paul-Christian Bürkner][paul] for his help with
+understanding the `brms` package.
+
 # References
 
 * Andrew Gelman et al., “[Using multilevel regression and poststratification to
@@ -166,3 +185,4 @@ $$
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
 [article]: /2019/08/19/net-promoter.html
 [brms]: http://dx.doi.org/10.18637/jss.v080.i01
+[paul]: https://paul-buerkner.github.io/
