@@ -14,28 +14,28 @@ keywords:
   - poststratification
 ---
 
-Customer surveys are naturally prone to participation bias, which arises when
-individuals decide not to respond to the survey in question, and this pattern is
-not random. An example could be new customers replying less eagerly than those
-who are senior. This renders the collected sample of responses unrepresentative
-of the target population. In this article, we shall tackle participation bias
-for the case of the net promoter survey by means of multilevel Bayesian
-regression and poststratification.
+Customer surveys are naturally prone to biases. One prominent example is
+participation bias, which arises when individuals decide not to respond to the
+survey, and this pattern is not random. For instance, new customers might rely
+less eagerly than those who are senior. This renders the obtained responses
+unrepresentative of the target population. In this article, we shall tackle
+participation bias for the case of the net promoter survey by means of
+multilevel regression and poststratification.
 
-This article is a sequel to “[A Bayesian approach to the inference of the net
-promoter score][article],” where we built a hierarchical model for inferring the
-net promoter score for an arbitrary segmentation of a customer base. The reader
-is encouraged to skim over that article in order to recall the mechanics of the
-net promoter score and the structure of the model that was constructed. In the
-previous article, we made the assumption that the sample was representative of
-the population, which, as mentioned earlier, is often not the case. In this
-article, we mitigate this problem using a technique called poststratification.
-The technique works by matching proportions observed in the sample with those
-observed in the population with respect to several dimensions, such as age,
-country, and gender. However, in order to be able to poststratify, the model has
-to have access to all these dimensions at once, which the model built earlier is
-not well suited for. To enable this, we switch gears to multilevel multinomial
-regression.
+More specifically, the discussion here is a sequel to “[A Bayesian approach to
+the inference of the net promoter score][article],” where we built a
+hierarchical model for inferring the net promoter score for an arbitrary
+segmentation of a customer base. The reader is encouraged to skim over that
+article to recall the mechanics of the score and the structure of the model that
+was constructed. In that article, there was an assumption made that the sample
+was representative of the population, which, as mentioned earlier, is often not
+the case. In what follows, we mitigate this problem using a technique called
+poststratification. The technique works by matching proportions observed in the
+sample with those observed in the population with respect to several dimensions,
+such as age, country, and gender. However, in order to be able to poststratify,
+the model has to have access to all these dimensions at once, which the model
+built earlier is not suited for. To enable this, we switch gears to multilevel
+multinomial regression.
 
 # Problem
 
