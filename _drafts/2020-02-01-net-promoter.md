@@ -79,14 +79,14 @@ d_i & u_i & p_i \\
 \vdots & \vdots & \vdots \\
 d_K & u_K & p_K
 \end{matrix}
-\right).
+\right). \tag{2}
 $$
 
 Given $$y$$, the observed net promoter score for level $$j$$ of factor $$i$$ can
 be evaluated as follows:
 
 $$
-\hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{2}
+\hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{3}
 $$
 
 where the hat emphasizes the fact that it is an estimate from the data, and
@@ -101,10 +101,10 @@ $$n$$ and the population size $$N$$. Problems occur when the ratios within one
 or more of the following pairs largely disagree:
 
 $$
-\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K. \tag{3}
+\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K. \tag{4}
 $$
 
-When this happens, the scores given by Equation (2) or any analyses oblivious of
+When this happens, the scores given by Equation (3) or any analyses oblivious of
 this disagreement cannot be trusted, since they misrepresent the population. (It
 should noted, however, that equality within each pair does not guarantee absence
 of participation bias, since there might be other, potentially unobserved,
@@ -124,14 +124,23 @@ participation bias, additional measures are needed as follows.
 
 Taking inspiration from political science, we proceed in two steps.
 
-1. Using a single model, $$K = \prod_i m_i$$ net promoter scores are
-   inferred—one for each cell, that is, for each combination of the grouping
-   factors’ levels.
+1. Using an adequate model, $$K = \prod_i m_i$$ net promoter scores are
+   inferred—one for each cell, that is, for each combination of the levels of
+   the grouping factors.
 
 2. The $$\prod_i m_i$$ “cell-scores” are combined to produce $$\sum_i m_i$$
-   “level-scores”—one for each level of each factor, as desired. This is done in
-   such a way that the contribution of each cell is proportional to the one
-   observed in the population via the ratios given in Equation (3).
+   “level-scores”—one for each level of each factor. This is done in such a way
+   that the contribution of each cell to the score is equal to the relative size
+   of that cell in the population given by Equation (4).
+
+Step 1 can, in principle, be done by any model of choice. A prominent candidate
+is multilevel multinomial regression, which is what we shall explore.
+_Multilevel_ refers to having a hierarchical structure where parameters on a
+higher level give birth to parameters on a lower level, which, in particular,
+enables information exchange through the common ancestor. _Multinomial_ refers
+to the distribution used for modeling the data. The family of multinomial
+distributions is appropriate, since we work with counts of events of three
+types: promoters, neutrals, and detractors; see Equation (2).
 
 Let
 
