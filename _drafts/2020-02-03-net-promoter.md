@@ -139,8 +139,8 @@ _Multilevel_ refers to having a hierarchical structure where parameters on a
 higher level give birth to parameters on a lower level, which, in particular,
 enables information exchange through the common ancestor. _Multinomial_ refers
 to the distribution used for modeling the data. The family of multinomial
-distributions is appropriate, since we work with counts of events of three
-types: promoters, neutrals, and detractors; see Equation (2).
+distributions is appropriate, since we work with counts of events falling into
+one of three categories: promoters, neutrals, and detractors; see Equation (2).
 
 Let
 
