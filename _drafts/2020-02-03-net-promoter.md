@@ -73,6 +73,15 @@ For convenience, all counts are arranged in the following matrix:
 $$
 y = \left(
 \begin{matrix}
+y_1 \\
+\vdots \\
+y_i \\
+\vdots \\
+y_K
+\end{matrix}
+\right)
+= \left(
+\begin{matrix}
 d_1 & u_1 & p_1 \\
 \vdots & \vdots & \vdots \\
 d_i & u_i & p_i \\
@@ -137,20 +146,16 @@ Step 1 can, in principle, be done by any model of choice. A prominent candidate
 is multilevel multinomial regression, which is what we shall explore.
 _Multilevel_ refers to having a hierarchical structure where parameters on a
 higher level give birth to parameters on a lower level, which, in particular,
-enables information exchange through the common ancestor. _Multinomial_ refers
-to the distribution used for modeling the data. The family of multinomial
+enables information exchange through a common ancestor. _Multinomial_ refers to
+the distribution used for modeling the data. The family of multinomial
 distributions is appropriate, since we work with counts of events falling into
-one of three categories: promoters, neutrals, and detractors; see Equation (2).
-
-Let
-
-$$
-\begin{align}
-& y_i = (y^d_i, y^n_i, y^p_i), \\
-& \theta_i = (\theta^d_i, \theta^n_i, \theta^p_i), \text{ and} \\
-& n_i = y^d_i + y^n_i + y^p_i.
-\end{align}
-$$
+one of several categories: promoters, neutrals, and detractors; see Equation
+(2). This implies that the parameters being inferred are the probabilities of
+belonging to the three categories, which we shall denote by $$\theta^d_i$$,
+$$\theta^u_i$$, and $$\theta^p_i$$, respectively, for $$i = 1, \dots, K$$. For
+each cell, the corresponding triplet forms a simplex $$\theta_i = (\theta^d_i,
+\theta^u_i, \theta^p_i)$$, meaning that the three probabilities have to sum up
+to 1.
 
 Then
 
