@@ -142,8 +142,8 @@ Taking inspiration from political science, we proceed in two steps.
    that the contribution of each cell to the score is equal to the relative size
    of that cell in the population given by Equation (4).
 
-Step 1 can, in principle, be done by any model of choice. A prominent candidate
-is multilevel multinomial regression, which is what we shall explore.
+Step 1 can, in principle, be undertaken by any model of choice. A prominent
+candidate is multilevel multinomial regression, which is what we shall explore.
 _Multilevel_ refers to having a hierarchical structure where parameters on a
 higher level give birth to parameters on a lower level, which, in particular,
 enables information exchange through a common ancestor. _Multinomial_ refers to
@@ -162,15 +162,15 @@ Then
 $$
 \begin{align}
 & y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i), \\
-& \theta_i = \text{Softmax}\left(0, \mu^n_i, \mu^p_i\right), \\
-& \mu^n_i = b^n_0 + b^n_{\text{age}[i]}, \\
-& \mu^p_i = b^p_0 + b^p_{\text{age}[i]}, \\
-& b^n_0 \sim \text{Student’s t}(3, 0, 10), \\
-& b^p_0 \sim \text{Student’s t}(3, 0, 10), \\
-& b^n_{\text{age}[i]} | \sigma^n_\text{age} \sim \text{Gaussian}(0, \sigma^n_\text{age}), \\
+& \theta_i = \text{Softmax}\left(0, \mu^u_i, \mu^p_i\right), \\
+& \mu^u_i = b^u + b^u_{\text{age}[i]}, \\
+& \mu^p_i = b^p + b^p_{\text{age}[i]}, \\
+& b^u \sim \text{Student’s t}(3, 0, 1), \\
+& b^p \sim \text{Student’s t}(3, 0, 1), \\
+& b^u_{\text{age}[i]} | \sigma^u_\text{age} \sim \text{Gaussian}(0, \sigma^u_\text{age}), \\
 & b^p_{\text{age}[i]} | \sigma^p_\text{age} \sim \text{Gaussian}(0, \sigma^p_\text{age}), \\
-& \sigma^n_\text{age} \sim \text{half-Student’s t}(3, 0, 10), \text{ and} \\
-& \sigma^p_\text{age} \sim \text{half-Student’s t}(3, 0, 10).
+& \sigma^u_\text{age} \sim \text{half-Student’s t}(3, 0, 1), \text{ and} \\
+& \sigma^p_\text{age} \sim \text{half-Student’s t}(3, 0, 1).
 \end{align}
 $$
 
