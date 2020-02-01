@@ -291,10 +291,12 @@ grouping variables, which results in $$\sum_i m_i$$ scores in total.
 
 Step 2 is poststratification, whose purpose is to correct for potential
 deviations of the sample from the population; recall the discussion around
-Equation (4). The idea is straightforward. Each draw from the posterior
-distribution is $$K$$ values for the net promoter score, one for each cell. All
-one has to do is to take a weighted average of these scores where the weights
-are the counts observed in the population:
+Equation (4). The foundation laid in the previous subsection makes the work here
+straightforward. The idea is as follows. Each draw from the posterior
+distribution consists of $$K$$ values for the net promoter score, one for each
+cell. All one has to do in order to correct for a mismatch in proportions is to
+take a weighted average of these scores where the weights are the counts
+observed in the population:
 
 $$
 s^i_j = \frac{\sum_{k \in I^i_j} N_k \, s_k}{\sum_{k \in I^i_j} N_k}
@@ -304,9 +306,9 @@ where $$I^i_j$$ is as in Equation (3), for $$i = 1, \dots, M$$ and $$j = 1,
 \dots, m_i$$. The above gives a poststratified draw from the posterior
 distribution of the net promoter score for variable $$i$$ and value $$j$$. In
 practice, depending on the tool used, one might perform the poststratification
-differently, such as predicting counts of detractors, neutrals, and promoters in
-the cells given their in-population sizes and then aggregating those counts and
-following the definition of the net promoter score.
+procedure differently, such as predicting counts of detractors, neutrals, and
+promoters in the cells given their in-population sizes and then aggregating
+those counts and following the definition of the net promoter score.
 
 # Implementation
 
@@ -314,8 +316,9 @@ following the definition of the net promoter score.
 
 # Acknowledgments
 
-I also would like to thank [Paul-Christian Bürkner][paul] for his help with
-understanding the [`brms`] package.
+I also would like to thank [Andrew Gelman][andrew] for his guidance and
+inspiration and [Paul-Christian Bürkner][paul] for his help with understanding
+the [`brms`] package.
 
 # References
 
@@ -332,6 +335,7 @@ understanding the [`brms`] package.
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
 [`brms`]: https://github.com/paul-buerkner/brms
+[andrew]: http://www.stat.columbia.edu/~gelman/
 [article]: /2019/08/19/net-promoter.html
 [brms]: http://dx.doi.org/10.18637/jss.v080.i01
 [paul]: https://paul-buerkner.github.io/
