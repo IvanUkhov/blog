@@ -65,10 +65,11 @@ $$d_i$$, $$u_i$$, and $$p_i$$, respectively. The number of respondents in call
 $$i$$ is then
 
 $$
-n_i = d_i + u_i + p_i, \quad \text{for } i = 1, \dots, K. \tag{1}
+n_i = d_i + u_i + p_i \tag{1}
 $$
 
-For convenience, all counts are arranged in the following matrix:
+for $$i = 1, \dots, K$$. For convenience, all counts are arranged in the
+following matrix:
 
 $$
 y = \left(
@@ -107,17 +108,17 @@ We can now compare $$n_i$$, computed according to Equation (1), with its
 counterpart in the population (the total number of customers who belong to cell
 $$i$$), which is denoted by $$N_i$$, taking into consideration the sample size
 $$n$$ and the population size $$N$$. Problems occur when the ratios within one
-or more of the following pairs largely disagree:
+or more of the following tuples largely disagree:
 
 $$
-\frac{n_i}{n} \quad \text{and} \quad \frac{N_i}{N}, \quad \text{for } i = 1, \dots, K. \tag{4}
+\left(\frac{n_i}{n}, \frac{N_i}{N}\right) \tag{4}
 $$
 
-When this happens, the scores given by Equation (3) or any analyses oblivious of
-this disagreement cannot be trusted, since they misrepresent the population. (It
-should noted, however, that equality within each pair does not guarantee absence
-of participation bias, since there might be other, potentially unobserved,
-dimensions along which there are deviations.)
+for $$i = 1, \dots, K$$. When this happens, the scores given by Equation (3) or
+any analyses oblivious of this disagreement cannot be trusted, since they
+misrepresent the population. (It should noted, however, that equality within
+each tuple does not guarantee absence of participation bias, since there might
+be other, potentially unobserved, dimensions along which there are deviations.)
 
 The survey has been conducted, and there are deviations. What do we do with all
 these responses that have come in? Should we discard and run a new survey,
@@ -147,15 +148,44 @@ candidate is multilevel multinomial regression, which is what we shall explore.
 _Multilevel_ refers to having a hierarchical structure where parameters on a
 higher level give birth to parameters on a lower level, which, in particular,
 enables information exchange through a common ancestor. _Multinomial_ refers to
-the distribution used for modeling the data. The family of multinomial
-distributions is appropriate, since we work with counts of events falling into
-one of several categories: promoters, neutrals, and detractors; see Equation
-(2). This implies that the parameters being inferred are the probabilities of
-belonging to the three categories, which we shall denote by $$\theta^d_i$$,
-$$\theta^u_i$$, and $$\theta^p_i$$, respectively, for $$i = 1, \dots, K$$. For
-each cell, the corresponding triplet forms a simplex $$\theta_i = (\theta^d_i,
-\theta^u_i, \theta^p_i)$$, meaning that the three probabilities have to sum up
-to 1.
+the distribution used for modeling the response variable. The family of
+multinomial distributions is appropriate, since we work with counts of events
+falling into one of several categories: promoters, neutrals, and detractors; see
+Equation (2). The response for each cell is then as follows:
+
+$$
+y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i)
+$$
+
+where $$n_i$$ is given by Equation (1), and
+
+$$\theta_i = \left\langle\theta^d_i, \theta^u_i, \theta^p_i\right\rangle$$
+
+is a simplex (sums up to 1) of probabilities of the three categories.
+
+Multinomial regression belongs to the class of generalized linear models. This
+means that the inference takes place in a linear domain, and that $$\theta_i$$
+is obtained by applying a deterministic transformation to the corresponding
+linear model or models; the inverse of this transformation is known as the link
+function. In the case of multinomial regression, the aforementioned
+transformation is the softmax function, which is a generalization of the
+logistic function allowing more than two categories:
+
+$$
+\theta_i = \text{Softmax}\left(\mu_i\right)
+$$
+
+where
+
+$$
+\mu_i = (0, \mu^u_i, \mu^p_i)
+$$
+
+is the average log-odds of the three categories with respect to a reference
+category, which, by conventions, is taken to be the first category, that is,
+detractors. The first entry is zero, since $$\text{logit}(1) = 0$$. Therefore,
+there are only two linear models: one is for neutrals ($$\mu^u_i$$), and one is
+for promoters ($$\mu^p_i$$).
 
 Then
 
