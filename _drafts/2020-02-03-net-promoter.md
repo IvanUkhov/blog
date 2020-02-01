@@ -144,7 +144,7 @@ Taking inspiration from political science, we proceed in two steps.
 
 The two steps are discussed in the following two subsections.
 
-## Model
+## Modeling
 
 Step 1 can, in principle, be undertaken by any model of choice. A prominent
 candidate is multilevel multinomial regression, which is what we shall explore.
@@ -311,6 +311,51 @@ promoters in the cells given their in-population sizes and then aggregating
 those counts and following the definition of the net promoter score.
 
 # Implementation
+
+```r
+if (packageVersion('brms') < '2.11.2') {
+  remotes::install_github('paul-buerkner/brms', upgrade = 'never')
+}
+
+library(brms)
+library(tidyverse)
+
+set.seed(42)
+
+n <- 5000
+N <- 100000
+
+age <- c('18–25', '26–35', '36–45', '46–55', '56–65', '66+')
+
+# Population
+population <- tibble(age = factor(sample(age, N, replace = TRUE))) %>%
+  group_by(age) %>%
+  count(name = 'cell_size')
+
+# Sample
+sample <- tibble(score = sample(seq(0, 10), n, replace = TRUE),
+                 age = factor(sample(age, n, replace = TRUE))) %>%
+  mutate(category = case_when(score < 7 ~ 'detractor',
+                              score > 8 ~ 'promoter',
+                              TRUE ~ 'neutral')) %>%
+  group_by(age) %>%
+  summarize(detractors = sum(category == 'detractor'),
+            neutrals = sum(category == 'neutral'),
+            promoters = sum(category == 'promoter')) %>%
+  mutate(cell_size = detractors + neutrals + promoters)
+sample$cell_counts <- with(sample, cbind(detractors, neutrals, promoters))
+colnames(sample$cell_counts) <- c('Detractor', 'Neutral', 'Promoter')
+
+# Model
+priors <- c(
+  prior('student_t(3, 0, 1)', class = 'Intercept', dpar = 'muNeutral'),
+  prior('student_t(3, 0, 1)', class = 'Intercept', dpar = 'muPromoter'),
+  prior('student_t(3, 0, 1)', class = 'sd', dpar = 'muNeutral'),
+  prior('student_t(3, 0, 1)', class = 'sd', dpar = 'muPromoter')
+)
+formula <- brmsformula(cell_counts | trials(cell_size) ~ (1 | age))
+model <- brm(formula, sample, multinomial(), prior = priors, seed = 42)
+```
 
 # Conclusion
 
