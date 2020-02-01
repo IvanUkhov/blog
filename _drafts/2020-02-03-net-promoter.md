@@ -41,11 +41,11 @@ multinomial regression.
 
 Suppose the survey is to measure the net promoter score for a population that
 consists of $$N$$ customers. The score is to be reported with respect to
-individual levels of $$M$$ grouping factors where factor $$i$$ has $$m_i$$
-levels, for $$i = 1, \dots, M$$. For instance, it might be important to know the
-score for different age groups, in which case the factor would be the customer’s
-age with levels such as 18–25, 26–35, and so on. This implies that, in total,
-$$\sum_i m_i$$ scores have to be estimated.
+individual values of $$M$$ grouping variables where variable $$i$$ has $$m_i$$
+possible values, for $$i = 1, \dots, M$$. For instance, it might be important to
+know the score for different age groups, in which case the variable would be the
+customer’s age with values such as 18–25, 26–35, and so on. This implies that,
+in total, $$\sum_i m_i$$ scores have to be estimated.
 
 Depending on the size of the business, one might or might not try to reach out
 to all customers, except for those who have opted out of communications.
@@ -57,10 +57,10 @@ abstained or were not targeted.
 More importantly, a random sample is desired; however, certain subpopulations of
 customers might end up being significantly overrepresented due to participation
 bias, driving the score astray. Let us quantify this concern. We begin by taking
-the Cartesian product of the aforementioned $$M$$ factors. This results in $$K =
-\prod_i m_i$$ distinct combinations of the factors’ levels, which are referred
-to as cells in what follows. For each cell, the number of detractors, neutrals,
-and promoters that have been observed in the sample are computed and denoted by
+the Cartesian product of the aforementioned $$M$$ variables. This results in $$K
+= \prod_i m_i$$ distinct combinations of the variables’ values, which are
+referred to as cells in what follows. For each cell, the number of detractors,
+neutrals, and promoters observed in the sample are computed and denoted by
 $$d_i$$, $$u_i$$, and $$p_i$$, respectively. The number of respondents in call
 $$i$$ is then
 
@@ -92,17 +92,17 @@ d_K & u_K & p_K
 \right). \tag{2}
 $$
 
-Given $$y$$, the observed net promoter score for level $$j$$ of factor $$i$$ can
-be evaluated as follows:
+Given $$y$$, the observed net promoter score for value $$j$$ of variable $$i$$
+can be evaluated as follows:
 
 $$
 \hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{3}
 $$
 
 where the hat emphasizes the fact that it is an estimate from the data, and
-$$I_{ij}$$ is an index set traversing cells with factor $$i$$ set to level
-$$j$$, which has the effect of marginalizing out other factors conditioned on
-the chosen value of factor $$i$$, that is, on level $$j$$.
+$$I_{ij}$$ is an index set traversing cells with variable $$i$$ set to value
+$$j$$, which has the effect of marginalizing out other variables conditioned on
+the chosen value of variable $$i$$, that is, on value $$j$$.
 
 We can now compare $$n_i$$, computed according to Equation (1), with its
 counterpart in the population (the total number of customers who belong to cell
@@ -129,19 +129,23 @@ hoping that, this time, it would be different?
 The fact that the sample covers only a fraction of the population is, of course,
 no news, and the solution is standard: one has to infer the net promoter score
 for the population given the sample and domain knowledge. This is what was done
-in the [previous article][article] for one grouping factor. However, due to
+in the [previous article][article] for one grouping variable. However, due to
 participation bias, additional measures are needed as follows.
 
 Taking inspiration from political science, we proceed in two steps.
 
 1. Using an adequate model, $$K = \prod_i m_i$$ net promoter scores are
-   inferred—one for each cell, that is, for each combination of the levels of
-   the grouping factors.
+   inferred—one for each cell, that is, for each combination of the values of
+   the grouping variables.
 
 2. The $$\prod_i m_i$$ “cell-scores” are combined to produce $$\sum_i m_i$$
-   “level-scores”—one for each level of each factor. This is done in such a way
-   that the contribution of each cell to the score is equal to the relative size
-   of that cell in the population given by Equation (4).
+   “value-scores”—one for each value of each variable. This is done in such a
+   way that the contribution of each cell to the score is equal to the relative
+   size of that cell in the population given by Equation (4).
+
+The two steps are discussed in the following two subsections.
+
+## Model
 
 Step 1 can, in principle, be undertaken by any model of choice. A prominent
 candidate is multilevel multinomial regression, which is what we shall explore.
@@ -202,10 +206,10 @@ $$
 \delta^{uj} = \left(\delta^{uj}_1, \dots, \delta^{uj}_{m_j}\right)
 $$
 
-is a vector of deviations from intercept $$b^u$$ specific to grouping factor
-$$j$$ (one entry for each level of the factor), and $$I_j[i]$$ yields the index
-of the level that cell $$i$$ belongs to, for $$i = 1, \dots, K$$ and $$j = 1,
-\dots, M$$. Thus far, the linear model has $$1 + \sum_i m_i$$ parameters.
+is a vector of deviations from intercept $$b^u$$ specific to grouping variable
+$$j$$ (one entry for each value of the variable), and $$I_j[i]$$ yields the
+index of the value that cell $$i$$ has, for $$i = 1, \dots, K$$ and $$j = 1,
+\dots, M$$.
 
 The intercept is given the following prior distribution:
 
@@ -216,10 +220,10 @@ $$
 The mean is zero in order to center at even odds. Let us now turn to the
 multilevel aspect.
 
-For each grouping factor, the corresponding levels, represented by the elements
-of $$\delta^{uj}$$, are allowed to be different but assumed to have something in
-common and thus originate from a common distribution. To this end, they are
-assigned distributions with a shared parameter:
+For each grouping variable, the corresponding values, represented by the
+elements of $$\delta^{uj}$$, are allowed to be different but assumed to have
+something in common and thus originate from a common distribution. To this end,
+they are assigned distributions with a shared parameter:
 
 $$
 \delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right)
@@ -233,27 +237,37 @@ $$
 \sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1).
 $$
 
-The overall model is then as follow, for $$i = 1, \dots, K$$:
+The overall model is then as follow:
 
 $$
 \begin{align}
-& y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i); \\
-& \theta_i = \text{Softmax}\left(\mu_i\right); \\
-& \mu_i = (0, \mu^u_i, \mu^p_i); \\
-& \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}; \\
-& \mu^p_i = b^p + \sum_{j = 1}^M \delta^{pj}_{I_j[i]}; \\
+& y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i),
+\text{ for } i = 1, \dots, K; \\
+& \theta_i = \text{Softmax}\left(\mu_i\right),
+\text{ for } i = 1, \dots, K; \\
+& \mu_i = (0, \mu^u_i, \mu^p_i),
+\text{ for } i = 1, \dots, K; \\
+& \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]},
+\text{ for } i = 1, \dots, K; \\
+& \mu^p_i = b^p + \sum_{j = 1}^M \delta^{pj}_{I_j[i]},
+\text{ for } i = 1, \dots, K; \\
 & b^u \sim \text{Student’s t}(3, 0, 1); \\
 & b^p \sim \text{Student’s t}(3, 0, 1); \\
 & b^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
-\text{ for } k = 1, \dots, m_j \text{ and } j = 1, \dots, M; \\
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \\
 & b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
-\text{ for } k = 1, \dots, m_j \text{ and } j = 1, \dots, M; \\
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \\
 & \sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1),
 \text{ for } j = 1, \dots, M; \text{ and} \\
 & \sigma^{pj} \sim \text{half-Student’s t}(3, 0, 1),
 \text{ for } j = 1, \dots, M.
 \end{align}
 $$
+
+The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The nested
+structure is what makes it multilevel. This is an important feature.
+
+## Poststratification
 
 # Implementation
 
