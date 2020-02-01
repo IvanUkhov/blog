@@ -11,7 +11,7 @@ body {
   font-style: normal;
 }
 
-h1 {
+h1, h2 {
   &[id] > a {
     display: none;
   }

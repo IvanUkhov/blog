@@ -17,7 +17,7 @@
   {%- endif -%}
   <script type="text/javascript">
     function anchor() {
-      for (let header of document.querySelectorAll('h1[id]')) {
+      for (let header of document.querySelectorAll('h1[id], h2[id]')) {
         header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
       }
     }
