@@ -96,10 +96,10 @@ Given $$y$$, the observed net promoter score for value $$j$$ of variable $$i$$
 can be evaluated as follows:
 
 $$
-s_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{3}
+s^i_j = 100 \times \frac{\sum_{k \in I^i_j}(p_k - d_k)}{\sum_{k \in I^i_j} n_k} \tag{3}
 $$
 
-where $$I_{ij}$$ is an index set traversing cells with variable $$i$$ set to
+where $$I^i_j$$ is an index set traversing cells with variable $$i$$ set to
 value $$j$$, which has the effect of marginalizing out other variables
 conditioned on the chosen value of variable $$i$$, that is, on value $$j$$.
 
@@ -253,9 +253,9 @@ $$
 & b^u \sim \text{Student’s t}(3, 0, 1); \\
 & b^p \sim \text{Student’s t}(3, 0, 1); \\
 & b^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
-\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \\
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5a} \\
 & b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
-\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \\
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5b} \\
 & \sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1),
 \text{ for } j = 1, \dots, M; \text{ and} \\
 & \sigma^{pj} \sim \text{half-Student’s t}(3, 0, 1),
@@ -264,30 +264,49 @@ $$
 $$
 
 The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The nested
-structure is what makes it multilevel. This is an important feature, since it
-allows for information sharing between the individual values of the grouping
-variables, which has a regularizing effect on the estimates.
+structure, which can be seen in Equations (5a) and (5b), is what makes the model
+multilevel. This is an important feature, since it allows for information
+sharing between the individual values of the grouping variables. In particular,
+this has regularizing effect on the estimates, which is also known as shrinkage
+resulting from partial pooling.
 
-Having defined the model, the posterior distribution can now be obtained. This
-procedure is standard and can be undertaken by, for instance, implementing the
-model in Stan or using a higher-level package, such as [`brms`], which is what
-is exemplified in the section on implementation. The result is a large
-collection of draws of the parameters from the posterior distribution. For each
-draw of the parameters, a draw of the net promoter score can be computed using
-the following formula:
+Having defined the model, the posterior distribution can now be obtained by
+means of Markov chain Monte Carlo sampling. This procedure is standard and can
+be performed using, for instance, Stan or a higher-level package, such as
+[`brms`], which is what is exemplified in the section on implementation. The
+result is a collection of draws of the parameters from the posterior
+distribution. For each draw of the parameters, a draw of the net promoter score
+can be computed using the following formula:
 
 $$
-s_i = 100 \times (\theta^p_i - \theta^d_i)
+s_i = 100 \times (\theta^p_i - \theta^d_i) \tag{6}
 $$
 
 for $$i = 1, \dots, K$$. This means that we have obtained a (joint) posterior
 distribution of the net promoter score over the $$K$$ cells. It is now time to
-combine the scores for the cells on the level of the individual values of the
+combine the scores for the cells on the level of the values of the $$M$$
 grouping variables, which results in $$\sum_i m_i$$ scores in total.
 
 ## Poststratification
 
-Step 2 is poststratification. The idea is straightforward.
+Step 2 is poststratification, whose purpose is to correct for potential
+deviations of the sample from the population; recall the discussion around
+Equation (4). The idea is straightforward. Each draw from the posterior
+distribution is $$K$$ values for the net promoter score, one for each cell. All
+one has to do is to take a weighted average of these scores where the weights
+are the counts observed in the population:
+
+$$
+s^i_j = \frac{\sum_{k \in I^i_j} N_k \, s_k}{\sum_{k \in I^i_j} N_k}
+$$
+
+where $$I^i_j$$ is as in Equation (3), for $$i = 1, \dots, M$$ and $$j = 1,
+\dots, m_i$$. The above gives a poststratified draw from the posterior
+distribution of the net promoter score for variable $$i$$ and value $$j$$. In
+practice, depending on the tool used, one might perform the poststratification
+differently, such as predicting counts of detractors, neutrals, and promoters in
+the cells given their in-population sizes and then aggregating those counts and
+following the definition of the net promoter score.
 
 # Implementation
 
