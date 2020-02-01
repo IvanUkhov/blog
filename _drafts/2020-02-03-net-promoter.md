@@ -189,8 +189,8 @@ for promoters ($$\mu^p_i$$).
 
 Now, there are many alternatives when it comes to the two linear parts. In this
 article, we shall use the following architecture. Both the model for neutrals
-and the one for promoters have the same structure, and for simplicity, we shall
-describe in detail only the former. For the log-odds of neutrals, the model is
+and the one for promoters have the same structure, and for simplicity, only the
+former is described in detail. For the log-odds of neutrals, the model is
 
 $$
 \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}
@@ -205,35 +205,53 @@ $$
 is a vector of deviations from intercept $$b^u$$ specific to grouping factor
 $$j$$ (one entry for each level of the factor), and $$I_j[i]$$ yields the index
 of the level that cell $$i$$ belongs to, for $$i = 1, \dots, K$$ and $$j = 1,
-\dots, M$$. Thus far, the linear model has $$1 + \sum_i m_i$$ parameters. Let us
-now turn to the multilevel aspect.
+\dots, M$$. Thus far, the linear model has $$1 + \sum_i m_i$$ parameters.
+
+The intercept is given the following prior distribution:
+
+$$
+b^u \sim \text{Student’s t}(3, 0, 1).
+$$
+
+The mean is zero in order to center at even odds. Let us now turn to the
+multilevel aspect.
 
 For each grouping factor, the corresponding levels, represented by the elements
-of $$\delta^{uj}$$, are allowed to be different but assumed to originate from a
-common distribution. To this end, they are assigned distributions with a common
-parameter:
+of $$\delta^{uj}$$, are allowed to be different but assumed to have something in
+common and thus originate from a common distribution. To this end, they are
+assigned distributions with a shared parameter:
 
 $$
-\delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}(0, \sigma^{uj})
+\delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right)
 $$
 
-for $$i = 1, \dots, m_j$$.
+for $$i = 1, \dots, m_j$$. The mean is zero, as $$\delta^{uj}_i$$ represents a
+deviation. The standard deviation, $$\sigma^{ji}$$, is estimated from the data
+and given the following prior distribution:
 
-Then
+$$
+\sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1).
+$$
+
+The overall model is then as follow, for $$i = 1, \dots, K$$:
 
 $$
 \begin{align}
-& y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i), \\
-& \theta_i = \text{Softmax}\left(\mu_i\right), \\
-& \mu_i = (0, \mu^u_i, \mu^p_i), \\
-& \mu^u_i = b^u + b^u_{\text{age}[i]}, \\
-& \mu^p_i = b^p + b^p_{\text{age}[i]}, \\
-& b^u \sim \text{Student’s t}(3, 0, 1), \\
-& b^p \sim \text{Student’s t}(3, 0, 1), \\
-& b^u_{\text{age}[i]} | \sigma^u_\text{age} \sim \text{Gaussian}(0, \sigma^u_\text{age}), \\
-& b^p_{\text{age}[i]} | \sigma^p_\text{age} \sim \text{Gaussian}(0, \sigma^p_\text{age}), \\
-& \sigma^u_\text{age} \sim \text{half-Student’s t}(3, 0, 1), \text{ and} \\
-& \sigma^p_\text{age} \sim \text{half-Student’s t}(3, 0, 1).
+& y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i); \\
+& \theta_i = \text{Softmax}\left(\mu_i\right); \\
+& \mu_i = (0, \mu^u_i, \mu^p_i); \\
+& \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}; \\
+& \mu^p_i = b^p + \sum_{j = 1}^M \delta^{pj}_{I_j[i]}; \\
+& b^u \sim \text{Student’s t}(3, 0, 1); \\
+& b^p \sim \text{Student’s t}(3, 0, 1); \\
+& b^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
+\text{ for } k = 1, \dots, m_j \text{ and } j = 1, \dots, M; \\
+& b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
+\text{ for } k = 1, \dots, m_j \text{ and } j = 1, \dots, M; \\
+& \sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1),
+\text{ for } j = 1, \dots, M; \text{ and} \\
+& \sigma^{pj} \sim \text{half-Student’s t}(3, 0, 1),
+\text{ for } j = 1, \dots, M.
 \end{align}
 $$
 
