@@ -178,21 +178,54 @@ $$
 where
 
 $$
-\mu_i = (0, \mu^u_i, \mu^p_i)
+\mu_i = \left(0, \mu^u_i, \mu^p_i\right)
 $$
 
 is the average log-odds of the three categories with respect to a reference
-category, which, by conventions, is taken to be the first category, that is,
+category, which, by conventions, is taken to be the first one, that is,
 detractors. The first entry is zero, since $$\text{logit}(1) = 0$$. Therefore,
 there are only two linear models: one is for neutrals ($$\mu^u_i$$), and one is
 for promoters ($$\mu^p_i$$).
+
+Now, there are many alternatives when it comes to the two linear parts. In this
+article, we shall use the following architecture. Both the model for neutrals
+and the one for promoters have the same structure, and for simplicity, we shall
+describe in detail only the former. For the log-odds of neutrals, the model is
+
+$$
+\mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}
+$$
+
+where
+
+$$
+\delta^{uj} = \left(\delta^{uj}_1, \dots, \delta^{uj}_{m_j}\right)
+$$
+
+is a vector of deviations from intercept $$b^u$$ specific to grouping factor
+$$j$$ (one entry for each level of the factor), and $$I_j[i]$$ yields the index
+of the level that cell $$i$$ belongs to, for $$i = 1, \dots, K$$ and $$j = 1,
+\dots, M$$. Thus far, the linear model has $$1 + \sum_i m_i$$ parameters. Let us
+now turn to the multilevel aspect.
+
+For each grouping factor, the corresponding levels, represented by the elements
+of $$\delta^{uj}$$, are allowed to be different but assumed to originate from a
+common distribution. To this end, they are assigned distributions with a common
+parameter:
+
+$$
+\delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}(0, \sigma^{uj})
+$$
+
+for $$i = 1, \dots, m_j$$.
 
 Then
 
 $$
 \begin{align}
 & y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i), \\
-& \theta_i = \text{Softmax}\left(0, \mu^u_i, \mu^p_i\right), \\
+& \theta_i = \text{Softmax}\left(\mu_i\right), \\
+& \mu_i = (0, \mu^u_i, \mu^p_i), \\
 & \mu^u_i = b^u + b^u_{\text{age}[i]}, \\
 & \mu^p_i = b^p + b^p_{\text{age}[i]}, \\
 & b^u \sim \text{Student’s t}(3, 0, 1), \\
