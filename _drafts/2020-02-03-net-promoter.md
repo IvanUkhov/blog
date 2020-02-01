@@ -96,13 +96,12 @@ Given $$y$$, the observed net promoter score for value $$j$$ of variable $$i$$
 can be evaluated as follows:
 
 $$
-\hat{s}_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{3}
+s_{ij} = 100 \times \frac{\sum_{k \in I_{ij}}(p_k - d_k)}{\sum_{k \in I_{ij}} n_k} \tag{3}
 $$
 
-where the hat emphasizes the fact that it is an estimate from the data, and
-$$I_{ij}$$ is an index set traversing cells with variable $$i$$ set to value
-$$j$$, which has the effect of marginalizing out other variables conditioned on
-the chosen value of variable $$i$$, that is, on value $$j$$.
+where $$I_{ij}$$ is an index set traversing cells with variable $$i$$ set to
+value $$j$$, which has the effect of marginalizing out other variables
+conditioned on the chosen value of variable $$i$$, that is, on value $$j$$.
 
 We can now compare $$n_i$$, computed according to Equation (1), with its
 counterpart in the population (the total number of customers who belong to cell
@@ -265,9 +264,30 @@ $$
 $$
 
 The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The nested
-structure is what makes it multilevel. This is an important feature.
+structure is what makes it multilevel. This is an important feature, since it
+allows for information sharing between the individual values of the grouping
+variables, which has a regularizing effect on the estimates.
+
+Having defined the model, the posterior distribution can now be obtained. This
+procedure is standard and can be undertaken by, for instance, implementing the
+model in Stan or using a higher-level package, such as [`brms`], which is what
+is exemplified in the section on implementation. The result is a large
+collection of draws of the parameters from the posterior distribution. For each
+draw of the parameters, a draw of the net promoter score can be computed using
+the following formula:
+
+$$
+s_i = 100 \times (\theta^p_i - \theta^d_i)
+$$
+
+for $$i = 1, \dots, K$$. This means that we have obtained a (joint) posterior
+distribution of the net promoter score over the $$K$$ cells. It is now time to
+combine the scores for the cells on the level of the individual values of the
+grouping variables, which results in $$\sum_i m_i$$ scores in total.
 
 ## Poststratification
+
+Step 2 is poststratification. The idea is straightforward.
 
 # Implementation
 
@@ -276,7 +296,7 @@ structure is what makes it multilevel. This is an important feature.
 # Acknowledgments
 
 I also would like to thank [Paul-Christian Bürkner][paul] for his help with
-understanding the `brms` package.
+understanding the [`brms`] package.
 
 # References
 
@@ -292,6 +312,7 @@ understanding the `brms` package.
 [MLM]: https://doi.org/10.1017/CBO9780511790942
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
+[`brms`]: https://github.com/paul-buerkner/brms
 [article]: /2019/08/19/net-promoter.html
 [brms]: http://dx.doi.org/10.18637/jss.v080.i01
 [paul]: https://paul-buerkner.github.io/
