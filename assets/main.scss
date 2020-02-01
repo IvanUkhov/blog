@@ -42,10 +42,6 @@ h1 {
   text-indent: -0.3em;
 }
 
-.post-title {
-  letter-spacing: normal;
-}
-
 .post p, .post-list p {
   text-align: justify;
   -webkit-hyphens: auto;
@@ -53,6 +49,19 @@ h1 {
   hyphens: auto;
 }
 
-.post img {
+.post-title {
+  font-size: 2.5em;
+  letter-spacing: normal;
+}
+
+.post-content h1 {
+  font-size: 2em;
+}
+
+.post-content h2 {
+  font-size: 1.5em;
+}
+
+.post-content img {
   padding: 1em 0 1em 0;
 }
