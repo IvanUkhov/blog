@@ -14,6 +14,12 @@ keywords:
   - poststratification
 ---
 
+```{r, echo = FALSE, message = FALSE}
+library(tidyverse)
+
+theme_set(theme_minimal(base_size = 14))
+```
+
 Customer surveys are naturally prone to biases. One prominent example is
 participation bias, which arises when individuals decide not to respond to the
 survey, and this pattern is not random. For instance, new customers might rely
@@ -192,8 +198,8 @@ for promoters ($$\mu^p_i$$).
 
 Now, there are many alternatives when it comes to the two linear parts. In this
 article, we shall use the following architecture. Both the model for neutrals
-and the one for promoters have the same structure, and for simplicity, only the
-former is described in detail. For the log-odds of neutrals, the model is
+and the one for promoters have the same structure, and for brevity, only the
+former is described. For the log-odds of neutrals, the model is
 
 $$
 \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}
@@ -210,31 +216,73 @@ $$j$$ (one entry for each value of the variable), and $$I_j[i]$$ yields the
 index of the value that cell $$i$$ has, for $$i = 1, \dots, K$$ and $$j = 1,
 \dots, M$$.
 
-The intercept is given the following prior distribution:
-
-$$
-b^u \sim \text{Student’s t}(3, 0, 1).
-$$
-
-The mean is zero in order to center at even odds. Let us now turn to the
-multilevel aspect.
-
-For each grouping variable, the corresponding values, represented by the
-elements of $$\delta^{uj}$$, are allowed to be different but assumed to have
-something in common and thus originate from a common distribution. To this end,
-they are assigned distributions with a shared parameter:
+Let us now turn to the multilevel aspect. For each grouping variable, the
+corresponding values, represented by the elements of $$\delta^{uj}$$, are
+allowed to be different but assumed to have something in common and thus
+originate from a common distribution. To this end, they are assigned
+distributions with a shared parameter as follows:
 
 $$
 \delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right)
 $$
 
-for $$i = 1, \dots, m_j$$. The mean is zero, as $$\delta^{uj}_i$$ represents a
-deviation. The standard deviation, $$\sigma^{ji}$$, is estimated from the data
-and given the following prior distribution:
+for $$i = 1, \dots, m_j$$. The mean is zero, since $$\delta^{uj}_i$$ represents
+a deviation.
+
+Lastly, we have to decide on prior distributions of the intercept, $$b^u$$, and
+the standard deviations, $$\sigma^{uj}$$ for $$j = 1, \dots, M$$. The intercept
+is given the following prior:
 
 $$
-\sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1).
+b^u \sim \text{Student’s t}(5, 0, 1).
 $$
+
+The mean is zero in order to center at even odds. Regarding the standard
+deviations, they are given the following prior:
+
+$$
+\sigma^{uj} \sim \text{half-Student’s t}(5, 0, 1).
+$$
+
+In order to understand the implications of these prior choices, let us take a
+look at the prior distribution assuming two grouping variables:
+
+```{r prior-distribution, include = FALSE}
+rtruncated <- function(n, distribution, inverse, quantile = 0) {
+  inverse(runif(n, min = distribution(quantile), max = 1))
+}
+
+rhstudent_t <- function(n, ...) {
+  rtruncated(n,
+             function(q) { pstudent_t(q, ...) },
+             function(p) { qstudent_t(p, ...) })
+}
+
+set.seed(42)
+
+n <- 10000
+tibble(log_odds_ratio = rstudent_t(n, 5, 0, 1) +
+                        rnorm(n, sd = rhstudent_t(n, 5, 0, 1)) +
+                        rnorm(n, sd = rhstudent_t(n, 5, 0, 1))) %>%
+  filter(log_odds_ratio > quantile(log_odds_ratio, 0.005),
+         log_odds_ratio < quantile(log_odds_ratio, 0.995)) %>%
+  ggplot(aes(log_odds_ratio)) +
+  stat_density(geom = 'line', size = 1) +
+  geom_vline(xintercept = 5, linetype = 'dashed') +
+  geom_vline(xintercept = -5, linetype = 'dashed') +
+  scale_x_continuous(breaks = seq(-10, 10), minor_breaks = NULL) +
+  labs(x = 'Log-odds of neutrals with respect to detractors',
+       y = 'Prior probability density')
+```
+
+![](/assets/images/2020-02-03-net-promoter/prior-distribution-1.svg)
+
+The left and right dashed lines demarcate tail regions that can be thought of as
+“never” and “always,” respectively. For instance, log-odds of 5 or higher are so
+extreme that detractors are rendered nearly non-existent when compared to
+neutrals. These regions are arguably unrealistic; however, it is a possibility
+that the prior does not exclude. The vast majority of the probability mass is
+still in the middle.
 
 The overall model is then as follow:
 
@@ -250,15 +298,15 @@ $$
 \text{ for } i = 1, \dots, K; \\
 & \mu^p_i = b^p + \sum_{j = 1}^M \delta^{pj}_{I_j[i]},
 \text{ for } i = 1, \dots, K; \\
-& b^u \sim \text{Student’s t}(3, 0, 1); \\
-& b^p \sim \text{Student’s t}(3, 0, 1); \\
+& b^u \sim \text{Student’s t}(5, 0, 1); \\
+& b^p \sim \text{Student’s t}(5, 0, 1); \\
 & b^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5a} \\
 & b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5b} \\
-& \sigma^{uj} \sim \text{half-Student’s t}(3, 0, 1),
+& \sigma^{uj} \sim \text{half-Student’s t}(5, 0, 1),
 \text{ for } j = 1, \dots, M; \text{ and} \\
-& \sigma^{pj} \sim \text{half-Student’s t}(3, 0, 1),
+& \sigma^{pj} \sim \text{half-Student’s t}(5, 0, 1),
 \text{ for } j = 1, \dots, M.
 \end{align}
 $$
