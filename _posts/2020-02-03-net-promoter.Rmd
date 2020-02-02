@@ -433,9 +433,9 @@ from changes over time.
 
 # Acknowledgments
 
-I also would like to thank [Andrew Gelman][andrew] for the guidance and
-[Paul-Christian Bürkner][paul] for the help with understanding the `brms`
-package.
+I would like to thank [Andrew Gelman][andrew] for the guidance about multilevel
+modeling and [Paul-Christian Bürkner][paul] for the help with understanding the
+`brms` package.
 
 # References
 

@@ -253,7 +253,7 @@ purposes, can be thought of as “never” and “always,” respectively. For i
 log-odds of five or higher are so extreme that detractors are rendered nearly
 non-existent when compared to neutrals. These regions are arguably unrealistic.
 The prior does not exclude these possibilities; however, it does not favor them
-either. The vast majority of the probability mass is still in the middle about
+either. The vast majority of the probability mass is still in the middle around
 zero.
 
 The overall model is then as follow:
@@ -403,9 +403,9 @@ from changes over time.
 
 # Acknowledgments
 
-I also would like to thank [Andrew Gelman][andrew] for the guidance and
-[Paul-Christian Bürkner][paul] for the help with understanding the `brms`
-package.
+I would like to thank [Andrew Gelman][andrew] for the guidance about multilevel
+modeling and [Paul-Christian Bürkner][paul] for the help with understanding the
+`brms` package.
 
 # References
 
