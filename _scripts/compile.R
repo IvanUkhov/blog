@@ -11,6 +11,7 @@ process_file <- function(input, output, image_path, cache_path) {
   )
   opts_chunk$set(
     dev = 'svg',
+    dev.args = list(bg = 'transparent'),
     echo = FALSE,
     message = FALSE,
     fig.align = 'center',
