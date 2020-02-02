@@ -273,10 +273,10 @@ resulting from partial pooling.
 Having defined the model, the posterior distribution can now be obtained by
 means of Markov chain Monte Carlo sampling. This procedure is standard and can
 be performed using, for instance, Stan or a higher-level package, such as
-[`brms`], which is what is exemplified in the section on implementation. The
-result is a collection of draws of the parameters from the posterior
-distribution. For each draw of the parameters, a draw of the net promoter score
-can be computed using the following formula:
+[`brms`], which is what is exemplified in the Implementation section. The result
+is a collection of draws of the parameters from the posterior distribution. For
+each draw of the parameters, a draw of the net promoter score can be computed
+using the following formula:
 
 $$
 s_i = 100 \times (\theta^p_i - \theta^d_i) \tag{6}
@@ -311,6 +311,11 @@ promoters in the cells given their in-population sizes and then aggregating
 those counts and following the definition of the net promoter score.
 
 # Implementation
+
+In what follows, we consider a contrive example to illustrate how one might go
+about implementing the model presented earlier in R. To this end, we shall
+generate some data and then perform the inference via `brms`, which makes
+extensive use of Stan under the hood.
 
 ```r
 if (packageVersion('brms') < '2.11.2') {
@@ -359,11 +364,14 @@ model <- brm(formula, sample, multinomial(), prior = priors, seed = 42)
 
 # Conclusion
 
+In this article, we have discussed a multilevel multinomial model for inferring
+the net promoter score.
+
 # Acknowledgments
 
 I also would like to thank [Andrew Gelman][andrew] for his guidance and
-inspiration and [Paul-Christian Bürkner][paul] for his help with understanding
-the [`brms`] package.
+[Paul-Christian Bürkner][paul] for his help with understanding the [`brms`]
+package.
 
 # References
 
