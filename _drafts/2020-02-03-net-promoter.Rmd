@@ -399,7 +399,7 @@ prediction <- data$population %>%
   add_predicted_draws(model) %>%
   spread(.category, .prediction) %>%
   group_by(age, .draw) %>%
-  summarize(score = sum(promoter - detractor) / sum(cell_size)) %>%
+  summarize(score = 100 * sum(promoter - detractor) / sum(cell_size)) %>%
   mean_hdi()
 ```
 
@@ -416,12 +416,23 @@ on GitHub. The appendix contains instructions for updating the packages.
 # Conclusion
 
 In this article, we have discussed a multilevel multinomial model for inferring
-the net promoter score.
+the net promoter score with respect to several grouping variables in accordance
+with the business needs. It has been argued that poststratification is an
+essential stage of the inference process, since it mitigates the deleterious
+consequences of participation bias on the subsequent decision-making.
+
+There are still some aspects that could be improved. For instance, there is a
+natural ordering to the three categories of customers, detractors, neutrals, and
+promoters; however, it is currently ignored. Furthermore, there is some
+information thrown away when customer-level scores, which range from zero to
+ten, are aggregated on the category level. Lastly, the net promoter survey often
+happens in periodic waves, which calls for a single model capturing and learning
+from changes over time.
 
 # Acknowledgments
 
-I also would like to thank [Andrew Gelman][andrew] for his guidance and
-[Paul-Christian Bürkner][paul] for his help with understanding the `brms`
+I also would like to thank [Andrew Gelman][andrew] for the guidance and
+[Paul-Christian Bürkner][paul] for the help with understanding the `brms`
 package.
 
 # References
