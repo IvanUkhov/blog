@@ -15,8 +15,19 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
+if (packageVersion('brms') < '2.11.2') {
+  remotes::install_github('paul-buerkner/brms', upgrade = 'never')
+}
+
+if (packageVersion('tidybayes') < '2.0.1.9000') {
+  remotes::install_github('mjskay/tidybayes', upgrade = 'never')
+}
+
+library(brms)
+library(tidybayes)
 library(tidyverse)
 
+options(mc.cores = parallel::detectCores())
 theme_set(theme_minimal(base_size = 14))
 ```
 
@@ -366,48 +377,35 @@ generate some data and then perform the inference via `brms`, which makes
 extensive use of Stan under the hood.
 
 ```r
-if (packageVersion('brms') < '2.11.2') {
-  remotes::install_github('paul-buerkner/brms', upgrade = 'never')
-}
-
-library(brms)
-library(tidyverse)
-
 set.seed(42)
 
-n <- 5000
-N <- 100000
+# Population size
+N <- 1000000
+# Samples size
+n <- 10000
 
-age <- c('18–25', '26–35', '36–45', '46–55', '56–65', '66+')
+# Generate some data (see the appendix)
+data <- generate(N, n)
 
-# Population
-population <- tibble(age = factor(sample(age, N, replace = TRUE))) %>%
-  group_by(age) %>%
-  count(name = 'cell_size')
-
-# Sample
-sample <- tibble(score = sample(seq(0, 10), n, replace = TRUE),
-                 age = factor(sample(age, n, replace = TRUE))) %>%
-  mutate(category = case_when(score < 7 ~ 'detractor',
-                              score > 8 ~ 'promoter',
-                              TRUE ~ 'neutral')) %>%
-  group_by(age) %>%
-  summarize(detractors = sum(category == 'detractor'),
-            neutrals = sum(category == 'neutral'),
-            promoters = sum(category == 'promoter')) %>%
-  mutate(cell_size = detractors + neutrals + promoters)
-sample$cell_counts <- with(sample, cbind(detractors, neutrals, promoters))
-colnames(sample$cell_counts) <- c('Detractor', 'Neutral', 'Promoter')
-
-# Model
+# Modeling
 priors <- c(
-  prior('student_t(3, 0, 1)', class = 'Intercept', dpar = 'muNeutral'),
-  prior('student_t(3, 0, 1)', class = 'Intercept', dpar = 'muPromoter'),
-  prior('student_t(3, 0, 1)', class = 'sd', dpar = 'muNeutral'),
-  prior('student_t(3, 0, 1)', class = 'sd', dpar = 'muPromoter')
+  prior('student_t(5, 0, 1)', class = 'Intercept', dpar = 'muneutral'),
+  prior('student_t(5, 0, 1)', class = 'Intercept', dpar = 'mupromoter'),
+  prior('student_t(5, 0, 1)', class = 'sd', dpar = 'muneutral'),
+  prior('student_t(5, 0, 1)', class = 'sd', dpar = 'mupromoter')
 )
-formula <- brmsformula(cell_counts | trials(cell_size) ~ (1 | age))
-model <- brm(formula, sample, multinomial(), prior = priors, seed = 42)
+formula <- brmsformula(
+  cell_counts | trials(cell_size) ~ (1 | age) + (1 | seniority))
+model <- brm(formula, data$sample, multinomial(), priors,
+             control = list(adapt_delta = 0.99), seed = 42)
+
+# Poststratification
+data$population %>%
+  tidybayes::add_predicted_draws(model) %>%
+  spread(.category, .prediction) %>%
+  group_by(age, .draw) %>%
+  summarize(score = sum(promoter - detractor) / sum(cell_size)) %>%
+  tidybayes::mean_hdi()
 ```
 
 # Conclusion
@@ -431,6 +429,66 @@ package.
   using hierarchical logistic regression][MRP],” Survey Methodology, 1997.
 * Paul-Christian Bürkner, “[brms: An R package for Bayesian multilevel models
   using Stan][brms],” Journal of Statistical Software, 2017.
+
+# Appendix
+
+```r
+generate <- function(N, n) {
+  softmax <- function(x) exp(x) / sum(exp(x))
+
+  # Age
+  age_values <- c('18–25', '26–35', '36–45', '46–55', '56–65', '66+')
+  age_probabilities <- softmax(c(2, 3, 3, 2, 2, 1))
+
+  # Seniority
+  seniority_values <- c('6M', '1Y', '2Y', '3Y', '4Y', '5Y', '6Y+')
+  seniority_probabilities <- softmax(c(3, 2, 2, 2, 1, 1, 1))
+
+  # Score
+  score_values <- seq(0, 10)
+  score_probabilities <- softmax(c(1, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4))
+
+  # Generate a population
+  population <- tibble(age = sample(age_values, N,
+                                    prob = age_probabilities,
+                                    replace = TRUE),
+                       seniority = sample(seniority_values, N,
+                                          prob = seniority_probabilities,
+                                          replace = TRUE))
+
+  # Take a sample from the population
+  sample <- population %>%
+    sample_n(n) %>%
+    mutate(score = sample(score_values, n,
+                          prob = score_probabilities,
+                          replace = TRUE)) %>%
+    mutate(category = case_when(score < 7 ~ 'detractor',
+                                score > 8 ~ 'promoter',
+                                TRUE ~ 'neutral'))
+
+  # Summarize the population
+  population <- population %>%
+    group_by(age, seniority) %>%
+    count(name = 'cell_size')
+
+  # Summarize the sample
+  sample <- sample %>%
+    group_by(age, seniority) %>%
+    summarize(detractors = sum(category == 'detractor'),
+              neutrals = sum(category == 'neutral'),
+              promoters = sum(category == 'promoter')) %>%
+    mutate(cell_size = detractors + neutrals + promoters)
+
+  # Bind counts of neutrals, detractors, and promoters (needed for brms)
+  sample$cell_counts <- with(sample, cbind(detractors, neutrals, promoters))
+  colnames(sample$cell_counts) <- c('detractor', 'neutral', 'promoter')
+
+  # Remove unused columns
+  sample <- sample %>% select(-detractors, -neutrals, -promoters)
+
+  list(population = population, sample = sample)
+}
+```
 
 [MLM]: https://doi.org/10.1017/CBO9780511790942
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
