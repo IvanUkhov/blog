@@ -15,19 +15,8 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
-if (packageVersion('brms') < '2.11.2') {
-  remotes::install_github('paul-buerkner/brms', upgrade = 'never')
-}
-
-if (packageVersion('tidybayes') < '2.0.1.9000') {
-  remotes::install_github('mjskay/tidybayes', upgrade = 'never')
-}
-
-library(brms)
-library(tidybayes)
 library(tidyverse)
 
-options(mc.cores = parallel::detectCores())
 theme_set(theme_minimal(base_size = 14))
 ```
 
@@ -35,7 +24,7 @@ Customer surveys are naturally prone to biases. One prominent example is
 participation bias, which arises when individuals decide not to respond to the
 survey, and this pattern is not random. For instance, new customers might rely
 less eagerly than those who are senior. This renders the obtained responses
-unrepresentative of the target population. In this article, we shall tackle
+unrepresentative of the target population. In this article, we tackle
 participation bias for the case of the net promoter survey by means of
 multilevel regression and poststratification.
 
@@ -208,9 +197,9 @@ there are only two linear models: one is for neutrals ($$\mu^u_i$$), and one is
 for promoters ($$\mu^p_i$$).
 
 Now, there are many alternatives when it comes to the two linear parts. In this
-article, we shall use the following architecture. Both the model for neutrals
-and the one for promoters have the same structure, and for brevity, only the
-former is described. For the log-odds of neutrals, the model is
+article, we use the following architecture. Both the model for neutrals and the
+one for promoters have the same structure, and for brevity, only the former is
+described. For the log-odds of neutrals, the model is
 
 $$
 \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}
@@ -265,14 +254,14 @@ rtruncated <- function(n, distribution, inverse, quantile = 0) {
 
 rhstudent_t <- function(n, ...) {
   rtruncated(n,
-             function(q) { pstudent_t(q, ...) },
-             function(p) { qstudent_t(p, ...) })
+             function(q) { brms::pstudent_t(q, ...) },
+             function(p) { brms::qstudent_t(p, ...) })
 }
 
 set.seed(42)
 
 n <- 10000
-tibble(log_odds_ratio = rstudent_t(n, 5, 0, 1) +
+tibble(log_odds_ratio = brms::rstudent_t(n, 5, 0, 1) +
                         rnorm(n, sd = rhstudent_t(n, 5, 0, 1)) +
                         rnorm(n, sd = rhstudent_t(n, 5, 0, 1))) %>%
   filter(log_odds_ratio > quantile(log_odds_ratio, 0.005),
@@ -371,21 +360,27 @@ those counts and following the definition of the net promoter score.
 
 # Implementation
 
-In what follows, we consider a contrive example to illustrate how one might go
-about implementing the model presented earlier in R. To this end, we shall
-generate some data and then perform the inference via `brms`, which makes
-extensive use of Stan under the hood.
+In what follows, we consider a contrive example with the sole purpose of
+illustrating how the presented workflow can be implemented in practice. To this
+end, we generate some data with two grouping variables, age and seniority, and
+then perform inference using [`brms`], which leverages Stan under the hood. For
+convenience of manipulating posterior draws, [`tidybayes`] is used as well.
 
 ```r
+library(brms)
+library(tidybayes)
+library(tidyverse)
+
 set.seed(42)
+options(mc.cores = parallel::detectCores())
 
-# Population size
-N <- 1000000
-# Samples size
-n <- 10000
-
-# Generate some data (see the appendix)
-data <- generate(N, n)
+# Load data
+data <- load_data()
+# => list(
+# =>   population = tibble(age, seniority, cell_size),
+# =>   sample = tibble(age, seniority, cell_size,
+# =>                   cell_counts = (detractors, neutrals, promoters))
+# => )
 
 # Modeling
 priors <- c(
@@ -400,13 +395,23 @@ model <- brm(formula, data$sample, multinomial(), priors,
              control = list(adapt_delta = 0.99), seed = 42)
 
 # Poststratification
-data$population %>%
-  tidybayes::add_predicted_draws(model) %>%
+prediction <- data$population %>%
+  add_predicted_draws(model) %>%
   spread(.category, .prediction) %>%
   group_by(age, .draw) %>%
   summarize(score = sum(promoter - detractor) / sum(cell_size)) %>%
-  tidybayes::mean_hdi()
+  mean_hdi()
 ```
+
+The final aggregation is given for age; it is similar for seniority. It can be
+seen in the above listing that modern tools allow for rather complex ideas to be
+expressed and explored in a very laconic way.
+
+The curious reader is encouraged to run the above code. The appendix contains a
+function for generating synthetic data. It should be noted, however, that `brms`
+and `tidybayes` should be of versions greater than 2.11.1 and 2.0.1,
+respectively, which, at the time of writing, are available for installation only
+on GitHub. The appendix contains instructions for updating the packages.
 
 # Conclusion
 
@@ -416,7 +421,7 @@ the net promoter score.
 # Acknowledgments
 
 I also would like to thank [Andrew Gelman][andrew] for his guidance and
-[Paul-Christian Bürkner][paul] for his help with understanding the [`brms`]
+[Paul-Christian Bürkner][paul] for his help with understanding the `brms`
 package.
 
 # References
@@ -432,8 +437,13 @@ package.
 
 # Appendix
 
+The following listing defines a function that makes the illustrative example
+given in the Implementation section self-sufficient. By default, the population
+contains one million customers, and the sample contains one percent. There are
+two grouping variables: age with six values and seniority with seven values.
+
 ```r
-generate <- function(N, n) {
+load_data <- function(N = 1000000, n = 10000) {
   softmax <- function(x) exp(x) / sum(exp(x))
 
   # Age
@@ -490,10 +500,24 @@ generate <- function(N, n) {
 }
 ```
 
+Lastly, the following snippet shows how to update `brms` and `tidybayes` from
+GitHub:
+
+```r
+if (packageVersion('brms') < '2.11.2') {
+  remotes::install_github('paul-buerkner/brms', upgrade = 'never')
+}
+
+if (packageVersion('tidybayes') < '2.0.1.9000') {
+  remotes::install_github('mjskay/tidybayes', upgrade = 'never')
+}
+```
+
 [MLM]: https://doi.org/10.1017/CBO9780511790942
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
 [`brms`]: https://github.com/paul-buerkner/brms
+[`tidybayes`]: https://github.com/mjskay/tidybayes
 [andrew]: http://www.stat.columbia.edu/~gelman/
 [article]: /2019/08/19/net-promoter.html
 [brms]: http://dx.doi.org/10.18637/jss.v080.i01
