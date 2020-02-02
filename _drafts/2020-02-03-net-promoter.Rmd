@@ -22,7 +22,7 @@ theme_set(theme_minimal(base_size = 14))
 
 Customer surveys are naturally prone to biases. One prominent example is
 participation bias, which arises when individuals decide not to respond to the
-survey, and this pattern is not random. For instance, new customers might rely
+survey, and this pattern is not random. For instance, new customers might reply
 less eagerly than those who are senior. This renders the obtained responses
 unrepresentative of the target population. In this article, we tackle
 participation bias for the case of the net promoter survey by means of
@@ -121,9 +121,10 @@ $$
 
 for $$i = 1, \dots, K$$. When this happens, the scores given by Equation (3) or
 any analyses oblivious of this disagreement cannot be trusted, since they
-misrepresent the population. (It should noted, however, that equality within
-each tuple does not guarantee absence of participation bias, since there might
-be other, potentially unobserved, dimensions along which there are deviations.)
+misrepresent the population. (It should be noted, however, that equality within
+each tuple does not guarantee the absence of participation bias, since there
+might be other, potentially unobserved, dimensions along which there are
+deviations.)
 
 The survey has been conducted, and there are deviations. What do we do with all
 these responses that have come in? Should we discard and run a new survey,
@@ -315,8 +316,8 @@ The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The nested
 structure, which can be seen in Equations (5a) and (5b), is what makes the model
 multilevel. This is an important feature, since it allows for information
 sharing between the individual values of the grouping variables. In particular,
-this has regularizing effect on the estimates, which is also known as shrinkage
-resulting from partial pooling.
+this has a regularizing effect on the estimates, which is also known as
+shrinkage resulting from partial pooling.
 
 Having defined the model, the posterior distribution can now be obtained by
 means of Markov chain Monte Carlo sampling. This procedure is standard and can
@@ -360,7 +361,7 @@ those counts and following the definition of the net promoter score.
 
 # Implementation
 
-In what follows, we consider a contrive example with the sole purpose of
+In what follows, we consider a contrived example with the sole purpose of
 illustrating how the presented workflow can be implemented in practice. To this
 end, we generate some data with two grouping variables, age and seniority, and
 then perform inference using [`brms`], which leverages Stan under the hood. For
