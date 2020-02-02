@@ -248,12 +248,13 @@ look at the prior distribution assuming two grouping variables:
 
 ![](/assets/images/2020-02-03-net-promoter/prior-distribution-1.svg)
 
-The left and right dashed lines demarcate tail regions that can be thought of as
-“never” and “always,” respectively. For instance, log-odds of 5 or higher are so
-extreme that detractors are rendered nearly non-existent when compared to
-neutrals. These regions are arguably unrealistic; however, it is a possibility
-that the prior does not exclude. The vast majority of the probability mass is
-still in the middle.
+The left and right dashed lines demarcate tail regions that, for practical
+purposes, can be thought of as “never” and “always,” respectively. For instance,
+log-odds of five or higher are so extreme that detractors are rendered nearly
+non-existent when compared to neutrals. These regions are arguably unrealistic.
+The prior does not exclude these possibilities; however, it does not favor them
+either. The vast majority of the probability mass is still in the middle about
+zero.
 
 The overall model is then as follow:
 
@@ -282,8 +283,8 @@ $$
 \end{align}
 $$
 
-The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The nested
-structure, which can be seen in Equations (5a) and (5b), is what makes the model
+The model has $$2 \times (1 + \sum_i m_i + M)$$ parameters in total. The
+structure that can be seen in Equations (5a) and (5b) is what makes the model
 multilevel. This is an important feature, since it allows for information
 sharing between the individual values of the grouping variables. In particular,
 this has a regularizing effect on the estimates, which is also known as
@@ -335,7 +336,7 @@ In what follows, we consider a contrived example with the sole purpose of
 illustrating how the presented workflow can be implemented in practice. To this
 end, we generate some data with two grouping variables, age and seniority, and
 then perform inference using [`brms`], which leverages Stan under the hood. For
-convenience of manipulating posterior draws, [`tidybayes`] is used as well.
+a convenient manipulation of posterior draws, [`tidybayes`] is used as well.
 
 ```r
 library(brms)
