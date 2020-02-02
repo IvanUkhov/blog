@@ -171,7 +171,7 @@ where $$n_i$$ is given by Equation (1), and
 
 $$\theta_i = \left\langle\theta^d_i, \theta^u_i, \theta^p_i\right\rangle$$
 
-is a simplex (sums up to 1) of probabilities of the three categories.
+is a simplex (sums up to one) of probabilities of the three categories.
 
 Multinomial regression belongs to the class of generalized linear models. This
 means that the inference takes place in a linear domain, and that $$\theta_i$$
