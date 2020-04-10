@@ -23,15 +23,15 @@ body: >
       link.onload = function() {
         var overview = document.createElement('facets-overview');
         document.getElementById('facets-overview-container').appendChild(overview);
-        var train = $.getJSON({ url: path + '/train.json' });
-        var test = $.getJSON({ url: path + '/test.json' });
-        $.when(train, test).done(function(train, test) {
+        var training = $.getJSON({ url: path + '/training.json' });
+        var testing = $.getJSON({ url: path + '/testing.json' });
+        $.when(training, testing).done(function(training, testing) {
           var proto = overview.getStatsProto([
-            { data: train[0], name: 'train' },
-            { data: test[0], name: 'test' }
+            { data: training[0], name: 'training' },
+            { data: testing[0], name: 'testing' }
           ]);
           overview.protoInput = proto;
-          overview.data = test[0];
+          overview.data = testing[0];
         });
       };
       document.head.appendChild(link);
