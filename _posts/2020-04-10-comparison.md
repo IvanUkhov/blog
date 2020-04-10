@@ -98,6 +98,8 @@ sets are of different sizes. Then it becomes apparent that the two partitions
 are fairly balanced. The only problem is that `Target`, which represents income,
 happened to be encoded incorrectly in the partition for testing.
 
+Lastly, an example in a Jupyter notebook can be found on [GitHub][notebook].
+
 ## Conclusion
 
 It can be difficult to navigate and particularly challenging to compare wide
