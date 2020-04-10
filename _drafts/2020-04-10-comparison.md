@@ -1,7 +1,7 @@
 ---
 layout: post
 title: What is the easiest way to compare two data sets?
-date: 2020-04-13
+date: 2020-04-10
 keywords:
   - Python
   - data science
@@ -10,7 +10,7 @@ head: >
   <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.3.3/webcomponents-lite.js'></script>
 body: >
   <script type='text/javascript'>
-    var path = '/assets/scripts/2020-04-13-comparison';
+    var path = '/assets/scripts/2020-04-10-comparison';
     var complete = false;
     window.addEventListener('WebComponentsReady', function() {
       if (complete) {
