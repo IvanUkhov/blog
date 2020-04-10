@@ -39,10 +39,15 @@ body: >
   </script>
   <style>
     #facets-overview-container {
-      width: 130%;
-      margin-left: -15%;
       margin-top: 5em;
       margin-bottom: 5em;
+    }
+
+    @media screen and (min-width: 800px) {
+      #facets-overview-container {
+        width: 130%;
+        margin-left: -15%;
+      }
     }
   </style>
 ---
