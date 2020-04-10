@@ -9,21 +9,23 @@ keywords:
   - Stan
   - data science
   - net promoter score
-javascript: >
-  window.onload = function() {
-    var keywords = ['data', 'model', 'parameters', 'transformed'];
-    var types = ['real', 'simplex', 'vector'];
-    document
-      .querySelectorAll('.language-c .n')
-      .forEach(function(element) {
-        if (keywords.indexOf(element.innerText) != -1) {
-          element.style.cssText = 'font-weight: 600';
-        }
-        if (types.indexOf(element.innerText) != -1) {
-          element.className += ' kt';
-        }
-      });
-  };
+body: >
+  <script type="text/javascript">
+    window.onload = function() {
+      var keywords = ['data', 'model', 'parameters', 'transformed'];
+      var types = ['real', 'simplex', 'vector'];
+      document
+        .querySelectorAll('.language-c .n')
+        .forEach(function(element) {
+          if (keywords.indexOf(element.innerText) != -1) {
+            element.style.cssText = 'font-weight: 600';
+          }
+          if (types.indexOf(element.innerText) != -1) {
+            element.className += ' kt';
+          }
+        });
+    };
+  </script>
 ---
 
 The net promoter score is a widely adopted metric for gauging customers’

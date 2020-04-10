@@ -9,18 +9,14 @@
       </div>
     </main>
     {%- include footer.html -%}
-  </body>
-  {%- if page.javascript -%}
     <script type="text/javascript">
-      {{ page.javascript }}
-    </script>
-  {%- endif -%}
-  <script type="text/javascript">
-    function anchor() {
-      for (let header of document.querySelectorAll('h1[id], h2[id]')) {
-        header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
       }
-    }
-    window.onload = anchor;
-  </script>
+      window.onload = anchor;
+    </script>
+    {{ page.body }}
+  </body>
 </html>
