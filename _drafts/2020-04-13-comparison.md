@@ -59,9 +59,12 @@ computing five-number summaries and plotting histograms or identifying distinct
 values and plotting bar charts, depending on the column’s type. This, however,
 can quickly get out of hand and evolve into an endeavor for the rest of the day.
 
-An alternative is to leverage what already exists in the data community.
-Specifically, there is the following three-line takeaway based on [Facets
-Overview] via [TensorFlow Data Validation]:
+An alternative is to leverage the amazing tools already exist in the data
+community.
+
+## Solution
+
+The key takeaway is the following three lines of code, excluding the import:
 
 ```python
 import tensorflow_data_validation as dv
@@ -72,18 +75,31 @@ dv.visualize_statistics(lhs_statistics=statistics_1,
                         rhs_statistics=statistics_2)
 ```
 
-This is all it takes to get a versatile dashboard embedded into right into a
-cell of a Jupyter notebook.
+This is all it takes to get a versatile dashboard embedded right into a cell of
+a Jupyter notebook. The visualization itself is based on [Facets Overview], and
+it is conveniently provided by [TensorFlow Data Validation] (which does not have
+much to do with TensorFlow and can be used stand-alone).
 
-It is pointless to try to describe in words what it can do; instead, here is a
-demonstration taken from [Facets Overview]’s page where the tool is applied the
-[UCI Census Income] data set:
+It is pointless to try to describe in words what the dashboard can do; instead,
+here is a demonstration taken from [Facets Overview]’s page where the tool is
+applied the [UCI Census Income] data set:
 
 <div id='facets-overview-container'></div>
 
-The dashboard is split into two sections: one is for numerical features, and one
-is for categorical.
+Give a try to all the different input fields, especially to those in the right
+column!
+
+It is easy to navigate and spot problems with the data, such as the fact that
+`Target` (income) was encoded differently in the two data sets. (In this case,
+it is helpful to toggle the “percentages” checkbox, since the data sets are of
+different size.)
+
+## Conclusion
+
+Facets Overview and its ready availability via TensorFlow Data Validation are
+arguably less known.
 
 [Facets Overview]: https://pair-code.github.io/facets#facets-overview
 [TensorFlow Data Validation]: https://www.tensorflow.org/tfx/data_validation/get_started
 [UCI Census Income]: http://archive.ics.uci.edu/ml/datasets/Census+Income
+[notebook]: https://github.com/chain-rule/example-comparison/blob/master/census.ipynb
