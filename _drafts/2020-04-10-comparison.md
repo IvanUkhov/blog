@@ -56,12 +56,12 @@ One has probably come across this problem numerous times. There are two versions
 of a tabular data set with a lot of columns of different types, and one wants to
 quickly identify any differences between the two. For example, the pipeline
 providing data to a predictive model might have been updated, and the goal is to
-understand if there have been any side effects of this update on the training
+understand if there have been any side effects of this update for the training
 data.
 
 One solution is to start to iterate over the columns of the two tables,
 computing five-number summaries and plotting histograms or identifying distinct
-values and plotting bar charts, depending on the column’s type. This, however,
+values and plotting bar charts, depending on the column’s type. However, this
 can quickly get out of hand and evolve into an endeavor for the rest of the day.
 
 An alternative is to leverage the amazing tools that already exist in the data
@@ -81,30 +81,33 @@ dv.visualize_statistics(lhs_statistics=statistics_1,
 ```
 
 This is all it takes to get a versatile dashboard embedded right into a cell of
-a Jupyter notebook. The visualization itself is based on [Facets Overview], and
-it is conveniently provided by [TensorFlow Data Validation] (which does not have
-much to do with TensorFlow and can be used stand-alone).
+a Jupyter notebook. The visualization itself is based on [Facets], and it is
+conveniently provided by [TensorFlow Data Validation] (which does not have much
+to do with TensorFlow and can be used stand-alone).
 
 It is pointless to try to describe in words what the dashboard can do; instead,
-here is a demonstration taken from [Facets Overview]’s page where the tool is
-applied the [UCI Census Income] data set:
+here is a demonstration taken from [Facets] where the tool is applied the [UCI
+Census Income] data set:
 
 <div id='facets-overview-container'></div>
 
-Give a try to all the different input fields, especially to those in the right
-column!
+Go ahead and give a try to all the different controls!
 
-It is easy to navigate and spot problems with the data, such as the fact that
-`Target` (income) was encoded differently in the two data sets. (In this case,
-it is helpful to toggle the “percentages” checkbox, since the data sets are of
-different size.)
+In this case, it is helpful to toggle the “percentages” checkbox, since the data
+sets are of different sizes. Then it becomes apparent that the two partitions
+are fairly balanced. The only problem is that `Target`, which represents income,
+happened to be encoded incorrectly in the partition for testing.
 
 ## Conclusion
 
-Facets Overview and its ready availability via TensorFlow Data Validation are
-arguably less known.
+It can be difficult to navigate and particularly challenging to compare wide
+data sets. A lot of effort can be put into this exercise. However, the landscape
+of open-source tools has a lot to offer too. Facets is one such example. The
+library and its straightforward availability via TensorFlow Data Validation are
+arguably less known. This short note can hopefully rectify this to a certain
+extent.
 
-[Facets Overview]: https://pair-code.github.io/facets#facets-overview
+[Facets]: https://pair-code.github.io/facets
 [TensorFlow Data Validation]: https://www.tensorflow.org/tfx/data_validation/get_started
 [UCI Census Income]: http://archive.ics.uci.edu/ml/datasets/Census+Income
 [notebook]: https://github.com/chain-rule/example-comparison/blob/master/census.ipynb
