@@ -64,7 +64,7 @@ computing five-number summaries and plotting histograms or identifying distinct
 values and plotting bar charts, depending on the column’s type. This, however,
 can quickly get out of hand and evolve into an endeavor for the rest of the day.
 
-An alternative is to leverage the amazing tools already exist in the data
+An alternative is to leverage the amazing tools that already exist in the data
 community.
 
 ## Solution
