@@ -106,8 +106,7 @@ It can be difficult to navigate and particularly challenging to compare wide
 data sets. A lot of effort can be put into this exercise. However, the landscape
 of open-source tools has a lot to offer too. Facets is one such example. The
 library and its straightforward availability via TensorFlow Data Validation are
-arguably less known. This short note can hopefully rectify this to a certain
-extent.
+arguably less known. This short note can hopefully rectify this to some extent.
 
 [Facets]: https://pair-code.github.io/facets
 [TensorFlow Data Validation]: https://www.tensorflow.org/tfx/data_validation/get_started
