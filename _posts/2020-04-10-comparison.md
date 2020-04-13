@@ -4,7 +4,9 @@ title: What is the easiest way to compare two data sets?
 date: 2020-04-10
 keywords:
   - Python
+  - TensorFlow
   - data science
+  - exploratory data analysis
 head: >
   <script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js'></script>
   <script type='text/javascript' src='https://cdnjs.cloudflare.com/ajax/libs/webcomponentsjs/1.3.3/webcomponents-lite.js'></script>
