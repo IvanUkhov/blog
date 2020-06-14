@@ -1,0 +1,28 @@
+---
+layout: post
+title: Heteroscedastic regression by virtue of Gaussian processes
+date: 2020-06-22
+math: true
+keywords:
+  - Bayesian statistics
+  - Gaussian process
+  - R
+  - Stan
+  - data science
+  - heteroscedasticity
+  - regression
+---
+
+```{r, echo = FALSE, message = FALSE}
+library(rstan)
+library(tidybayes)
+library(tidyverse)
+
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+theme_set(theme_minimal())
+
+set.seed(42)
+```
+
+She sells seashells by the seashore.
