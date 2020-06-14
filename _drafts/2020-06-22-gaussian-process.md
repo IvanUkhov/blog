@@ -17,6 +17,12 @@ keywords:
 
 She sells seashells by the seashore.
 
+# Data
+
+
+
+![](/assets/images/2020-06-22-gaussian-process/data-1.svg)
+
 # Acknowledgments
 
 I would like to thank Mattias Villani.
@@ -31,3 +37,4 @@ I would like to thank Mattias Villani.
 
 [ABL]: https://github.com/mattiasvillani/AdvBayesLearnCourse
 [GPML]: http://www.gaussianprocess.org/gpml
+[LIDAR]: http://www2.stat.duke.edu/~wjang/teaching/S05-293/data/lidar.html

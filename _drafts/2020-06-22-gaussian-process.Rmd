@@ -20,12 +20,28 @@ library(tidyverse)
 
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
-theme_set(theme_minimal())
+theme_set(theme_minimal(base_size = 14))
 
 set.seed(42)
 ```
 
 She sells seashells by the seashore.
+
+# Data
+
+```{r data, include = FALSE}
+data(lidar, package = 'SemiPar')
+data <- lidar %>%
+  transmute(x = (range - min(range)) / diff(range(range)),
+            y = logratio)
+lidar %>%
+  ggplot(aes(range, logratio)) +
+  geom_point(size = 1) +
+  labs(x = 'Distance',
+       y = 'Log ratio')
+```
+
+![](/assets/images/2020-06-22-gaussian-process/data-1.svg)
 
 # Acknowledgments
 
@@ -41,3 +57,4 @@ I would like to thank Mattias Villani.
 
 [ABL]: https://github.com/mattiasvillani/AdvBayesLearnCourse
 [GPML]: http://www.gaussianprocess.org/gpml
+[LIDAR]: http://www2.stat.duke.edu/~wjang/teaching/S05-293/data/lidar.html

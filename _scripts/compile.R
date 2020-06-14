@@ -38,8 +38,3 @@ process_folder(input_path = '_drafts',
                output_path = '_drafts',
                image_path = 'assets/images',
                cache_path = '_caches')
-
-process_folder(input_path = '_posts',
-               output_path = '_posts',
-               image_path = 'assets/images',
-               cache_path = '_caches')
