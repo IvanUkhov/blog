@@ -25,13 +25,8 @@ theme_set(theme_minimal(base_size = 14))
 set.seed(42)
 ```
 
-The topic of the article is Gaussian process regression.
-
-# Data
-
-The data come from a [light detection and ranging experiment][LIDAR] taken from
-[_Semiparametric Regression_][SR] by Ruppert _et al._ There are the
-following 221 observations:
+Consider the following example taken from [_Semiparametric Regression_][SR] by
+Ruppert _et al._:
 
 ```{r data, include = FALSE}
 data(lidar, package = 'SemiPar')
@@ -42,14 +37,22 @@ lidar %>%
   ggplot(aes(range, logratio)) +
   geom_point(size = 1) +
   labs(x = 'Distance',
-       y = 'Log ratio')
+       y = 'Response')
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/data-1.svg)
 
-It can be clearly seen that the variance of the response, the log ratio, depends
-on the distance. This phenomenon is known as heteroscedasticity. The absence of
-heteroscedasticity is one of the core assumptions of linear regression.
+The figure shows 221 observations collected in a [light detection and
+ranging][LIDAR] experiment. Each observation can be interpreted as the sum of
+the true underlying response at the corresponding distance and random noise. It
+can be clearly seen that the variance of the noise varies with the distance: the
+spread is substantially larger toward the left-hand side. This phenomenon is
+known as heteroscedasticity. Homoscedasticity (the absence of
+heteroscedasticity) is one of the key assumptions of linear regression. Applying
+linear regression to the above problem would yield suboptimal results.
+More specifically, the estimates of the regression coefficients would still be
+unbiased; however, the standard errors of the coefficients would be incorrect
+and hence misleading.
 
 # Acknowledgments
 
