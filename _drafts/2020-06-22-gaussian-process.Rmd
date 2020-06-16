@@ -1,6 +1,6 @@
 ---
 layout: post
-title: Heteroscedastic regression by virtue of Gaussian processes
+title: Heteroscedastic Gaussian process regression
 date: 2020-06-22
 math: true
 keywords:
@@ -24,6 +24,16 @@ theme_set(theme_minimal(base_size = 14))
 
 set.seed(42)
 ```
+
+Gaussian process regression is a nonparametric Bayesian technique for modeling
+relationships between variables of interest. The vast flexibility and rigor
+mathematical foundation of this approach make it the default choice in many
+problems involving small to medium-sized data sets.
+
+In what follows, we illustrate how Gaussian process regression can be used in
+practice. To make the case even more compelling, we shall consider a setting
+where linear regression would be inadequate. The focus will be not on getting
+the job done as fast as possible but on the learning process.
 
 Consider the following example taken from [_Semiparametric Regression_][SR] by
 Ruppert _et al._:
