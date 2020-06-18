@@ -59,14 +59,13 @@ can be clearly seen that the variance of the noise varies with the distance: the
 spread is substantially larger toward the left-hand side. This phenomenon is
 known as heteroscedasticity. Homoscedasticity (the absence of
 heteroscedasticity) is one of the key assumptions of linear regression. Applying
-linear regression to the above problem would yield suboptimal results.
-More specifically, the estimates of the regression coefficients would still be
-unbiased; however, the standard errors of the coefficients would be incorrect
-and hence misleading.
+linear regression to the above problem would yield suboptimal results. The
+estimates of the regression coefficients would still be unbiased; however, the
+standard errors of the coefficients would be incorrect and hence misleading. A
+different modeling technique is needed in this case.
 
-# Model
-
-Suppose there is a data set of $$m$$ observations:
+The above data set will be our running example. For formally and slightly more
+generally, we assume that there is a data set of $$m$$ observations:
 
 $$
 \left\{
@@ -74,20 +73,47 @@ $$
   \mathbf{x}_i \in \mathbb{R}^d; \,
   y_i \in \mathbb{R}; \,
   i = 1, \dots, m
-\right\}.
+\right\}
 $$
 
-The independent variable, $$\mathbf{x}$$, is $$d$$-dimensional, and the
-dependent one, $$y$$, is scalar. In the example given earlier, $$d$$ is one. To
-begin with, consider the following model with additive noise:
+where the independent variable, $$\mathbf{x}$$, is $$d$$-dimensional, and the
+dependent variable, $$y$$, is scalar. In the running example, $$d$$ is 1, and
+$$m$$ is 221. It is time for modeling.
+
+# Model
+
+To begin with, consider the following model with additive noise:
 
 $$
 y_i = f(\mathbf{x}_i) + \epsilon_i, \text{ for } i = 1, \dots, m.
 $$
 
 In the above, $$f: \mathbb{R}^d \to \mathbb{R}$$ represents the true underlying
-function, and $$\epsilon_i$$ represents the perturbation of the $$i$$th
-observation by random noise.
+but unknown function, and $$\epsilon_i$$ represents the perturbation of the
+$$i$$th observation by random noise. In the classical linear-regression setting,
+the unknown function is modeled as a linear combination of (arbitrary
+transformations of) the $$d$$ covariates. Instead of assuming any particular
+functional form, we put a Gaussian-process prior on the function:
+
+$$
+f(\mathbf{x}) \sim \text{Gaussian process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right).
+$$
+
+The above notation means that, before observing any data, the function is a draw
+from a Gaussian process with zero mean and a covariance function $$k$$. The
+covariance funcction dectates the amount of correlation between two arbitrary
+locations
+$$\mathbf{x}$$ and $$\mathbf{x}'$$ in $$\mathbb{R}^d$$.
+
+The error terms are modeled as independent identically distributed Gaussian
+random variables:
+
+$$
+\epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
+\text{ for } i = 1, \dots, m.
+$$
+
+Now,
 
 $$
 \begin{align}
