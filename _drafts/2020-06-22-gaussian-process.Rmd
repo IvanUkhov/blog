@@ -37,6 +37,8 @@ practice. To make the case even more compelling, we shall consider a setting
 where linear regression would be inadequate. The focus will be not on getting
 the job done as fast as possible but on the learning process.
 
+# Data
+
 Consider the following example taken from [_Semiparametric Regression_][SR] by
 Ruppert _et al._:
 
@@ -45,8 +47,8 @@ data(lidar, package = 'SemiPar')
 data <- lidar %>%
   transmute(x = (range - min(range)) / diff(range(range)),
             y = logratio)
-lidar %>%
-  ggplot(aes(range, logratio)) +
+data %>%
+  ggplot(aes(x, y)) +
   geom_point(size = 1) +
   labs(x = 'Distance',
        y = 'Response')
@@ -87,7 +89,7 @@ $$m$$ is 221. It is time for modeling.
 To begin with, consider the following model with additive noise:
 
 $$
-y_i = f(\mathbf{x}_i) + \epsilon_i, \text{ for } i = 1, \dots, m.
+y_i = f(\mathbf{x}_i) + \epsilon_i, \text{ for } i = 1, \dots, m. \tag{1}
 $$
 
 In the above, $$f: \mathbb{R}^d \to \mathbb{R}$$ represents the true but unknown
@@ -95,7 +97,7 @@ underlying function, and $$\epsilon_i$$ represents the perturbation of the
 $$i$$th observation by random noise. In the classical linear-regression setting,
 the unknown function is modeled as a linear combination of (arbitrary
 transformations of) the $$d$$ covariates. Instead of assuming any particular
-functional form, we put a Gaussian-process prior on the function:
+functional form, we put a Gaussian process prior on the function:
 
 $$
 f(\mathbf{x}) \sim \text{Gaussian process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right).
@@ -125,7 +127,7 @@ prior_plot(ell_process = 0.1)
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-short-1.svg)
 
-With $$\ell_\text{process} = 0.5$$, the behavior change to the following:
+With $$\ell_\text{process} = 0.5$$, the behavior changes to the following:
 
 ```{r prior-long, include = FALSE}
 prior_plot(ell_process = 0.5)
@@ -133,24 +135,96 @@ prior_plot(ell_process = 0.5)
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-long-1.svg)
 
-It can be seen that, in the second case with a large length scale, it takes a
-greater distance for the function to change.
+It can be seen that it takes a greater distance for a function with a larger
+length scale (_top_) to change to the same extent compared to a function with a
+smaller length scale (_bottom_).
 
-The error terms are modeled as independent identically distributed Gaussian
-random variables:
+Let us now return to Equation (1) and discuss the error terms, $$\epsilon_i$$.
+In linear regression, they are modeled as independent identically distributed
+Gaussian random variables:
 
 $$
 \epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
 \text{ for } i = 1, \dots, m.
 $$
 
-Now,
+This is also the approach one can take with Gaussian process regression;
+however, one does not have to. There are reasons to believe the problem at hand
+is heteroscedastic, and it should be reflected in the model. To this end, the
+magnitude of the noise is allowed to vary with the covariates:
+
+$$
+\epsilon_i | \mathbf{x}_i \sim \text{Gaussian}\left(0, \sigma^2_{\text{noise}, i}\right),
+\text{ for } i = 1, \dots, m.
+$$
+
+The error terms are still independent (given the covariates) but not identically
+distributed. At this point, one has to make a choice about the dependence of
+$$\sigma_{\text{noise}, i}$$ on $$\mathbf{x}_i$$. Keeping in mind that
+$$\sigma_{\text{noise}, i}$$ is nonnegative, a reasonable choice is a
+generalized linear model:
+
+$$
+\ln \sigma^2_{\text{noise}, i} = \alpha_\text{noise} + \boldsymbol{\beta}^\intercal_\text{noise} \, \mathbf{x}_i,
+\text{ for } i = 1, \dots, m,
+$$
+
+where $$\alpha$$ is the intercept of the regression line, and
+$$\boldsymbol{\beta} \in \mathbb{R}^d$$ contains the slopes.
+
+Thus far, a model for the unknown function $$f$$ and a model for the noise have
+been prescribed. In total, there are $$d + 3$$ parameters:
+$$\sigma_\text{process}$$, $$\ell_\text{process}$$, $$\alpha_\text{noise}$$, and
+$$\beta_{\text{noise}, i}$$ for $$i = 1, \dots, d$$. The first two are
+positive, and the rest are arbitrary. The final piece is prior distributions for
+these parameters.
+
+The priors are as follows:
 
 $$
 \begin{align}
-& f(\mathbf{x}) \sim \text{Gaussian process}\left(\mathbf{0}, k(\mathbf{x}, \mathbf{x}')\right); \\
-& \epsilon_i \sim \text{Gaussian}\left(0, \sigma^2_\text{noise}\right),
-\text{ for } i = 1, \dots, m.
+\sigma_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+\ell_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+\alpha_\text{noise} & \sim \text{Gaussian}\left( 0, 1 \right); \text{ and} \\
+\beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 1 \right),
+\text{ for } i = 1, \dots, d.\\
+\end{align}
+$$
+
+Putting everything together, the final model is as follows:
+
+$$
+\begin{align}
+y_i
+& = f(\mathbf{x}_i) + \epsilon_i,
+\text{ for } i = 1, \dots, m; \\
+
+f(\mathbf{x})
+& \sim \text{Gaussian process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right); \\
+
+k(\mathbf{x}, \mathbf{x}')
+& = \sigma_\text{process}^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x}'\|_2^2}{2 \, \ell_\text{process}^2} \right); \\
+
+\epsilon_i | \mathbf{x}_i
+& \sim \text{Gaussian}\left( 0, \sigma^2_{\text{noise}, i} \right),
+\text{ for } i = 1, \dots, m; \\
+
+\ln \sigma^2_{\text{noise}, i}
+& = \alpha_\text{noise} + \boldsymbol{\beta}_\text{noise}^\intercal \, \mathbf{x}_i,
+\text{ for } i = 1, \dots, m; \\
+
+\sigma_\text{process}
+& \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+
+\ell_\text{process}
+& \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+
+\alpha_\text{noise}
+& \sim \text{Gaussian}\left( 0, 1 \right); \text{ and} \\
+
+\beta_{\text{noise}, i}
+& \sim \text{Gaussian}\left( 0, 1 \right),
+\text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
 
