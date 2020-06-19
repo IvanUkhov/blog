@@ -121,19 +121,19 @@ parameter is intuitive, the length-scale one requires an illustration. The
 parameter controls the speed with which the correlation fades with the distance.
 The following figure shows 10 random draws for $$\ell_\text{process} = 0.1$$:
 
-```{r prior-short, include = FALSE}
-prior_plot(ell_process = 0.1)
+```{r process-prior-short, include = FALSE}
+process_prior_plot(ell_process = 0.1)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/prior-short-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/process-prior-short-1.svg)
 
 With $$\ell_\text{process} = 0.5$$, the behavior changes to the following:
 
-```{r prior-long, include = FALSE}
-prior_plot(ell_process = 0.5)
+```{r process-prior-long, include = FALSE}
+process_prior_plot(ell_process = 0.5)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/prior-long-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/process-prior-long-1.svg)
 
 It can be seen that it takes a greater distance for a function with a larger
 length scale (_top_) to change to the same extent compared to a function with a
@@ -155,7 +155,7 @@ magnitude of the noise is allowed to vary with the covariates:
 
 $$
 \epsilon_i | \mathbf{x}_i \sim \text{Gaussian}\left(0, \sigma^2_{\text{noise}, i}\right),
-\text{ for } i = 1, \dots, m.
+\text{ for } i = 1, \dots, m. \tag{2}
 $$
 
 The error terms are still independent (given the covariates) but not identically
@@ -166,7 +166,7 @@ generalized linear model:
 
 $$
 \ln \sigma^2_{\text{noise}, i} = \alpha_\text{noise} + \boldsymbol{\beta}^\intercal_\text{noise} \, \mathbf{x}_i,
-\text{ for } i = 1, \dots, m,
+\text{ for } i = 1, \dots, m, \tag{3}
 $$
 
 where $$\alpha$$ is the intercept of the regression line, and
@@ -179,17 +179,43 @@ $$\beta_{\text{noise}, i}$$ for $$i = 1, \dots, d$$. The first two are
 positive, and the rest are arbitrary. The final piece is prior distributions for
 these parameters.
 
-The priors are as follows:
+Based on the figures given above (but it should have been done prior to
+collecting any data), the following is a reasonable configuration for the
+parameters of the covariance function:
 
 $$
 \begin{align}
-\sigma_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right); \\
-\ell_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right); \\
-\alpha_\text{noise} & \sim \text{Gaussian}\left( 0, 1 \right); \text{ and} \\
-\beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 1 \right),
+\sigma_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right) \text{ and} \\
+\ell_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right).
+\end{align}
+$$
+
+The notation means that it is the standard Gaussian distribution that is
+truncated at zero and renormalized to yield a probability distribution. The
+choice of priors is less straightforward in the case of the parameters of the
+noise due to the link function. A solution is to make an assumption and run a
+simulation to understand the consequences of the assumption. Consider the
+following:
+
+$$
+\begin{align}
+\alpha_\text{noise} & \sim \text{Gaussian}\left( 0, 0.1 \right) \text{ and} \\
+\beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 0.1 \right),
 \text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
+
+Here are 10 draws from these priors, including Equations (2) and (3):
+
+```{r noise-prior, include = FALSE}
+noise_prior_plot(sigma = 0.1)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/noise-prior-1.svg)
+
+It can be seen that the priors allow for substantial noise, considering the
+scale of the response; see the very first figure. Yet, the draws are not utterly
+unrealistic. Therefore, the priors are adequate.
 
 Putting everything together, the final model is as follows:
 
