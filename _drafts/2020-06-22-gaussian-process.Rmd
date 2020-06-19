@@ -18,6 +18,8 @@ library(rstan)
 library(tidybayes)
 library(tidyverse)
 
+source('../_scripts/2020-06-22-gaussian-process/common.R')
+
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
 theme_set(theme_minimal(base_size = 14))
@@ -88,8 +90,8 @@ $$
 y_i = f(\mathbf{x}_i) + \epsilon_i, \text{ for } i = 1, \dots, m.
 $$
 
-In the above, $$f: \mathbb{R}^d \to \mathbb{R}$$ represents the true underlying
-but unknown function, and $$\epsilon_i$$ represents the perturbation of the
+In the above, $$f: \mathbb{R}^d \to \mathbb{R}$$ represents the true but unknown
+underlying function, and $$\epsilon_i$$ represents the perturbation of the
 $$i$$th observation by random noise. In the classical linear-regression setting,
 the unknown function is modeled as a linear combination of (arbitrary
 transformations of) the $$d$$ covariates. Instead of assuming any particular
@@ -101,9 +103,38 @@ $$
 
 The above notation means that, before observing any data, the function is a draw
 from a Gaussian process with zero mean and a covariance function $$k$$. The
-covariance funcction dectates the amount of correlation between two arbitrary
-locations
-$$\mathbf{x}$$ and $$\mathbf{x}'$$ in $$\mathbb{R}^d$$.
+covariance function dectates the degree of correlation between two arbitrary
+locations $$\mathbf{x}$$ and $$\mathbf{x}'$$ in $$\mathbb{R}^d$$. For instance,
+a frequent choice for $$k$$ is the squared-exponential covariance function:
+
+$$
+k(\mathbf{x}, \mathbf{x}')
+= \sigma_\text{process}^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x}'\|_2^2}{2 \, \ell_\text{process}^2} \right)
+$$
+
+where $$\|\cdot\|_2$$ stands for the Euclidean norm, $$\sigma_\text{process}^2$$
+is the variance (to see this, substitute $$\mathbf{x}$$ for $$\mathbf{x}'$$),
+and $$\ell_\text{process}$$ is known as the length scale. While the variance
+parameter is intuitive, the length-scale one requires an illustration. The
+parameter controls the speed with which the correlation fades with the distance.
+The following figure shows 10 random draws for $$\ell_\text{process} = 0.1$$:
+
+```{r prior-short, include = FALSE}
+prior_plot(ell_process = 0.1)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/prior-short-1.svg)
+
+With $$\ell_\text{process} = 0.5$$, the behavior change to the following:
+
+```{r prior-long, include = FALSE}
+prior_plot(ell_process = 0.5)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/prior-long-1.svg)
+
+It can be seen that, in the second case with a large length scale, it takes a
+greater distance for the function to change.
 
 The error terms are modeled as independent identically distributed Gaussian
 random variables:
