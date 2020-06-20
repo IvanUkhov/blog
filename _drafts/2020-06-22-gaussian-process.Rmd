@@ -222,10 +222,13 @@ being rather permissive to the right of that region, especially considering the
 scale of the distance in the data; recall the very first figure. Consequently,
 the choice is adequate.
 
-Next, the choice of priors for the parameters of the noise is complicated by the
-nonlinear link function. A solution is to make an assumption and perform a prior
-predictive check to understand the consequences of the assumption. Consider the
-following:
+The choice of priors for the parameters of the noise is complicated by the
+nonlinear link function; see Equation (3). What is important to realize is that
+small amounts of noise correspond to negative values in the linear space, which
+is probably what one should be expecting given the scale of the response.
+Therefore, the priors should allow for large negative values. Let us make an
+educated assumption and perform a prior predictive check to understand the
+consequences. Consider the following:
 
 $$
 \begin{align}
@@ -235,7 +238,7 @@ $$
 \end{align}
 $$
 
-Here are 10 draws from these priors, including Equations (2) and (3):
+Here are five draws from these priors, including Equations (2) and (3):
 
 ```{r prior-noise, include = FALSE}
 prior_noise_plot()
@@ -243,9 +246,10 @@ prior_noise_plot()
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg)
 
-It can be seen that the priors allow for substantial noise, considering the
-scale of the response. Yet, the draws are not utterly unrealistic. Therefore,
-the priors are adequate.
+The heavy tails for the intercept allow the noise to vary widely from small to
+large values. The large ones are perhaps unrealistic, given the scale of the
+response, and could be addressed by shifting the distribution. However, they
+should not cause problems for the inference.
 
 Putting everything together, the final model is as follows:
 
