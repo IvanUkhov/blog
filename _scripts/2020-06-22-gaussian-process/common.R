@@ -158,6 +158,6 @@ posterior_predictive_plot <- function(model, x_new, x, y, ...) {
     mean_qi() %>%
     ggplot(aes(x, y)) +
     geom_line() +
-    geom_point(data = data, size = 1) +
+    geom_point(data = tibble(x = x, y = y), size = 1) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.1)
 }
