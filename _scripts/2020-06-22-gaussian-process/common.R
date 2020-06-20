@@ -17,21 +17,18 @@ prior_noise <- function(x, alpha_noise, beta_noise) {
   rnorm(m, sd = sigma_noise)
 }
 
-prior_noise_map <- function(x, ...) {
-  tibble(x = x, y = prior_noise(as.matrix(x), ...))
-}
-
 prior_noise_plot <- function(n = 5, x = seq(0, 1, by = 0.01),
                              alpha = list(mean = -1), beta = list()) {
+  map <- function(...) {
+    tibble(x = x, y = prior_noise(as.matrix(x), ...))
+  }
   tibble(.draw = factor(seq(1, n)),
-         x = list(x),
          alpha_noise = do.call(rnorm, c(list(n = n), alpha)),
          beta_noise = do.call(rnorm, c(list(n = n), beta))) %>%
     transmute(.draw = .draw,
-              curve = pmap(list(x = x,
-                                alpha_noise = alpha_noise,
+              curve = pmap(list(alpha_noise = alpha_noise,
                                 beta_noise = beta_noise),
-                           prior_noise_map)) %>%
+                           map)) %>%
     unnest(curve) %>%
     ggplot(aes(x, y, color = .draw)) +
     geom_line(size = 0.75, alpha = 0.5) +
@@ -54,21 +51,18 @@ prior_process <- function(x, jitter = 1e-6, ...) {
   as.vector(rnorm(m) %*% U)
 }
 
-prior_process_map <- function(x, ...) {
-  tibble(x = x, y = prior_process(as.matrix(x), ...))
-}
-
 prior_process_plot <- function(n = 10, x = seq(0, 1, by = 0.01),
                        sigma_process = 1, ell_process = 1) {
+  map <- function(...) {
+    tibble(x = x, y = prior_process(as.matrix(x), ...))
+  }
   tibble(.draw = factor(seq(1, n)),
-         x = list(x),
          sigma_process = sigma_process,
          ell_process = ell_process) %>%
     transmute(.draw = .draw,
-              curve = pmap(list(x = x,
-                                sigma_process = sigma_process,
+              curve = pmap(list(sigma_process = sigma_process,
                                 ell_process = ell_process),
-                           prior_process_map)) %>%
+                           map)) %>%
     unnest(curve) %>%
     ggplot(aes(x, y, group = .draw)) +
     geom_line(size = 0.75) +
@@ -83,4 +77,51 @@ prior_process_length_scale_plot <- function(x = seq(0.01, 5, by = 0.01),
     ggplot(aes(x, y)) +
     geom_line() +
     labs(x = 'Length scale', y = 'Prior density')
+}
+
+posterior_parameter_plot <- function(model) {
+  model %>%
+    spread_draws(sigma_process,
+                 ell_process,
+                 alpha_noise,
+                 beta_noise[dimension]) %>%
+    ungroup() %>%
+    select(-dimension) %>%
+    pivot_longer(sigma_process:beta_noise) %>%
+    mutate(name = factor(name, levels = c('beta_noise',
+                                          'alpha_noise',
+                                          'ell_process',
+                                          'sigma_process')),
+           name = fct_rev(name)) %>%
+    ggplot(aes(value)) +
+    stat_halfeye(normalize = 'panels', fill = 'grey90') +
+    facet_wrap(~ name, scales = 'free') +
+    theme(axis.title.x = element_blank(),
+          axis.text.y = element_blank(),
+          axis.title.y = element_blank(),
+          legend.position = 'none')
+}
+
+posterior_predictive_noise <- function(x_new, alpha_noise, beta_noise) {
+  n <- nrow(x_new);
+  sigma_noise <- sqrt(exp(alpha_noise + x_new %*% beta_noise));
+  rnorm(n, sd = sigma_noise)
+}
+
+posterior_predictive_noise_plot <- function(model, x_new) {
+  map <- function(...) {
+    tibble(x = x_new, y = posterior_predictive_noise(as.matrix(x_new), ...))
+  }
+  model %>%
+    spread_draws(alpha_noise, beta_noise[.]) %>%
+    transmute(curve = pmap(list(alpha_noise = alpha_noise,
+                                beta_noise = beta_noise),
+                           map)) %>%
+    unnest(curve) %>%
+    group_by(x) %>%
+    mean_qi() %>%
+    ggplot(aes(x, y)) +
+    geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
+    geom_line() +
+    labs(x = 'Distance', y = 'Noise')
 }

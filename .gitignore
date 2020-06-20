@@ -1,3 +1,5 @@
+*.RData
+*.rds
 .jekyll-cache
 .rstudio
 .sass-cache

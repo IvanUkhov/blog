@@ -3,6 +3,7 @@ layout: post
 title: Heteroscedastic Gaussian process regression
 date: 2020-06-22
 math: true
+stan: true
 keywords:
   - Bayesian statistics
   - Gaussian process
@@ -20,7 +21,8 @@ library(rstan)
 library(tidybayes)
 library(tidyverse)
 
-source('../_scripts/2020-06-22-gaussian-process/common.R')
+directory <- '../_scripts/2020-06-22-gaussian-process'
+source(paste0(directory, '/common.R'))
 
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
@@ -248,8 +250,8 @@ prior_noise_sigma_plot()
 
 The variability in the intercept, $$\alpha_\text{noise}$$, allows the standard
 deviation, $$\sigma_\text{noise}$$, to comfortably vary from small to large
-values, taking into account the scale of the response. Here are two draws from
-the prior distribution of the noise, including Equations (2) and (3):
+values, keeping in mind the scale of the response. Here are two draws from the
+prior distribution of the noise, including Equations (2) and (3):
 
 ```{r prior-noise, include = FALSE}
 set.seed(1)
@@ -303,6 +305,74 @@ This concludes the modeling part. The remaining step is infer the parameters and
 subsequently make predictions using the posterior predictive distribution.
 
 # Implementation
+
+The Stan model is as follows:
+
+```c
+data {
+  int<lower = 1> d;
+  int<lower = 1> m;
+  vector[d] x[m];
+  vector[m] y;
+}
+
+transformed data {
+  vector[m] mu = rep_vector(0, m);
+  matrix[m, d] X;
+  for (i in 1:m) {
+    X[i] = x[i]';
+  }
+}
+
+parameters {
+  real alpha_noise;
+  vector[d] beta_noise;
+  real<lower = 0> sigma_process;
+  real<lower = 0> ell_process;
+}
+
+model {
+  matrix[m, m] K = cov_exp_quad(x, sigma_process, ell_process);
+  vector[m] sigma_noise_squared = exp(alpha_noise + X * beta_noise);
+  matrix[m, m] L = cholesky_decompose(add_diag(K, sigma_noise_squared));
+
+  y ~ multi_normal_cholesky(mu, L);
+  alpha_noise ~ normal(0, 1);
+  beta_noise ~ normal(0, 1);
+  sigma_process ~ normal(0, 1);
+  ell_process ~ inv_gamma(5, 5);
+}
+```
+
+```{r, include = FALSE}
+if (!file.exists('model-heteroscedastic.RData')) {
+  model <- stan(file = paste0(directory, '/model-heteroscedastic.stan'),
+                data = list(d = 1,
+                            m = nrow(data),
+                            x = as.matrix(data$x),
+                            y = data$y))
+  save(model, file = 'model-heteroscedastic.RData')
+} else {
+  load('model-heteroscedastic.RData')
+}
+print(model)
+```
+
+The inferred parameters are as follows:
+
+```{r posterior-parameters, include = FALSE}
+posterior_parameter_plot(model)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/posterior-parameters-1.svg)
+
+The noise is as follows:
+
+```{r posterior-predictive-noise, include = FALSE}
+posterior_predictive_noise_plot(model, data$x)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-noise-1.svg)
 
 # Acknowledgments
 

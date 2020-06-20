@@ -38,6 +38,11 @@ h1, h2 {
   background: #fafafa;
 }
 
+.highlighter-rouge .highlight .err {
+  color: inherit;
+  background: inherit;
+}
+
 .home p:nth-child(1) {
   text-indent: -0.3em;
 }
