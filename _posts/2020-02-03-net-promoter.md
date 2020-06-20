@@ -403,9 +403,8 @@ from changes over time.
 
 # Acknowledgments
 
-I would like to thank [Andrew Gelman][andrew] for the guidance on multilevel
-modeling and [Paul-Christian Bürkner][paul] for the help with understanding the
-`brms` package.
+I would like to thank [Andrew Gelman] for the guidance on multilevel modeling
+and [Paul-Christian Bürkner] for the help with understanding the `brms` package.
 
 # References
 
@@ -496,12 +495,12 @@ if (packageVersion('tidybayes') < '2.0.1.9000') {
 }
 ```
 
+[Andrew Gelman]: http://www.stat.columbia.edu/~gelman/
 [MLM]: https://doi.org/10.1017/CBO9780511790942
 [MRP]: http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf
 [MRT]: http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf
+[Paul-Christian Bürkner]: https://paul-buerkner.github.io/
 [`brms`]: https://github.com/paul-buerkner/brms
 [`tidybayes`]: https://github.com/mjskay/tidybayes
-[andrew]: http://www.stat.columbia.edu/~gelman/
 [article]: /2019/08/19/net-promoter.html
 [brms]: http://dx.doi.org/10.18637/jss.v080.i01
-[paul]: https://paul-buerkner.github.io/
