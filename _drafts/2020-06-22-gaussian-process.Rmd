@@ -14,6 +14,7 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
+library(LaplacesDemon)
 library(SemiPar)
 library(invgamma)
 library(rstan)
@@ -124,7 +125,7 @@ parameter controls the speed with which the correlation fades with the distance.
 The following figure shows 10 random draws for $$\ell_\text{process} = 0.1$$:
 
 ```{r prior-process-short, include = FALSE}
-process_prior_plot(ell_process = 0.1)
+prior_process_plot(ell_process = 0.1)
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-process-short-1.svg)
@@ -132,7 +133,7 @@ process_prior_plot(ell_process = 0.1)
 With $$\ell_\text{process} = 0.5$$, the behavior changes to the following:
 
 ```{r prior-process-long, include = FALSE}
-process_prior_plot(ell_process = 0.5)
+prior_process_plot(ell_process = 0.5)
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-process-long-1.svg)
@@ -211,12 +212,7 @@ To understand the implications, let us perform a prior predictive check for this
 component in isolation:
 
 ```{r prior-length-scale, include = FALSE}
-tibble(x = seq(0.01, 5, by = 0.01)) %>%
-  mutate(y = dinvgamma(x, 1, 1)) %>%
-  ggplot(aes(x, y)) +
-  geom_line() +
-  labs(x = 'Length scale',
-       y = 'Prior density')
+prior_length_scale_plot()
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-length-scale-1.svg)
@@ -233,8 +229,8 @@ following:
 
 $$
 \begin{align}
-\alpha_\text{noise} & \sim \text{Gaussian}\left( 0, 0.1 \right) \text{ and} \\
-\beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 0.1 \right),
+\alpha_\text{noise} & \sim \text{Student’s t}\left( 3, 0, 1 \right) \text{ and} \\
+\beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 1 \right),
 \text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
@@ -242,7 +238,7 @@ $$
 Here are 10 draws from these priors, including Equations (2) and (3):
 
 ```{r prior-noise, include = FALSE}
-noise_prior_plot(sigma = 0.1)
+prior_noise_plot()
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg)
@@ -280,10 +276,10 @@ k(\mathbf{x}, \mathbf{x}')
 & \sim \text{Inverse Gamma}\left( 1, 1 \right); \\
 
 \alpha_\text{noise}
-& \sim \text{Gaussian}\left( 0, 0.1 \right); \text{ and} \\
+& \sim \text{Student’s t}\left( 3, 0, 1 \right); \text{ and} \\
 
 \beta_{\text{noise}, i}
-& \sim \text{Gaussian}\left( 0, 0.1 \right),
+& \sim \text{Gaussian}\left( 0, 1 \right),
 \text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
