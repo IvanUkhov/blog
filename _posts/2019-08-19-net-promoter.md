@@ -218,7 +218,7 @@ is for $$\sigma$$. For $$\mu$$, a reasonable choice is a uniform distribution
 $$
 \begin{align}
 & \mu \sim \text{Uniform}(\langle 0, 1 \rangle^3) \text{ and} \\
-& \sigma \sim \text{half-Cauchy}(0, 1).
+& \sigma \sim \text{Half-Cauchy}(0, 1).
 \end{align}
 $$
 
@@ -234,7 +234,7 @@ $$
 y_i | \theta_i & \sim \text{Multinomial}(d_i + n_i + p_i, \theta_i), \\
 \theta_i | \mu, \sigma & \sim \text{Dirichlet}(\mu / \sigma^2), \\
 \mu & \sim \text{Uniform}(\langle 0, 1 \rangle^3), \text{ and} \\
-\sigma & \sim \text{half-Cauchy}(0, 1).
+\sigma & \sim \text{Half-Cauchy}(0, 1).
 \end{align}
 $$
 

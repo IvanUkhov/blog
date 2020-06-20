@@ -238,7 +238,7 @@ The mean is zero in order to center at even odds. Regarding the standard
 deviations, they are given the following prior:
 
 $$
-\sigma^{uj} \sim \text{half-Student’s t}(5, 0, 1).
+\sigma^{uj} \sim \text{Half-Student’s t}(5, 0, 1).
 $$
 
 In order to understand the implications of these prior choices, let us take a
@@ -276,9 +276,9 @@ $$
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5a} \\
 & b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5b} \\
-& \sigma^{uj} \sim \text{half-Student’s t}(5, 0, 1),
+& \sigma^{uj} \sim \text{Half-Student’s t}(5, 0, 1),
 \text{ for } j = 1, \dots, M; \text{ and} \\
-& \sigma^{pj} \sim \text{half-Student’s t}(5, 0, 1),
+& \sigma^{pj} \sim \text{Half-Student’s t}(5, 0, 1),
 \text{ for } j = 1, \dots, M.
 \end{align}
 $$
