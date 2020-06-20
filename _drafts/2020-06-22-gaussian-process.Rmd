@@ -374,6 +374,12 @@ posterior_predictive_noise_plot(model, data$x)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-noise-1.svg)
 
+```{r posterior-predictive, include = FALSE}
+posterior_predictive_plot(model, data$x, data$x, data$y)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-1.svg)
+
 # Acknowledgments
 
 I would like to thank Mattias Villani.

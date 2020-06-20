@@ -84,9 +84,8 @@ posterior_parameter_plot <- function(model) {
     spread_draws(sigma_process,
                  ell_process,
                  alpha_noise,
-                 beta_noise[dimension]) %>%
+                 beta_noise[.]) %>%
     ungroup() %>%
-    select(-dimension) %>%
     pivot_longer(sigma_process:beta_noise) %>%
     mutate(name = factor(name, levels = c('beta_noise',
                                           'alpha_noise',
@@ -124,4 +123,40 @@ posterior_predictive_noise_plot <- function(model, x_new) {
     geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
     geom_line() +
     labs(x = 'Distance', y = 'Noise')
+}
+
+posterior_predictive <- function(x_new, x, y, alpha_noise, beta_noise, ...) {
+  m <- nrow(x);
+  n <- nrow(x_new);
+  K_11 <- covariance(x, x, ...);
+  K_21 <- covariance(x_new, x, ...);
+  K_22 <- covariance(x_new, x_new, ...);
+  L <- t(chol(K_11 + diag(as.vector(exp(alpha_noise + x %*% beta_noise)))));
+  L_inv <- forwardsolve(L, diag(m));
+  K_inv <- t(L_inv) %*% L_inv;
+  mu_new <- K_21 %*% K_inv %*% y;
+  L_new <- t(chol(K_22 - K_21 %*% K_inv %*% t(K_21) +
+                  diag(as.vector(exp(alpha_noise + x_new %*% beta_noise)))));
+  as.vector(mu_new + L_new %*% rnorm(n))
+}
+
+posterior_predictive_plot <- function(model, x_new, x, y, ...) {
+  map <- function(...) {
+    tibble(x = x_new,
+           y = posterior_predictive(as.matrix(x_new), as.matrix(x), y, ...))
+  }
+  model %>%
+    spread_draws(alpha_noise, beta_noise[.], sigma_process, ell_process) %>%
+    transmute(curve = pmap(list(alpha_noise = alpha_noise,
+                                beta_noise = beta_noise,
+                                sigma_process = sigma_process,
+                                ell_process = ell_process),
+                           map)) %>%
+    unnest(curve) %>%
+    group_by(x) %>%
+    mean_qi() %>%
+    ggplot(aes(x, y)) +
+    geom_line() +
+    geom_point(data = data, size = 1) +
+    geom_ribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.1)
 }
