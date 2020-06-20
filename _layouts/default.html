@@ -15,8 +15,27 @@
           header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
         }
       }
-      window.onload = anchor;
+      window.addEventListener('load', anchor);
     </script>
+    {%- if page.stan -%}
+    <script type="text/javascript">
+      function stan() {
+        var keywords = ['data', 'model', 'parameters', 'transformed'];
+        var types = ['real', 'simplex', 'vector'];
+        document
+          .querySelectorAll('.language-c .n')
+          .forEach(function(element) {
+            if (keywords.indexOf(element.innerText) != -1) {
+              element.style.cssText = 'font-weight: 600';
+            }
+            if (types.indexOf(element.innerText) != -1) {
+              element.className += ' kt';
+            }
+          });
+      };
+      window.addEventListener('load', stan);
+    </script>
+    {%- endif -%}
     {{ page.body }}
   </body>
 </html>

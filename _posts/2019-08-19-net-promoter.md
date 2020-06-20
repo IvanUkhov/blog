@@ -3,29 +3,13 @@ layout: post
 title: A Bayesian approach to the inference of the net promoter score
 date: 2019-08-19
 math: true
+stan: true
 keywords:
   - Bayesian statistics
   - R
   - Stan
   - data science
   - net promoter score
-body: >
-  <script type="text/javascript">
-    window.onload = function() {
-      var keywords = ['data', 'model', 'parameters', 'transformed'];
-      var types = ['real', 'simplex', 'vector'];
-      document
-        .querySelectorAll('.language-c .n')
-        .forEach(function(element) {
-          if (keywords.indexOf(element.innerText) != -1) {
-            element.style.cssText = 'font-weight: 600';
-          }
-          if (types.indexOf(element.innerText) != -1) {
-            element.className += ' kt';
-          }
-        });
-    };
-  </script>
 ---
 
 The net promoter score is a widely adopted metric for gauging customers’
