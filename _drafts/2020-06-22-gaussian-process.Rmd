@@ -14,6 +14,8 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
+library(SemiPar)
+library(invgamma)
 library(rstan)
 library(tidybayes)
 library(tidyverse)
@@ -39,11 +41,11 @@ the job done as fast as possible but on the learning process.
 
 # Data
 
-Consider the following example taken from [_Semiparametric Regression_][SR] by
-Ruppert _et al._:
+Consider the following example taken from [_Semiparametric
+Regression_][Ruppert2003] by Ruppert _et al._:
 
 ```{r data, include = FALSE}
-data(lidar, package = 'SemiPar')
+data(lidar)
 data <- lidar %>%
   transmute(x = (range - min(range)) / diff(range(range)),
             y = logratio)
@@ -100,7 +102,7 @@ transformations of) the $$d$$ covariates. Instead of assuming any particular
 functional form, we put a Gaussian process prior on the function:
 
 $$
-f(\mathbf{x}) \sim \text{Gaussian process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right).
+f(\mathbf{x}) \sim \text{Gaussian Process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right).
 $$
 
 The above notation means that, before observing any data, the function is a draw
@@ -121,19 +123,19 @@ parameter is intuitive, the length-scale one requires an illustration. The
 parameter controls the speed with which the correlation fades with the distance.
 The following figure shows 10 random draws for $$\ell_\text{process} = 0.1$$:
 
-```{r process-prior-short, include = FALSE}
+```{r prior-process-short, include = FALSE}
 process_prior_plot(ell_process = 0.1)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/process-prior-short-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/prior-process-short-1.svg)
 
 With $$\ell_\text{process} = 0.5$$, the behavior changes to the following:
 
-```{r process-prior-long, include = FALSE}
+```{r prior-process-long, include = FALSE}
 process_prior_plot(ell_process = 0.5)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/process-prior-long-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/prior-process-long-1.svg)
 
 It can be seen that it takes a greater distance for a function with a larger
 length scale (_top_) to change to the same extent compared to a function with a
@@ -179,22 +181,54 @@ $$\beta_{\text{noise}, i}$$ for $$i = 1, \dots, d$$. The first two are
 positive, and the rest are arbitrary. The final piece is prior distributions for
 these parameters.
 
-Based on the figures given above (but it should have been done prior to
-collecting any data), the following is a reasonable configuration for the
-parameters of the covariance function:
+The variance of the coveriance function, $$\sigma^2_\text{process}$$,
+corresponds to the amount of variance in the data that is explained by the
+Gaussian process. It poses no particular problem and can be tackled with a
+half-Gaussian or a half-Student’s t distribution:
 
 $$
-\begin{align}
-\sigma_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right) \text{ and} \\
-\ell_\text{process} & \sim \text{half-Gaussian}\left( 0, 1 \right).
-\end{align}
+\sigma_\text{process} \sim \text{Half-Gaussian}\left( 0, 1 \right).
 $$
 
-The notation means that it is the standard Gaussian distribution that is
-truncated at zero and renormalized to yield a probability distribution. The
-choice of priors is less straightforward in the case of the parameters of the
-noise due to the link function. A solution is to make an assumption and run a
-simulation to understand the consequences of the assumption. Consider the
+The notation means that the standard Gaussian distribution is truncated at zero
+and renormalized. The nontrivial mass around zero implied by the prior is
+considered to be beneficial in this case.[^1]
+
+A prior for the length scale of the covariance function,
+$$\ell_\text{process}$$, should be chosen with care. Small values—especially,
+those below the resolution of the data—give the Gaussian process extreme
+flexibility and easily leads to overfitting. Moreover, there are numerical
+ramifications of the length scale approaching zero as well: the quality of
+Hamiltonian Monte Carlo sampling degrades.[^2] The bottom line is that a prior
+penalizing values close to zero is needed. A reasonable choice is an inverse
+gamma distribution:
+
+$$
+\ell_\text{process} \sim \text{Inverse Gamma}\left( 1, 1 \right).
+$$
+
+To understand the implications, let us perform a prior predictive check for this
+component in isolation:
+
+```{r prior-length-scale, include = FALSE}
+tibble(x = seq(0.01, 5, by = 0.01)) %>%
+  mutate(y = dinvgamma(x, 1, 1)) %>%
+  ggplot(aes(x, y)) +
+  geom_line() +
+  labs(x = 'Length scale',
+       y = 'Prior density')
+```
+
+![](/assets/images/2020-06-22-gaussian-process/prior-length-scale-1.svg)
+
+It can be seen that the density is very low in the region close to zero, while
+being rather permissive to the right of that region, especially considering the
+scale of the distance in the data; recall the very first figure. Consequently,
+the choice is adequate.
+
+Next, the choice of priors for the parameters of the noise is complicated by the
+nonlinear link function. A solution is to make an assumption and perform a prior
+predictive check to understand the consequences of the assumption. Consider the
 following:
 
 $$
@@ -207,15 +241,15 @@ $$
 
 Here are 10 draws from these priors, including Equations (2) and (3):
 
-```{r noise-prior, include = FALSE}
+```{r prior-noise, include = FALSE}
 noise_prior_plot(sigma = 0.1)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/noise-prior-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg)
 
 It can be seen that the priors allow for substantial noise, considering the
-scale of the response; see the very first figure. Yet, the draws are not utterly
-unrealistic. Therefore, the priors are adequate.
+scale of the response. Yet, the draws are not utterly unrealistic. Therefore,
+the priors are adequate.
 
 Putting everything together, the final model is as follows:
 
@@ -226,7 +260,7 @@ y_i
 \text{ for } i = 1, \dots, m; \\
 
 f(\mathbf{x})
-& \sim \text{Gaussian process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right); \\
+& \sim \text{Gaussian Process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right); \\
 
 k(\mathbf{x}, \mathbf{x}')
 & = \sigma_\text{process}^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x}'\|_2^2}{2 \, \ell_\text{process}^2} \right); \\
@@ -240,16 +274,16 @@ k(\mathbf{x}, \mathbf{x}')
 \text{ for } i = 1, \dots, m; \\
 
 \sigma_\text{process}
-& \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+& \sim \text{Half-Gaussian}\left( 0, 1 \right); \\
 
 \ell_\text{process}
-& \sim \text{half-Gaussian}\left( 0, 1 \right); \\
+& \sim \text{Inverse Gamma}\left( 1, 1 \right); \\
 
 \alpha_\text{noise}
-& \sim \text{Gaussian}\left( 0, 1 \right); \text{ and} \\
+& \sim \text{Gaussian}\left( 0, 0.1 \right); \text{ and} \\
 
 \beta_{\text{noise}, i}
-& \sim \text{Gaussian}\left( 0, 1 \right),
+& \sim \text{Gaussian}\left( 0, 0.1 \right),
 \text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
@@ -261,15 +295,23 @@ I would like to thank Mattias Villani.
 # References
 
 * Carl Rasmussen _et al._, [_Gaussian Processes for Machine
-  Learning_][GPML], the MIT Press, 2006.
-
-* David Ruppert _et al._, [_Semiparametric Regression_][SR], Cambridge
+  Learning_][Rasmussen2006], the MIT Press, 2006.
+* David Ruppert _et al._, [_Semiparametric Regression_][Ruppert2003], Cambridge
   University Press, 2003.
-
-* Mattias Villani, “[Advanced Bayesian learning][ABL],” Stockholm
+* Mattias Villani, “[Advanced Bayesian learning][Villani2020],” Stockholm
   University, 2020.
 
-[ABL]: https://github.com/mattiasvillani/AdvBayesLearnCourse
-[GPML]: http://www.gaussianprocess.org/gpml
+# Footnotes
+
+[^1]: “[Priors for marginal standard deviation][Stan2020-standard-deviation],”
+      Stan User’s Guide, 2020.
+
+[^2]: “[Priors for length-scale][Stan2020-length-scale],” Stan User’s Guide,
+      2020.
+
 [LIDAR]: https://en.wikipedia.org/wiki/Lidar
-[SR]: http://www.stat.tamu.edu/~carroll/semiregbook
+[Rasmussen2006]: http://www.gaussianprocess.org/gpml
+[Ruppert2003]: http://www.stat.tamu.edu/~carroll/semiregbook
+[Stan2020-length-scale]: https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-length-scale
+[Stan2020-standard-deviation]: https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-marginal-standard-deviation
+[Villani2020]: https://github.com/mattiasvillani/AdvBayesLearnCourse
