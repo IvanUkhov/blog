@@ -374,7 +374,9 @@ posterior_predictive_noise_plot(model, data$x)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-noise-1.svg)
 
-```{r posterior-predictive, include = FALSE}
+The posterior is as follows:
+
+```{r posterior-predictive, cache = TRUE, include = FALSE}
 posterior_predictive_plot(model, data$x, data$x, data$y)
 ```
 
