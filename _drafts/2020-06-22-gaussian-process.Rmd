@@ -14,7 +14,6 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
-library(LaplacesDemon)
 library(SemiPar)
 library(invgamma)
 library(rstan)
@@ -211,11 +210,11 @@ $$
 To understand the implications, let us perform a prior predictive check for this
 component in isolation:
 
-```{r prior-length-scale, include = FALSE}
-prior_length_scale_plot()
+```{r prior-process-length-scale, include = FALSE}
+prior_process_length_scale_plot()
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/prior-length-scale-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/prior-process-length-scale-1.svg)
 
 It can be seen that the density is very low in the region close to zero, while
 being rather permissive to the right of that region, especially considering the
@@ -232,13 +231,25 @@ consequences. Consider the following:
 
 $$
 \begin{align}
-\alpha_\text{noise} & \sim \text{Student’s t}\left( 3, 0, 1 \right) \text{ and} \\
+\alpha_\text{noise} & \sim \text{Gaussian}\left( -1, 1 \right) \text{ and} \\
 \beta_{\text{noise}, i} & \sim \text{Gaussian}\left( 0, 1 \right),
 \text{ for } i = 1, \dots, d.\\
 \end{align}
 $$
 
-Here are five draws from these priors, including Equations (2) and (3):
+The density of $$\sigma_\text{noise}$$ without considering the regression slopes
+is depicted below (note the logarithmic scale on the horizontal axis):
+
+```{r prior-noise-sigma, include = FALSE}
+prior_noise_sigma_plot()
+```
+
+![](/assets/images/2020-06-22-gaussian-process/prior-noise-sigma-1.svg)
+
+The variability in the intercept, $$\alpha_\text{noise}$$, allows the standard
+deviation, $$\sigma_\text{noise}$$, to comfortably vary from small to large
+values, taking into account the scale of the response. Here are five draws from
+the prior distribution of the noise, including Equations (2) and (3):
 
 ```{r prior-noise, include = FALSE}
 prior_noise_plot()
@@ -246,10 +257,9 @@ prior_noise_plot()
 
 ![](/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg)
 
-The heavy tails for the intercept allow the noise to vary widely from small to
-large values. The large ones are perhaps unrealistic, given the scale of the
-response, and could be addressed by shifting the distribution. However, they
-should not cause problems for the inference.
+The large ones are perhaps unrealistic and could be addressed by further
+shifting the distribution of the intercept. However, they should not cause
+problems for the inference.
 
 Putting everything together, the final model is as follows:
 
@@ -280,7 +290,7 @@ k(\mathbf{x}, \mathbf{x}')
 & \sim \text{Inverse Gamma}\left( 1, 1 \right); \\
 
 \alpha_\text{noise}
-& \sim \text{Student’s t}\left( 3, 0, 1 \right); \text{ and} \\
+& \sim \text{Gaussian}\left( -1, 1 \right); \text{ and} \\
 
 \beta_{\text{noise}, i}
 & \sim \text{Gaussian}\left( 0, 1 \right),

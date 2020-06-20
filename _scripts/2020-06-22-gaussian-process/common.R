@@ -11,15 +11,6 @@ distance <- function(x, x_prime) {
   sqrt(pmax(x_2 + x_prime_2 - 2 * x_x_prime, 0))
 }
 
-prior_length_scale_plot <- function(x = seq(0.01, 5, by = 0.01),
-                                    alpha = 1, beta = 1) {
-  tibble(x = x) %>%
-    mutate(y = dinvgamma(x, alpha, beta)) %>%
-    ggplot(aes(x, y)) +
-    geom_line() +
-    labs(x = 'Length scale', y = 'Prior density')
-}
-
 prior_noise <- function(x, alpha_noise, beta_noise) {
   m <- nrow(x);
   sigma_noise <- sqrt(exp(alpha_noise + x %*% beta_noise));
@@ -31,11 +22,10 @@ prior_noise_map <- function(x, ...) {
 }
 
 prior_noise_plot <- function(n = 5, x = seq(0, 1, by = 0.01),
-                             alpha = list(mu = 0, sigma = 1, nu = 3),
-                             beta = list(mean = 0, sd = 1)) {
+                             alpha = list(mean = -1), beta = list()) {
   tibble(.draw = factor(seq(1, n)),
          x = list(x),
-         alpha_noise = do.call(rst, c(list(n = n), alpha)),
+         alpha_noise = do.call(rnorm, c(list(n = n), alpha)),
          beta_noise = do.call(rnorm, c(list(n = n), beta))) %>%
     transmute(.draw = .draw,
               curve = pmap(list(x = x,
@@ -47,6 +37,15 @@ prior_noise_plot <- function(n = 5, x = seq(0, 1, by = 0.01),
     geom_line(size = 0.75, alpha = 0.5) +
     labs(x = 'Distance', y = 'Noise') +
     theme(legend.position = 'none')
+}
+
+prior_noise_sigma_plot <- function(n = 100000, alpha = list(mean = -1)) {
+  tibble(alpha_noise = do.call(rnorm, c(list(n = n), alpha))) %>%
+    mutate(sigma_noise = sqrt(exp(alpha_noise))) %>%
+    ggplot(aes(sigma_noise)) +
+    geom_density() +
+    scale_x_log10() +
+    labs(x = 'Noise standard deviation', y = 'Prior density')
 }
 
 prior_process <- function(x, jitter = 1e-6, ...) {
@@ -75,4 +74,13 @@ prior_process_plot <- function(n = 10, x = seq(0, 1, by = 0.01),
     geom_line(size = 0.75) +
     labs(x = 'Distance', y = 'Response') +
     theme(legend.position = 'none')
+}
+
+prior_process_length_scale_plot <- function(x = seq(0.01, 5, by = 0.01),
+                                            alpha = 1, beta = 1) {
+  tibble(x = x) %>%
+    mutate(y = dinvgamma(x, alpha, beta)) %>%
+    ggplot(aes(x, y)) +
+    geom_line() +
+    labs(x = 'Length scale', y = 'Prior density')
 }
