@@ -84,8 +84,9 @@ posterior_parameter_plot <- function(model) {
     spread_draws(sigma_process,
                  ell_process,
                  alpha_noise,
-                 beta_noise[.]) %>%
+                 beta_noise[dimension]) %>%
     ungroup() %>%
+    select(-dimension) %>%
     pivot_longer(sigma_process:beta_noise) %>%
     mutate(name = factor(name, levels = c('beta_noise',
                                           'alpha_noise',
