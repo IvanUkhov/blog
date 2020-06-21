@@ -14,10 +14,10 @@ transformed data {
 }
 
 parameters {
-  real alpha_noise;
-  vector[d] beta_noise;
   real<lower = 0> sigma_process;
   real<lower = 0> ell_process;
+  real alpha_noise;
+  vector[d] beta_noise;
 }
 
 model {
@@ -26,8 +26,8 @@ model {
   matrix[m, m] L = cholesky_decompose(add_diag(K, sigma_noise_squared));
 
   y ~ multi_normal_cholesky(mu, L);
-  alpha_noise ~ normal(-1, 1);
-  beta_noise ~ normal(0, 1);
   sigma_process ~ normal(0, 1);
   ell_process ~ inv_gamma(1, 1);
+  alpha_noise ~ normal(-1, 1);
+  beta_noise ~ normal(0, 1);
 }
