@@ -75,7 +75,7 @@ prior_process_length_scale_plot <- function(x = seq(0.01, 5, by = 0.01),
   tibble(x = x) %>%
     mutate(y = dinvgamma(x, alpha, beta)) %>%
     ggplot(aes(x, y)) +
-    geom_line() +
+    geom_line(size = 0.75) +
     labs(x = 'Length scale', y = 'Prior density')
 }
 
