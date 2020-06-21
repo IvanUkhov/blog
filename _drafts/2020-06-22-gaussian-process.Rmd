@@ -37,12 +37,12 @@ set.seed(42)
 Gaussian process regression is a nonparametric Bayesian technique for modeling
 relationships between variables of interest. The vast flexibility and rigor
 mathematical foundation of this approach make it the default choice in many
-problems involving small to medium-sized data sets.
+problems involving small- to medium-sized data sets.
 
-In what follows, we illustrate how Gaussian process regression can be used in
-practice. To make the case even more compelling, we shall consider a setting
-where linear regression would be inadequate. The focus will be not on getting
-the job done as fast as possible but on the learning process.
+In this article, we illustrate how Gaussian process regression can be utilized
+in practice. To make the case more compelling, we shall consider a setting where
+linear regression would be inadequate. The focus will be not on getting the job
+done as fast as possible but on learning the technique.
 
 # Data
 
@@ -112,7 +112,7 @@ $$
 
 The above notation means that, before observing any data, the function is a draw
 from a Gaussian process with zero mean and a covariance function $$k$$. The
-covariance function dectates the degree of correlation between two arbitrary
+covariance function dictates the degree of correlation between two arbitrary
 locations $$\mathbf{x}$$ and $$\mathbf{x}'$$ in $$\mathbb{R}^d$$. For instance,
 a frequent choice for $$k$$ is the squared-exponential covariance function:
 
@@ -358,13 +358,13 @@ any Gaussian process distribution in Stan. Instead, a multivariate Gaussian
 distribution is utilized to model $$f$$ at $$\mathbf{X} = (\mathbf{x}_i)_{i =
 1}^m \in \mathbb{R}^{m \times d}$$ and eventually $$\mathbf{y} = (y_i)_{i =
 1}^m$$, which is for a good reason. Even though a Gaussian process is an
-infinite-dimensional object, in practice, one always works with finate amounts
+infinite-dimensional object, in practice, one always works with finite amounts
 of data. For instance, in the running example, there are only 221 data points.
-By definition, a Gaussian process is a stockhastic process with the condition
+By definition, a Gaussian process is a stochastic process with the condition
 that any finite collection of points from this process has a multivariate
 Gaussian distribution. This fact combined with the conditional independence of
 the process and the noise given the covariates yields the following and explains
-the usage of a multivariage Gaussian distribution:
+the usage of a multivariate Gaussian distribution:
 
 $$
 \mathbf{y} | \mathbf{X}, \sigma_\text{process}, \ell_\text{process}, \alpha_\text{noise}, \boldsymbol{\beta}_\text{noise}
