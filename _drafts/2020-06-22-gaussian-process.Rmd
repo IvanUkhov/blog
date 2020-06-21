@@ -21,8 +21,11 @@ library(rstan)
 library(tidybayes)
 library(tidyverse)
 
-directory <- '../_scripts/2020-06-22-gaussian-process'
-source(paste0(directory, '/common.R'))
+work_directory <- '../_scripts/2020-06-22-gaussian-process'
+source(file.path(work_directory, 'common.R'))
+
+cache_directory <- '../_caches'
+dir.create(cache_directory, showWarnings = FALSE)
 
 options(mc.cores = parallel::detectCores())
 rstan_options(auto_write = TRUE)
@@ -345,15 +348,16 @@ model {
 ```
 
 ```{r, include = FALSE}
-if (!file.exists('model-heteroscedastic.RData')) {
-  model <- stan(file = paste0(directory, '/model-heteroscedastic.stan'),
+cache_path <- file.path(cache_directory, 'model-heteroscedastic.RData')
+if (!file.exists(cache_path)) {
+  model <- stan(file = file.path(work_directory, 'model-heteroscedastic.stan'),
                 data = list(d = 1,
                             m = nrow(data),
                             x = as.matrix(data$x),
                             y = data$y))
-  save(model, file = 'model-heteroscedastic.RData')
+  save(model, file = cache_path)
 } else {
-  load('model-heteroscedastic.RData')
+  load(cache_path)
 }
 print(model)
 ```

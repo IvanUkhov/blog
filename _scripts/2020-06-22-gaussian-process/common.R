@@ -31,7 +31,7 @@ prior_noise_plot <- function(n = 5, x = seq(0, 1, by = 0.01),
                            map)) %>%
     unnest(curve) %>%
     ggplot(aes(x, y, color = .draw)) +
-    geom_line(size = 0.75, alpha = 0.5) +
+    geom_line(size = 0.75, alpha = 0.75) +
     labs(x = 'Distance', y = 'Noise') +
     theme(legend.position = 'none')
 }
@@ -40,7 +40,7 @@ prior_noise_sigma_plot <- function(n = 100000, alpha = list(mean = -1)) {
   tibble(alpha_noise = do.call(rnorm, c(list(n = n), alpha))) %>%
     mutate(sigma_noise = sqrt(exp(alpha_noise))) %>%
     ggplot(aes(sigma_noise)) +
-    geom_density() +
+    geom_density(size = 0.75) +
     scale_x_log10() +
     labs(x = 'Noise standard deviation', y = 'Prior density')
 }
@@ -122,7 +122,7 @@ posterior_predictive_noise_plot <- function(model, x_new) {
     mean_qi() %>%
     ggplot(aes(x, y)) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
-    geom_line() +
+    geom_line(size = 0.75) +
     labs(x = 'Distance', y = 'Noise')
 }
 
@@ -157,7 +157,7 @@ posterior_predictive_plot <- function(model, x_new, x, y, ...) {
     group_by(x) %>%
     mean_qi() %>%
     ggplot(aes(x, y)) +
-    geom_line() +
+    geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
     geom_point(data = tibble(x = x, y = y), size = 1) +
-    geom_ribbon(aes(ymin = .lower, ymax = .upper), alpha = 0.1)
+    geom_line(size = 0.75)
 }
