@@ -152,7 +152,7 @@ Gaussian random variables:
 
 $$
 \epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
-\text{ for } i = 1, \dots, m.
+\text{ for } i = 1, \dots, m. \tag{2}
 $$
 
 This is also the approach one can take with Gaussian process regression;
@@ -162,7 +162,7 @@ magnitude of the noise is allowed to vary with the covariates:
 
 $$
 \epsilon_i | \mathbf{x}_i \sim \text{Gaussian}\left(0, \sigma^2_{\text{noise}, i}\right),
-\text{ for } i = 1, \dots, m. \tag{2}
+\text{ for } i = 1, \dots, m. \tag{3}
 $$
 
 The error terms are still independent (given the covariates) but not identically
@@ -174,7 +174,7 @@ a generalized linear model, which is what we shall use:
 
 $$
 \ln \sigma^2_{\text{noise}, i} = \alpha_\text{noise} + \boldsymbol{\beta}^\intercal_\text{noise} \, \mathbf{x}_i,
-\text{ for } i = 1, \dots, m, \tag{3}
+\text{ for } i = 1, \dots, m, \tag{4}
 $$
 
 where $$\alpha$$ is the intercept of the regression line, and
@@ -228,7 +228,7 @@ scale of the distance in the data; recall the very first figure. Consequently,
 the choice is adequate.
 
 The choice of priors for the parameters of the noise is complicated by the
-nonlinear link function; see Equation (3). What is important to realize is that
+nonlinear link function; see Equation (4). What is important to realize is that
 small amounts of noise correspond to negative values in the linear space, which
 is probably what one should be expecting given the scale of the response.
 Therefore, the priors should allow for large negative values. Let us make an
@@ -255,7 +255,7 @@ prior_noise_sigma_plot()
 The variability in the intercept, $$\alpha_\text{noise}$$, allows the standard
 deviation, $$\sigma_\text{noise}$$, to comfortably vary from small to large
 values, keeping in mind the scale of the response. Here are two draws from the
-prior distribution of the noise, including Equations (2) and (3):
+prior distribution of the noise, including Equations (3) and (4):
 
 ```{r prior-noise, include = FALSE}
 set.seed(1)
@@ -478,10 +478,10 @@ analogous to $$\mathbf{D}$$.
 
 Given a set of draws from the joint posterior distribution of the parameters and
 the last two expressions, it is now straightforward to draw samples from the
-posterior predictive distribution of the response: for each draw, one simply has
-to evaluate the mean vector and the covariance matrix and sample the
-corresponding multivariate Gaussian distribution. The result is given in the
-following figure:
+posterior predictive distribution of the response: for each draw of the
+parameters, one has to evaluate the mean vector and the covariance matrix and
+sample the corresponding multivariate Gaussian distribution. The result is given
+in the following figure:
 
 ```{r posterior-predictive-heteroscedastic, cache = TRUE, include = FALSE}
 posterior_predictive_heteroscedastic_plot(model, data$x, data$x, data$y)
@@ -489,15 +489,16 @@ posterior_predictive_heteroscedastic_plot(model, data$x, data$x, data$y)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-heteroscedastic-1.svg)
 
-It shows the mean value of the posterior predictive distribution given by the
-black line along with a 95% equal-tailed probability band about the mean. It can
-be seen that the uncertainty in the predictions is adequately captured along the
-entire support.
+The graph shows the mean value of the posterior predictive distribution given by
+the black line along with a 95% equal-tailed probability band about the mean. It
+can be seen that the uncertainty in the predictions is adequately captured along
+the entire support. Naturally, the full predictive posterior distribution is
+available at any location of interest.
 
-Lastly, let us illustrate what would happen if the data were modeled as having
-homogeneous noise. To this end, the variance of the noise is assumed to be
-independent of the covariates. After repeating the inference and prediction
-processes, the following is obtained:
+Before we conclude, let us illustrate what would happen if the data were modeled
+as having homogeneous noise. To this end, the variance of the noise is assumed
+to be independent of the covariates, as in Equation (2). After repeating the
+inference and prediction processes, the following is obtained:
 
 ```{r, include = FALSE}
 cache_path <- file.path(cache_directory, 'model-homoscedastic.RData')
@@ -520,6 +521,12 @@ posterior_predictive_homoscedastic_plot(model, data$x, data$x, data$y)
 ```
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg)
+
+The fit is inadequate, which can be seen by the probability band: the variance
+is largely overestimated on the left-hand side and underestimated on the
+right-hand side.
+
+# Conclusion
 
 # Acknowledgments
 
