@@ -384,7 +384,8 @@ if (!file.exists(cache_path)) {
                 data = list(d = 1,
                             m = nrow(data),
                             x = as.matrix(data$x),
-                            y = data$y))
+                            y = data$y),
+                seed = 42)
   save(model, file = cache_path)
 } else {
   load(cache_path)
@@ -505,7 +506,8 @@ if (!file.exists(cache_path)) {
                 data = list(d = 1,
                             m = nrow(data),
                             x = as.matrix(data$x),
-                            y = data$y))
+                            y = data$y),
+                seed = 42)
   save(model, file = cache_path)
 } else {
   load(cache_path)
