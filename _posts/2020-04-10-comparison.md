@@ -69,7 +69,7 @@ can quickly get out of hand and evolve into an endeavor for the rest of the day.
 An alternative is to leverage the amazing tools that already exist in the data
 community.
 
-## Solution
+# Solution
 
 The key takeaway is the following three lines of code, excluding the import:
 
@@ -102,7 +102,7 @@ happened to be encoded incorrectly in the partition for testing.
 
 Lastly, an example in a Jupyter notebook can be found on [GitHub][notebook].
 
-## Conclusion
+# Conclusion
 
 It can be difficult to navigate and particularly challenging to compare wide
 data sets. A lot of effort can be put into this exercise. However, the landscape
