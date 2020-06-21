@@ -304,8 +304,8 @@ k(\mathbf{x}, \mathbf{x}')
 \end{align}
 $$
 
-This concludes the modeling part. The remaining step is infer the parameters and
-subsequently make predictions using the posterior predictive distribution.
+This concludes the modeling part. The remaining two steps are to infer the
+parameters and to make predictions using the posterior predictive distribution.
 
 # Inference
 
@@ -391,7 +391,7 @@ if (!file.exists(cache_path)) {
 print(model)
 ```
 
-The inferred parameters are as follows:
+After running the inference, the following posterior distributions are obtained:
 
 ```{r posterior-parameters, include = FALSE}
 posterior_parameter_plot(model)
@@ -399,7 +399,9 @@ posterior_parameter_plot(model)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-parameters-1.svg)
 
-The noise is as follows:
+The intervals are at the bottom of the densities are 66% and 95% equal-tailed
+probability intervals, and the dots indicate the medians. Let us also take a
+look at the 95% probability interval for the noise with respect to the distance:
 
 ```{r posterior-predictive-noise, cache = TRUE, include = FALSE}
 posterior_predictive_noise_plot(model, data$x)
@@ -407,13 +409,40 @@ posterior_predictive_noise_plot(model, data$x)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-noise-1.svg)
 
-The posterior is as follows:
+As expected, the variance of the noise increases with the distance.
 
-```{r posterior-predictive, cache = TRUE, include = FALSE}
-posterior_predictive_plot(model, data$x, data$x, data$y)
+# Prediction
+
+The posterior predictive distribution is as follows:
+
+```{r posterior-predictive-heteroscedastic, cache = TRUE, include = FALSE}
+posterior_predictive_heteroscedastic_plot(model, data$x, data$x, data$y)
 ```
 
-![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-1.svg)
+![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-heteroscedastic-1.svg)
+
+```{r, include = FALSE}
+cache_path <- file.path(cache_directory, 'model-homoscedastic.RData')
+if (!file.exists(cache_path)) {
+  model <- stan(file = file.path(work_directory, 'model-homoscedastic.stan'),
+                data = list(d = 1,
+                            m = nrow(data),
+                            x = as.matrix(data$x),
+                            y = data$y))
+  save(model, file = cache_path)
+} else {
+  load(cache_path)
+}
+print(model)
+```
+
+The posterior predictive distribution is as follows:
+
+```{r posterior-predictive-homoscedastic, cache = TRUE, include = FALSE}
+posterior_predictive_homoscedastic_plot(model, data$x, data$x, data$y)
+```
+
+![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg)
 
 # Acknowledgments
 

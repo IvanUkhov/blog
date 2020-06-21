@@ -96,9 +96,9 @@ posterior_parameter_plot <- function(model) {
     ggplot(aes(value)) +
     stat_halfeye(normalize = 'panels', fill = 'grey90') +
     facet_wrap(~ name, scales = 'free') +
+    labs(y = 'Posterior density') +
     theme(axis.title.x = element_blank(),
           axis.text.y = element_blank(),
-          axis.title.y = element_blank(),
           legend.position = 'none')
 }
 
@@ -126,7 +126,8 @@ posterior_predictive_noise_plot <- function(model, x_new) {
     labs(x = 'Distance', y = 'Noise')
 }
 
-posterior_predictive <- function(x_new, x, y, alpha_noise, beta_noise, ...) {
+posterior_predictive_heteroscedastic <- function(x_new, x, y,
+                                                 alpha_noise, beta_noise, ...) {
   m <- nrow(x);
   n <- nrow(x_new);
   K_11 <- covariance(x, x, ...);
@@ -141,15 +142,51 @@ posterior_predictive <- function(x_new, x, y, alpha_noise, beta_noise, ...) {
   as.vector(mu_new + L_new %*% rnorm(n))
 }
 
-posterior_predictive_plot <- function(model, x_new, x, y, ...) {
+posterior_predictive_heteroscedastic_plot <- function(model, x_new, x, y, ...) {
   map <- function(...) {
     tibble(x = x_new,
-           y = posterior_predictive(as.matrix(x_new), as.matrix(x), y, ...))
+           y = posterior_predictive_heteroscedastic(as.matrix(x_new),
+                                                    as.matrix(x), y, ...))
   }
   model %>%
     spread_draws(alpha_noise, beta_noise[.], sigma_process, ell_process) %>%
     transmute(curve = pmap(list(alpha_noise = alpha_noise,
                                 beta_noise = beta_noise,
+                                sigma_process = sigma_process,
+                                ell_process = ell_process),
+                           map)) %>%
+    unnest(curve) %>%
+    group_by(x) %>%
+    mean_qi() %>%
+    ggplot(aes(x, y)) +
+    geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
+    geom_point(data = tibble(x = x, y = y), size = 1) +
+    geom_line(size = 0.75)
+}
+
+posterior_predictive_homoscedastic <- function(x_new, x, y, sigma_noise, ...) {
+  m <- nrow(x);
+  n <- nrow(x_new);
+  K_11 <- covariance(x, x, ...);
+  K_21 <- covariance(x_new, x, ...);
+  K_22 <- covariance(x_new, x_new, ...);
+  L <- t(chol(K_11 + diag(sigma_noise^2, m)));
+  L_inv <- forwardsolve(L, diag(m));
+  K_inv <- t(L_inv) %*% L_inv;
+  mu_new <- K_21 %*% K_inv %*% y;
+  L_new <- t(chol(K_22 - K_21 %*% K_inv %*% t(K_21) + diag(sigma_noise^2, n)));
+  as.vector(mu_new + L_new %*% rnorm(n))
+}
+
+posterior_predictive_homoscedastic_plot <- function(model, x_new, x, y, ...) {
+  map <- function(...) {
+    tibble(x = x_new,
+           y = posterior_predictive_homoscedastic(as.matrix(x_new),
+                                                  as.matrix(x), y, ...))
+  }
+  model %>%
+    spread_draws(sigma_noise, sigma_process, ell_process) %>%
+    transmute(curve = pmap(list(sigma_noise = sigma_noise,
                                 sigma_process = sigma_process,
                                 ell_process = ell_process),
                            map)) %>%
