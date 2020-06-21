@@ -535,7 +535,7 @@ heteroscedasticity. In addition, a practical implementation has been discussed,
 and the experimental results have demonstrated the appropriateness of this
 approach.
 
-For the curious reader, the source code of this R [notebook] along with a number
+For the curious reader, the source code of this [notebook] along with a number
 of auxiliary [scripts], such as the definition of the model in Stan, can be
 found on GitHub.
 
