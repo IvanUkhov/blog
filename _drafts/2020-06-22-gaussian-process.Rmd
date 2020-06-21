@@ -530,7 +530,9 @@ right-hand side.
 
 # Acknowledgments
 
-I would like to thank Mattias Villani.
+I would like to thank [Mattias Villani] for the insightful and informative
+graduate course in statistics titled “[Advanced Bayesian learning][Villani
+2020],” which was the inspiration behind writing this article.
 
 # References
 
@@ -538,8 +540,6 @@ I would like to thank Mattias Villani.
   Learning_][Rasmussen 2006], the MIT Press, 2006.
 * David Ruppert _et al._, [_Semiparametric Regression_][Ruppert 2003], Cambridge
   University Press, 2003.
-* Mattias Villani, “[Advanced Bayesian learning][Villani 2020],” Stockholm
-  University, 2020.
 
 # Footnotes
 
@@ -550,6 +550,7 @@ I would like to thank Mattias Villani.
       2020.
 
 [LIDAR]: https://en.wikipedia.org/wiki/Lidar
+[Mattias Villani]: https://www.mattiasvillani.com/
 [Rasmussen 2006]: http://www.gaussianprocess.org/gpml
 [Ruppert 2003]: http://www.stat.tamu.edu/~carroll/semiregbook
 [Stan 2020-length-scale]: https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-length-scale
