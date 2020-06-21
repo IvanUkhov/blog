@@ -167,9 +167,10 @@ $$
 
 The error terms are still independent (given the covariates) but not identically
 distributed. At this point, one has to make a choice about the dependence of
-$$\sigma_{\text{noise}, i}$$ on $$\mathbf{x}_i$$. Keeping in mind that
-$$\sigma_{\text{noise}, i}$$ is nonnegative, a reasonable choice is a
-generalized linear model:
+$$\sigma_{\text{noise}, i}$$ on $$\mathbf{x}_i$$. This dependence could be
+modeled with another Gaussian process with an appropriate link function to
+ensure $$\sigma_{\text{noise}, i}$$ is nonnegative. Another reasonable choice is
+a generalized linear model, which is what we shall use:
 
 $$
 \ln \sigma^2_{\text{noise}, i} = \alpha_\text{noise} + \boldsymbol{\beta}^\intercal_\text{noise} \, \mathbf{x}_i,
