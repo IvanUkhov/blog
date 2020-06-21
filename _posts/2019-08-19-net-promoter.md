@@ -268,27 +268,23 @@ to the curious reader to discover Stan on their own.
 The following listing is a complete implementation of the model:
 
 ```c
-// The data
 data {
   int<lower = 0> m; // The number of segments
   int<lower = 0> n; // The number of categories, which is always three
   int y[m, n]; // The observed counts of detractors, neutrals, and promoters
 }
 
-// The parameters of the model
 parameters {
   simplex[n] mu;
   real<lower = 0> sigma;
   simplex[n] theta[m];
 }
 
-// The parameters that are derived using the above ones
 transformed parameters {
   vector<lower = 0>[n] phi;
   phi = mu / sigma^2;
 }
 
-// The model
 model {
   mu ~ uniform(0, 1);
   sigma ~ cauchy(0, 1);
