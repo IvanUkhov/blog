@@ -161,7 +161,8 @@ posterior_predictive_heteroscedastic_plot <- function(model, x_new, x, y, ...) {
     ggplot(aes(x, y)) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
     geom_point(data = tibble(x = x, y = y), size = 1) +
-    geom_line(size = 0.75)
+    geom_line(size = 0.75) +
+    labs(x = 'Distance', y = 'Response')
 }
 
 posterior_predictive_homoscedastic <- function(x_new, x, y, sigma_noise, ...) {
@@ -196,5 +197,6 @@ posterior_predictive_homoscedastic_plot <- function(model, x_new, x, y, ...) {
     ggplot(aes(x, y)) +
     geom_ribbon(aes(ymin = .lower, ymax = .upper), fill = 'grey90') +
     geom_point(data = tibble(x = x, y = y), size = 1) +
-    geom_line(size = 0.75)
+    geom_line(size = 0.75) +
+    labs(x = 'Distance', y = 'Response')
 }
