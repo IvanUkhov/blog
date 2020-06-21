@@ -37,12 +37,11 @@ set.seed(42)
 Gaussian process regression is a nonparametric Bayesian technique for modeling
 relationships between variables of interest. The vast flexibility and rigor
 mathematical foundation of this approach make it the default choice in many
-problems involving small- to medium-sized data sets.
-
-In this article, we illustrate how Gaussian process regression can be utilized
-in practice. To make the case more compelling, we shall consider a setting where
-linear regression would be inadequate. The focus will be not on getting the job
-done as fast as possible but on learning the technique.
+problems involving small- to medium-sized data sets. In this article, we
+illustrate how Gaussian process regression can be utilized in practice. To make
+the case more compelling, we consider a setting where linear regression would be
+inadequate. The focus will be _not_ on getting the job done as fast as possible
+but on learning the technique and understanding the choices being made.
 
 # Data
 
@@ -522,11 +521,23 @@ posterior_predictive_homoscedastic_plot(model, data$x, data$x, data$y)
 
 ![](/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg)
 
-The fit is inadequate, which can be seen by the probability band: the variance
-is largely overestimated on the left-hand side and underestimated on the
-right-hand side.
+The inference is inadequate, which can be seen by the probability band: the
+variance is largely overestimated on the left-hand side and underestimated on
+the right-hand side. This justifies well the choice of heteroscedastic
+regression presented earlier.
 
 # Conclusion
+
+In this article, it has been illustrated how a functional relationship can be
+modeled using a Gaussian process as a prior. Particular attention has been
+dedicated to adequately capturing error terms in the presence of
+heteroscedasticity. In addition, a practical implementation has been discussed,
+and the experimental results have demonstrated the appropriateness of this
+approach.
+
+For the curious reader, the source code of this R [notebook] along with a number
+of auxiliary [scripts], such as the definition of the model in Stan, can be
+found on GitHub.
 
 # Acknowledgments
 
@@ -557,3 +568,6 @@ graduate course in statistics titled “[Advanced Bayesian learning][Villani
 [Stan 2020-standard-deviation]: https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-marginal-standard-deviation
 [Stan]: https://mc-stan.org/
 [Villani 2020]: https://github.com/mattiasvillani/AdvBayesLearnCourse
+
+[notebook]: https://github.com/IvanUkhov/blog/blob/master/_posts/2020-06-22-gaussian-process.Rmd
+[scripts]: https://github.com/IvanUkhov/blog/tree/master/_scripts/2020-06-22-gaussian-process
