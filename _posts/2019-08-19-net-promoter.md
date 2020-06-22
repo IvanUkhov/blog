@@ -1,7 +1,7 @@
 ---
 layout: post
 title: A Bayesian approach to the inference of the net promoter score
-date: 2019-08-19
+date: 2019-08-19T08:00:00+02:00
 math: true
 stan: true
 keywords:

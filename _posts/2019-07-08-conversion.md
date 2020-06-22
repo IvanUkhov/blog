@@ -1,7 +1,7 @@
 ---
 layout: post
 title: On the expected utility in conversion rate optimization
-date: 2019-07-08
+date: 2019-07-08T08:00:00+02:00
 math: true
 keywords:
   - Bayesian statistics

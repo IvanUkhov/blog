@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Bayesian inference of the net promoter score via multilevel regression with poststratification
-date: 2020-02-03
+date: 2020-02-03T08:00:00+01:00
 math: true
 keywords:
   - Bayesian statistics

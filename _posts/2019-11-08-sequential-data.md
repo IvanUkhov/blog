@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Ingestion of sequential data from BigQuery into TensorFlow
-date: 2019-11-08
+date: 2019-11-08T08:00:00+01:00
 keywords:
   - Apache Beam
   - BigQuery

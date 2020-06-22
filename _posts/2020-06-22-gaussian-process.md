@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Heteroscedastic Gaussian process regression
-date: 2020-06-22
+date: 2020-06-22T08:00:00+02:00
 math: true
 stan: true
 keywords:

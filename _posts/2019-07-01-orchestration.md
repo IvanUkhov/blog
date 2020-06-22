@@ -1,7 +1,7 @@
 ---
 layout: post
 title: A poor man’s orchestration of predictive models, or do it yourself
-date: 2019-07-01
+date: 2019-07-01T08:00:00+02:00
 keywords:
   - Apache Airflow
   - Docker

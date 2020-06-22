@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Sample size determination using historical data and simulation
-date: 2019-09-25
+date: 2019-09-25T08:00:00+02:00
 math: true
 keywords:
   - R

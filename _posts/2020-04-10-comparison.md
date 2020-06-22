@@ -1,7 +1,7 @@
 ---
 layout: post
 title: What is the easiest way to compare two data sets?
-date: 2020-04-10
+date: 2020-04-10T08:00:00+02:00
 keywords:
   - Python
   - TensorFlow
