@@ -6,16 +6,17 @@ permalink: /about/
 
 Hello,
 
-I am Ivan, the author of this blog. I am passionate about statistics and machine
-learning, and writing here is a way for me to learn and to share what I learn.
+I am Ivan, the author of this blog. I am passionate about statistics, machine
+learning, and data science, and writing here is a way for me to learn and to
+share what I learn.
 
 On a more professional note, I received a Ph.D. degree in computer science from
 Linköping University in 2017. My [research] was mainly focused on uncertainty
 quantification in the context of electronic systems, which one can read more
-about in my doctoral [thesis]. At the moment, I work as a senior data scientist
-at a gaming tech company based in Stockholm.
+about in my doctoral [thesis]. Since early 2018, I work as a senior data
+scientist at a gaming tech company based in Stockholm.
 
-Please do not hesitate to reach out, and thank you for stopping by.
+Please feel free to reach out. Thank you!
 
 Sincerely yours,<br/>Ivan
 
