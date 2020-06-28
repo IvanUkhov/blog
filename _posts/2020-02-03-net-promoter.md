@@ -272,9 +272,9 @@ $$
 \text{ for } i = 1, \dots, K; \\
 & b^u \sim \text{Student’s t}(5, 0, 1); \\
 & b^p \sim \text{Student’s t}(5, 0, 1); \\
-& b^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
+& \delta^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5a} \\
-& b^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
+& \delta^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
 \text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5b} \\
 & \sigma^{uj} \sim \text{Half-Student’s t}(5, 0, 1),
 \text{ for } j = 1, \dots, M; \text{ and} \\
