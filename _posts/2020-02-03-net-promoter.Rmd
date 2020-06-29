@@ -193,9 +193,9 @@ $$
 
 is the average log-odds of the three categories with respect to a reference
 category, which, by conventions, is taken to be the first one, that is,
-detractors. The first entry is zero, since $$\text{logit}(1) = 0$$. Therefore,
-there are only two linear models: one is for neutrals ($$\mu^u_i$$), and one is
-for promoters ($$\mu^p_i$$).
+detractors. The first entry is zero, since $$\ln(1) = 0$$. Therefore, there are
+only two linear models: one is for neutrals ($$\mu^u_i$$), and one is for
+promoters ($$\mu^p_i$$).
 
 Now, there are many alternatives when it comes to the two linear parts. In this
 article, we use the following architecture. Both the model for neutrals and the
