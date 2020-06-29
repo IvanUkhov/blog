@@ -38,7 +38,7 @@ The figure shows 221 observations collected in a [light detection and
 ranging][LIDAR] experiment. Each observation can be interpreted as the sum of
 the true underlying response at the corresponding distance and random noise. It
 can be clearly seen that the variance of the noise varies with the distance: the
-spread is substantially larger toward the left-hand side. This phenomenon is
+spread is substantially larger toward the right-hand side. This phenomenon is
 known as heteroscedasticity. Homoscedasticity (the absence of
 heteroscedasticity) is one of the key assumptions of linear regression. Applying
 linear regression to the above problem would yield suboptimal results. The
