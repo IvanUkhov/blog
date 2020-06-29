@@ -156,7 +156,7 @@ higher level give birth to parameters on a lower level, which, in particular,
 enables information exchange through a common ancestor. _Multinomial_ refers to
 the distribution used for modeling the response variable. The family of
 multinomial distributions is appropriate, since we work with counts of events
-falling into one of several categories: promoters, neutrals, and detractors; see
+falling into one of several categories: detractors, neutrals, and promoters; see
 Equation (2). The response for each cell is then as follows:
 
 $$
