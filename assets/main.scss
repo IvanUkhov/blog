@@ -5,6 +5,8 @@
 
 @import url('https://use.typekit.net/lrc5xlz.css');
 
+$colors: #00b3e7, #0cc7d3, #00cfb6, #ff6442, #8781d3, /* #fcf05f, */ #687f91;
+
 body {
   font-family: roboto, sans-serif;
   font-weight: 400;
@@ -25,7 +27,7 @@ h1, h2 {
 }
 
 .site-header {
-  border-top: none;
+  border: none;
 }
 
 .highlight code, p code.highlighter-rouge {
@@ -75,4 +77,30 @@ h1, h2 {
 
 .post-content img {
   padding: 1em 0 1em 0;
+}
+
+a, a:visited {
+  color: inherit;
+}
+
+@for $i from 1 through length($colors) {
+  .theme-#{$i} {
+    ::selection {
+      background-color: lighten(nth($colors, $i), 30%);
+    }
+
+    ::-moz-selection {
+      background-color: lighten(nth($colors, $i), 30%);
+    }
+
+    .page-content {
+      a, a:visited {
+        color: nth($colors, $i);
+      }
+    }
+
+    .site-header {
+      background-color: lighten(nth($colors, $i), 30%);
+    }
+  }
 }
