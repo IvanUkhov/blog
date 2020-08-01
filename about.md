@@ -13,8 +13,8 @@ share what I learn.
 On a more professional note, I received a Ph.D. degree in computer science from
 Linköping University in 2017. My [research] was mainly focused on uncertainty
 quantification in the context of electronic systems, which one can read more
-about in my doctoral [thesis]. Since early 2018, I work as a senior data
-scientist at a gaming tech company based in Stockholm.
+about in my doctoral [thesis]. Since early 2018, I work as a data scientist at a
+gaming tech company based in Stockholm.
 
 Please feel free to reach out. Thank you!
 
