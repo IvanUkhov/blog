@@ -22,6 +22,9 @@ m(\cdot) & = m_0 \, \text{Gaussian}\left(\, \cdot \, | \mu_0, \tau_0 \right).
 \end{align}
 $$
 
+In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
+Gaussian distribution.
+
 # Mixing prior
 
 $$
@@ -33,7 +36,10 @@ m(\cdot) & = m_0 \, \text{Gaussian–Gamma}\left(\, \cdot \, | \mu_0, n_0, \alph
 \end{align}
 $$
 
-The Gaussian–Gamma measure corresponds to the following combination:
+In the above, $$\text{Gaussian–Gamma}(\cdot)$$ refers to the probability measure
+of a Gaussian–Gamma distribution, which is bivariate, as desired in this case.
+Some intuition about this distribution can be built by decomposing it into a
+conditional Gaussian and an unconditional Gamma:
 
 $$
 \begin{align}
