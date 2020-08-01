@@ -16,8 +16,9 @@ She sells seashells by the seashore.
 
 $$
 \begin{align}
-y_i & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet process}\left( \alpha \right).
+y_i & \sim P, \text{ for } i = 1, \dots, n; \\
+P & \sim \text{Dirichlet process}\left( m \right); \text{ and } \\
+m(\cdot) & = m_0 \, \text{Gaussian}\left(\, \cdot \, | \mu_0, \tau_0 \right).
 \end{align}
 $$
 
@@ -26,7 +27,17 @@ $$
 $$
 \begin{align}
 y_i & \sim \text{Gaussian}\left( \mu_i, \tau_i \right), \text{ for } i = 1, \dots, n; \\
-(\mu_i, \tau_i) & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet process}\left( \alpha \right).
+(\mu_i, \tau_i) & \sim P, \text{ for } i = 1, \dots, n; \\
+P & \sim \text{Dirichlet process}\left( m \right); \text{ and} \\
+m(\cdot) & = m_0 \, \text{Gaussian–Gamma}\left(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0 \right).
+\end{align}
+$$
+
+The Gaussian–Gamma measure corresponds to the following combination:
+
+$$
+\begin{align}
+\mu_i | \tau_i & \sim \text{Gaussian}\left( \mu_0, n_0 \tau_i \right) \text{ and} \\
+\tau_i & \sim \text{Gamma}\left( \alpha_0, \beta_0 \right).
 \end{align}
 $$
