@@ -42,33 +42,40 @@ $$
 P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
 $$
 
-Then the atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the
-normalized base measure
+Then atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized
+base measure
 
 $$
 P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}
 $$
 
 where $$\nu_0 = \nu({\mathcal{X})}$$, which is the total volume, making $$P_0$$
-a probability distribution. The calculation of
-the weights $$\{ p_i \}$$ is more elaborate, and this is where the construction
-gets its name, “stick breaking.” First, we draw $$m$$ independent realizations
-from a carefully chosen beta distribution as follows:
+a probability distribution.
+
+The calculation of probabilities $$\{ p_i \}$$ is more elaborate, and this is
+where the construction gets its name, “stick breaking.” Specifically, we shall
+take an imaginary stick of length 1, representing the total probability, and
+keep breaking it into two parts where, for each iteration, the left part yields
+$$p_i$$, and the right one, the remainder, is carried over to the next
+iteration. How much to break off is decided on by drawing $$m$$ independent
+realizations from a carefully chosen beta distribution:
 
 $$
 q_i \sim \text{Beta}(1, \nu_0) \text{ for } i = 1, \dots, m.
 $$
 
-All of them lie in the unit interval and can be interpreted as proportions. Then
-the weights are
+All of them lie in the unit interval and are the proportions to break off of the
+remainder. Then the desired probabilities are given by the following expression:
 
 $$
-p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j) \text{ for } i = 1, \dots, m.
+p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j) \text{ for } i = 1, \dots, m,
 $$
 
-For instance, $$p_1 = q_1$$, $$p_2 = q_2 (1 - q_1)$$, and so on. Due to the
-truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up to one, and
-it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the remaining mass.
+which, as noted earlier, are the left parts of the remainder of the stick during
+each iteration. For instance, $$p_1 = q_1$$, $$p_2 = q_2 (1 - q_1)$$, and so on.
+Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
+to one, and it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the
+remaining probability mass.
 
 Let
 
