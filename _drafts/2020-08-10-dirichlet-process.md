@@ -20,15 +20,16 @@ distribution, which makes the process a distribution over distributions,
 similarly to a Dirichlet distribution. The process has only one parameter: the
 base measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure taken from
 a suitable measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where
-$$\mathcal{X}$$ is a set and $$\mathcal{B}$$ is a $$\sigma$$-algebra on
+$$\mathcal{X}$$ is a set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on
 $$\mathcal{X}$$. We shall use the following notation:
 
 $$
 P \sim \text{Dirichlet Process}(\nu).
 $$
 
-Denote by $$\nu_0 = \nu({\mathcal{X})}$$ the total volume. One can then
-normalize $$\nu$$ to obtain a probability measure:
+where $$P$$ is a _random_ probability distribution distributed according to the
+Dirichlet process. Denote by $$\nu_0 = \nu({\mathcal{X})}$$ the total volume.
+One can then normalize $$\nu$$ to obtain a probability measure:
 
 $$
 P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}.
