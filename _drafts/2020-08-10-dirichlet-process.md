@@ -14,15 +14,29 @@ She sells seashells by the seashore.
 
 # Direct prior
 
+A Dirichlet process is a stochastic process, that is, an indexed sequence of
+random variables. Each realization of this process is a discrete probability
+distribution, which makes the process a distribution over distributions,
+similarly to a Dirichlet distribution. The process has only one parameter: the
+base measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure taken from
+a suitable measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where
+$$\mathcal{X}$$ is a set and $$\mathcal{B}$$ is a $$\sigma$$-algebra on
+$$\mathcal{X}$$. We shall use the following notation:
+
 $$
-\begin{align}
-y_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet Process}(\nu).
-\end{align}
+P \sim \text{Dirichlet Process}(\nu).
 $$
 
-A draw from a Dirichlet process is a discrete probability distribution $$P$$.
-The probability measure of this distribution admits the follow representation:
+Denote by $$\nu_0 = \nu({\mathcal{X})}$$ the total volume. One can then
+normalize $$\nu$$ to obtain a probability measure:
+
+$$
+P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}.
+$$
+
+As noted earlier, a draw from a Dirichlet process is a discrete probability
+distribution $$P$$. This probability measure of this distribution admits the
+follow representation:
 
 $$
 P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{1}
@@ -32,6 +46,23 @@ where $$\{ p_i \}$$ is a set of probabilities that sum up to one; $$\{ x_i \}$$
 is a set of points in $$\mathcal{X}$$; and $$\delta_x(\cdot)$$ is the Dirac
 measure, meaning that $$\delta_x(X) = 1$$ if $$x \in X$$ for any $$X \subset
 \mathcal{X}$$, and it is zero otherwise.
+
+The model is as follows:
+
+$$
+\begin{align}
+y_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
+P & \sim \text{Dirichlet Process}(\nu).
+\end{align}
+$$
+
+Due to the conjugacy property of the Dirichlet process in this model, the
+posterior is also a Dirichlet process, which substantially simplifies the
+inference:
+
+$$
+P | \{ y_i \} \sim \text{Dirichlet Process}\left( \right). \tag{2}
+$$
 
 A draw from a Dirichlet process, as in Equation (1), can be obtained using the
 so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
@@ -43,14 +74,7 @@ P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
 $$
 
 Then atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized
-base measure
-
-$$
-P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}
-$$
-
-where $$\nu_0 = \nu({\mathcal{X})}$$, which is the total volume, making $$P_0$$
-a probability distribution.
+base measure $$P_0$$.
 
 The calculation of probabilities $$\{ p_i \}$$ is more elaborate, and this is
 where the construction gets its name, “stick breaking.” Specifically, we shall
@@ -77,7 +101,7 @@ Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
-Let
+Now, let us make a choice for a base measure for the data at hand:
 
 $$
 \nu(\cdot) = \nu_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
@@ -142,10 +166,13 @@ where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 
 * Andrew Gelman et al., _[Bayesian Data Analysis][BDA]_, Chapman and Hall/CRC,
   2014.
+* Rick Durrett, _[Probability: Theory and Examples][PTE]_, Cambridge University
+  Press, 2010
 
 # Footnotes
 
 [^1]: “[Posterior distribution of the parameters][Wikipedia],” Wikipedia, 2020.
 
 [BDA]: http://www.stat.columbia.edu/~gelman/book/
+[PTE]: https://services.math.duke.edu/~rtd/PTE/pte.html
 [Wikipedia]: https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters
