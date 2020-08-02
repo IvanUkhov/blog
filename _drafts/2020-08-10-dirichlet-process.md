@@ -16,10 +16,15 @@ She sells seashells by the seashore.
 
 $$
 \begin{align}
-y_i & \sim P, \text{ for } i = 1, \dots, n; \\
-P & \sim \text{Dirichlet process}\left( m \right); \text{ and } \\
-m(\cdot) & = m_0 \, \text{Gaussian}\left(\, \cdot \, | \mu_0, \tau_0 \right).
+y_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
+P & \sim \text{Dirichlet process}(m).
 \end{align}
+$$
+
+Let
+
+$$
+m(\cdot) = m_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
@@ -31,10 +36,19 @@ the usual variance parameter.
 
 $$
 \begin{align}
-y_i & \sim \text{Gaussian}\left( \mu_i, \tau_i \right), \text{ for } i = 1, \dots, n; \\
-(\mu_i, \tau_i) & \sim P, \text{ for } i = 1, \dots, n; \\
-P & \sim \text{Dirichlet process}\left( m \right); \text{ and} \\
-m(\cdot) & = m_0 \, \text{Gaussian–Gamma}\left(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0 \right).
+y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \\
+\theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_\theta & \sim \text{Dirichlet process}(m).
+\end{align}
+$$
+
+Let
+
+$$
+\begin{align}
+\theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
+P_y (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
+m(\cdot) &= m_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
 
@@ -45,8 +59,8 @@ conditional Gaussian and an unconditional Gamma:
 
 $$
 \begin{align}
-\mu | \tau & \sim \text{Gaussian}\left( \mu_0, n_0 \tau \right) \text{ and} \\
-\tau & \sim \text{Gamma}\left( \alpha_0, \beta_0 \right).
+\mu | \tau & \sim \text{Gaussian}(\mu_0, n_0 \tau) \text{ and} \\
+\tau & \sim \text{Gamma}(\alpha_0, \beta_0).
 \end{align}
 $$
 
