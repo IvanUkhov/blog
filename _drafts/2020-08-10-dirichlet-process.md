@@ -17,14 +17,39 @@ She sells seashells by the seashore.
 $$
 \begin{align}
 y_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet process}(m).
+P & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
+
+A draw from a Dirichlet process is a discrete probability distribution $$P$$.
+The probability measure of this distribution admits the follow representation:
+
+$$
+P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{1}
+$$
+
+where $$\{ p_i \}$$ is a set of probabilities that sum up to one; $$\{ x_i \}$$
+is a set of points in $$\mathcal{X}$$; and $$\delta_x(\cdot)$$ is the Dirac
+measure, meaning that $$\delta_x(X) = 1$$ if $$x \in X$$ for any $$X \subset
+\mathcal{X}$$, and it is zero otherwise.
+
+A draw from a Dirichlet process, as in Equation (1), can be obtained using the
+so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
+x_i \}$$. The easiest part is the atoms $$\{ x_i \}$$: they are drawn
+independently from the normalized base measure
+
+$$
+P_0(\cdot) = \frac{\nu(\cdot)}{\nu({\mathcal{X})}},
+$$
+
+which, by definition, is a probability distribution. The calculation of the
+weights $$\{ p_k \}$$ is more elaborate, and this is where the construction gets
+its name, “stick breaking.”
 
 Let
 
 $$
-m(\cdot) = m_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
+\nu(\cdot) = \nu_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
@@ -38,7 +63,7 @@ $$
 \begin{align}
 y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \\
 \theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_\theta & \sim \text{Dirichlet process}(m).
+P_\theta & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
@@ -48,14 +73,14 @@ $$
 \begin{align}
 \theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
 P_y (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
-m(\cdot) &= m_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
+\nu(\cdot) &= \nu_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
 
 In the above, $$\text{Gaussian–Gamma}(\cdot)$$ refers to the probability measure
-of a Gaussian–Gamma distribution, which is bivariate, as desired in this case.
+of a Gaussian–gamma distribution, which is bivariate, as desired in this case.
 Some intuition about this distribution can be built by decomposing it into a
-conditional Gaussian and an unconditional Gamma:
+conditional Gaussian and an unconditional gamma:
 
 $$
 \begin{align}
@@ -64,9 +89,9 @@ $$
 \end{align}
 $$
 
-The Gaussian–Gamma distribution is a conjugate prior for the Gaussian data
+The Gaussian–gamma distribution is a conjugate prior for the Gaussian data
 distribution with unknown mean and variance, assumed here. This means that the
-posterior is also Gaussian–Gamma. Given a data set with $$n_1$$ observations
+posterior is also Gaussian–gamma. Given a data set with $$n_1$$ observations
 $$x_1, \dots, x_{n_1}$$, the mapping of the four parameters of the prior to
 those of the posterior is as follows:[^1]
 
