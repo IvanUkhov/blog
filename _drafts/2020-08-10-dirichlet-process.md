@@ -35,16 +35,40 @@ measure, meaning that $$\delta_x(X) = 1$$ if $$x \in X$$ for any $$X \subset
 
 A draw from a Dirichlet process, as in Equation (1), can be obtained using the
 so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
-x_i \}$$. The easiest part is the atoms $$\{ x_i \}$$: they are drawn
-independently from the normalized base measure
+x_i \}$$. To begin with, for practical computations, the infinite summation is
+to be truncated to retain the only first $$m$$ elements:
 
 $$
-P_0(\cdot) = \frac{\nu(\cdot)}{\nu({\mathcal{X})}},
+P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
 $$
 
-which, by definition, is a probability distribution. The calculation of the
-weights $$\{ p_k \}$$ is more elaborate, and this is where the construction gets
-its name, “stick breaking.”
+Then the atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the
+normalized base measure
+
+$$
+P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}
+$$
+
+where $$\nu_0 = \nu({\mathcal{X})}$$, which is the total volume, making $$P_0$$
+a probability distribution. The calculation of
+the weights $$\{ p_i \}$$ is more elaborate, and this is where the construction
+gets its name, “stick breaking.” First, we draw $$m$$ independent realizations
+from a carefully chosen beta distribution as follows:
+
+$$
+q_i \sim \text{Beta}(1, \nu_0) \text{ for } i = 1, \dots, m.
+$$
+
+All of them lie in the unit interval and can be interpreted as proportions. Then
+the weights are
+
+$$
+p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j) \text{ for } i = 1, \dots, m.
+$$
+
+For instance, $$p_1 = q_1$$, $$p_2 = q_2 (1 - q_1)$$, and so on. Due to the
+truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up to one, and
+it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the remaining mass.
 
 Let
 
