@@ -24,7 +24,7 @@ $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution. In this case, we use the precision-based parameterization
-of the family of Gaussian distributions where $$\tau_0$$ is the reciprocal of
+of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
 the usual variance parameter.
 
 # Mixing prior
@@ -45,8 +45,8 @@ conditional Gaussian and an unconditional Gamma:
 
 $$
 \begin{align}
-\mu_i | \tau_i & \sim \text{Gaussian}\left( \mu_0, n_0 \tau_i \right) \text{ and} \\
-\tau_i & \sim \text{Gamma}\left( \alpha_0, \beta_0 \right).
+\mu | \tau & \sim \text{Gaussian}\left( \mu_0, n_0 \tau \right) \text{ and} \\
+\tau & \sim \text{Gamma}\left( \alpha_0, \beta_0 \right).
 \end{align}
 $$
 
@@ -54,13 +54,28 @@ The Gaussian–Gamma distribution is a conjugate prior for the Gaussian data
 distribution with unknown mean and variance, assumed here. This means that the
 posterior is also Gaussian–Gamma. Given a data set with $$n_1$$ observations
 $$x_1, \dots, x_{n_1}$$, the mapping of the four parameters of the prior to
-those of the posterior is as follows:
+those of the posterior is as follows:[^1]
 
 $$
 \begin{align}
-\mu_0 & \to \frac{n_0}{n_0 + n_1} \mu_0 + \frac{n_1}{n_0 + n_1} \bar{x}; \\
-n_0 & \to n_0 + n_1; \\
-\alpha_0 & \to \alpha_0 + \frac{n_1}{2}; \text{ and} \\
-\beta_0 & \to \beta_0 + \frac{1}{2} \sum_{i = 1}^{n_1} (x_i - \bar{x})^2 + \frac{n_0 \, n_1}{2(n_0 + n_1)} (\bar{x} - \mu_0)^2.
+\mu_0 & \to \frac{n_0}{n_0 + n_1} \mu_0 + \frac{n_1}{n_0 + n_1} \mu_x, \\
+n_0 & \to n_0 + n_1, \\
+\alpha_0 & \to \alpha_0 + \frac{n_1}{2}, \text{ and} \\
+\beta_0 & \to \beta_0 + \frac{1}{2} \left( \frac{n_0 \, n_1}{n_0 + n_1} (\mu_x - \mu_0)^2 + n_1 s^2_x \right)
 \end{align}
 $$
+
+where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
+(x_i - \mu_x)^2 / n_1$$.
+
+# References
+
+* Andrew Gelman et al., _[Bayesian Data Analysis][BDA]_, Chapman and Hall/CRC,
+  2014.
+
+# Footnotes
+
+[^1]: “[Posterior distribution of the parameters][Wikipedia],” Wikipedia, 2020.
+
+[BDA]: http://www.stat.columbia.edu/~gelman/book/
+[Wikipedia]: https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters
