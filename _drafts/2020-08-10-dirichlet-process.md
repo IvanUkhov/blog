@@ -18,8 +18,8 @@ A Dirichlet process is a stochastic process, that is, an indexed sequence of
 random variables. Each realization of this process is a discrete probability
 distribution, which makes the process a distribution over distributions,
 similarly to a Dirichlet distribution. The process has only one parameter: the
-base measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure taken from
-a suitable measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where
+measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure taken from a
+suitable measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where
 $$\mathcal{X}$$ is a set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on
 $$\mathcal{X}$$. We shall use the following notation:
 
@@ -32,7 +32,7 @@ Dirichlet process. Denote by $$\nu_0 = \nu({\mathcal{X})}$$ the total volume.
 One can then normalize $$\nu$$ to obtain a probability measure:
 
 $$
-P_0(\cdot) = \frac{\nu(\cdot)}{\nu_0}.
+P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
 $$
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
@@ -57,13 +57,20 @@ P & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
+It is important to realize that the $$y$$’s are _not_ distributed according to
+the Dirichlet process but according to the distribution drawn from the Dirichlet
+process.
+
 Due to the conjugacy property of the Dirichlet process in this model, the
 posterior is also a Dirichlet process, which substantially simplifies the
 inference:
 
 $$
-P | \{ y_i \} \sim \text{Dirichlet Process}\left( \right). \tag{2}
+P | \{ y_i \}_{i = 1}^n \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{y_i} \right). \tag{2}
 $$
+
+It can be seen that the base measure has simply been augmented with unit masses
+placed at the $$n$$ observed data points.
 
 A draw from a Dirichlet process, as in Equation (1), can be obtained using the
 so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
