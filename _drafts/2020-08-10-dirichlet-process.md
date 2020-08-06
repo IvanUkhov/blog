@@ -27,13 +27,42 @@ $$
 P \sim \text{Dirichlet Process}(\nu).
 $$
 
-where $$P$$ is a _random_ probability distribution distributed according to the
-Dirichlet process. Denote by $$\nu_0 = \nu({\mathcal{X})}$$ the total volume.
-One can then normalize $$\nu$$ to obtain a probability measure:
+where $$P$$ is a _random_ probability distribution that is distributed according
+to the Dirichlet process. Note that measure $$\nu$$ does not have to be a
+probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In order
+to obtain a probability measure, one can divide $$\nu$$ by the total volume,
+which we denote by $$\nu_0 = \nu(\mathcal{X})$$:
 
 $$
 P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
 $$
+
+Given a data set of $$n$$ observations $$\{ x_i \}_{i = 1}^n$$, a Dirichlet
+process process can be used as a prior:
+
+$$
+\begin{align}
+x_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
+P & \sim \text{Dirichlet Process}(\nu).
+\end{align}
+$$
+
+It is important to realize that the $$x_i$$’s are _not_ distributed according to
+the Dirichlet process but according to the distribution drawn from the Dirichlet
+process.
+
+Due to the conjugacy property of the Dirichlet process in this model, the
+posterior is also a Dirichlet process, which substantially simplifies the
+inference:
+
+$$
+P | \{ x_i \}_{i = 1}^n \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
+$$
+
+where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
+if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise It
+can be seen that the base measure has simply been augmented with unit masses
+placed at the $$n$$ observed data points.
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
 distribution $$P$$. This probability measure of this distribution admits the
@@ -43,34 +72,8 @@ $$
 P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{1}
 $$
 
-where $$\{ p_i \}$$ is a set of probabilities that sum up to one; $$\{ x_i \}$$
-is a set of points in $$\mathcal{X}$$; and $$\delta_x(\cdot)$$ is the Dirac
-measure, meaning that $$\delta_x(X) = 1$$ if $$x \in X$$ for any $$X \subset
-\mathcal{X}$$, and it is zero otherwise.
-
-The model is as follows:
-
-$$
-\begin{align}
-y_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet Process}(\nu).
-\end{align}
-$$
-
-It is important to realize that the $$y$$’s are _not_ distributed according to
-the Dirichlet process but according to the distribution drawn from the Dirichlet
-process.
-
-Due to the conjugacy property of the Dirichlet process in this model, the
-posterior is also a Dirichlet process, which substantially simplifies the
-inference:
-
-$$
-P | \{ y_i \}_{i = 1}^n \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{y_i} \right). \tag{2}
-$$
-
-It can be seen that the base measure has simply been augmented with unit masses
-placed at the $$n$$ observed data points.
+where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
+\}$$ is a set of points in $$\mathcal{X}$$.
 
 A draw from a Dirichlet process, as in Equation (1), can be obtained using the
 so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
