@@ -18,10 +18,10 @@ A Dirichlet process is a stochastic process, that is, an indexed sequence of
 random variables. Each realization of this process is a discrete probability
 distribution, which makes the process a distribution over distributions,
 similarly to a Dirichlet distribution. The process has only one parameter: the
-measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure taken from a
-suitable measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where
-$$\mathcal{X}$$ is a set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on
-$$\mathcal{X}$$. We shall use the following notation:
+measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure in a suitable
+measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where $$\mathcal{X}$$ is a
+set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall
+use the following notation:
 
 $$
 P \sim \text{Dirichlet Process}(\nu).
@@ -30,8 +30,8 @@ $$
 where $$P$$ is a _random_ probability distribution that is distributed according
 to the Dirichlet process. Note that measure $$\nu$$ does not have to be a
 probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In order
-to obtain a probability measure, one can divide $$\nu$$ by the total volume,
-which we denote by $$\nu_0 = \nu(\mathcal{X})$$:
+to obtain a probability measure, one can divide $$\nu$$ by the total volume
+$$\nu_0 = \nu(\mathcal{X})$$:
 
 $$
 P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
@@ -47,25 +47,24 @@ P & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
-It is important to realize that the $$x_i$$’s are _not_ distributed according to
-the Dirichlet process but according to the distribution drawn from the Dirichlet
-process.
+It is important to realize that the $$x_i$$’s are assumed to be distributed
+_not_ according to the Dirichlet process but according to the distribution drawn
+from the Dirichlet process.
 
-Due to the conjugacy property of the Dirichlet process in this model, the
-posterior is also a Dirichlet process, which substantially simplifies the
-inference:
+Due to the conjugacy property of the Dirichlet process, which substantially
+simplifies the inference, the posterior is also a Dirichlet process as follows:
 
 $$
 P | \{ x_i \}_{i = 1}^n \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
 $$
 
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
-if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise It
+if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise. It
 can be seen that the base measure has simply been augmented with unit masses
 placed at the $$n$$ observed data points.
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
-distribution $$P$$. This probability measure of this distribution admits the
+distribution $$P$$. The probability measure of this distribution admits the
 follow representation:
 
 $$
@@ -75,25 +74,24 @@ $$
 where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
 \}$$ is a set of points in $$\mathcal{X}$$.
 
-A draw from a Dirichlet process, as in Equation (1), can be obtained using the
-so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{
-x_i \}$$. To begin with, for practical computations, the infinite summation is
-to be truncated to retain the only first $$m$$ elements:
+A draw as in Equation (1) can be obtained using the so-called stick-breaking
+construction, which prescribes $$\{ p_i \}$$ and $$\{ x_i \}$$. To begin with,
+for practical computations, the infinite summation is truncated to retain the
+only first $$m$$ elements:
 
 $$
 P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
 $$
 
-Then atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized
-base measure $$P_0$$.
-
-The calculation of probabilities $$\{ p_i \}$$ is more elaborate, and this is
-where the construction gets its name, “stick breaking.” Specifically, we shall
-take an imaginary stick of length 1, representing the total probability, and
-keep breaking it into two parts where, for each iteration, the left part yields
-$$p_i$$, and the right one, the remainder, is carried over to the next
-iteration. How much to break off is decided on by drawing $$m$$ independent
-realizations from a carefully chosen beta distribution:
+Atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized base
+measure $$P_0$$. The calculation of probabilities $$\{ p_i \}$$ is more
+elaborate, and this is where the construction gets its name, “stick breaking.”
+Specifically, we shall take an imaginary stick of length 1, representing the
+total probability, and keep breaking it into two parts where, for each
+iteration, the left part yields $$p_i$$, and the right one, the remainder, is
+carried over to the next iteration. How much to break off is decided on by
+drawing $$m$$ independent realizations from a carefully chosen beta
+distribution:
 
 $$
 q_i \sim \text{Beta}(1, \nu_0) \text{ for } i = 1, \dots, m.
@@ -112,7 +110,7 @@ Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
-Now, let us make a choice for a base measure for the data at hand:
+Now, let us complete the model by choosing a concrete measure:
 
 $$
 \nu(\cdot) = \nu_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
@@ -121,7 +119,9 @@ $$
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution. In this case, we use the precision-based parameterization
 of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
-the usual variance parameter.
+the usual variance parameter. Multiplier $$\nu_0 = \nu(\mathcal{X}) > 0$$ is
+there to allow us to control the total volume of the space implied by the
+Dirichlet prior.
 
 # Mixing prior
 
