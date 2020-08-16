@@ -134,19 +134,32 @@ cases, it might be appropriate; however, there is arguably more situations where
 it is inadequate.
 
 Instead of using a Dirichlet process as a direct prior for the given data, it
-can be used to a prior for mixing distributions from a given family, and then
-the resulting posterior will naturally inherit the properties of the family,
-such as continuity.
+can be used as a prior for mixing distributions from a given family. The
+resulting posterior will then naturally inherit the properties of the family,
+such as continuity. The general form is as follows:
 
 $$
 \begin{align}
-y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \\
+y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{4} \\
 \theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
 P_\theta & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
-Let
+To begin with, the $$i$$th data point, $$y_i$$, is distributed according to a
+distribution $$P_y$$ with parameters $$\theta_i$$. For instance, $$P_y$$ could
+refer the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$ identifying a
+particular member of the family by its mean and precision. Parameters $$\{
+\theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
+$$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
+process prior with measure $$\nu$$.
+
+It can be seen in Equation (4) that each data point can potentially has its own
+unique set of parameters. However, this is not what usually happens in practice.
+Instead, many data points share the same parameters, which is akin to
+clustering: the data come from a mixture of a handful of distributions.
+
+For concreteness, consider the following choices:
 
 $$
 \begin{align}
