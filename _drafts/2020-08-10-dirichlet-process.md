@@ -43,7 +43,7 @@ process process can be used as a prior:
 $$
 \begin{align}
 x_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet Process}(\nu).
+P & \sim \text{Dirichlet Process}(\nu). \tag{1}
 \end{align}
 $$
 
@@ -55,7 +55,8 @@ Due to the conjugacy property of the Dirichlet process, which substantially
 simplifies the inference, the posterior is also a Dirichlet process as follows:
 
 $$
-P | \{ x_i \}_{i = 1}^n \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
+P | \{ x_i \}_{i = 1}^n
+\sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
 $$
 
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
@@ -68,13 +69,13 @@ distribution $$P$$. The probability measure of this distribution admits the
 follow representation:
 
 $$
-P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{1}
+P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{3}
 $$
 
 where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
 \}$$ is a set of points in $$\mathcal{X}$$.
 
-A draw as in Equation (1) can be obtained using the so-called stick-breaking
+A draw as in Equation (3) can be obtained using the so-called stick-breaking
 construction, which prescribes $$\{ p_i \}$$ and $$\{ x_i \}$$. To begin with,
 for practical computations, the infinite summation is truncated to retain the
 only first $$m$$ elements:
@@ -125,6 +126,18 @@ Dirichlet prior.
 
 # Mixing prior
 
+The model discussed in the previous section has a serious limitation: it assumes
+a discrete probability distribution for the data-generating process, which can
+be seen in the prior and posterior given in Equation (1) and (2), respectively,
+and it is also apparent in the decomposition given in Equation (3). In some
+cases, it might be appropriate; however, there is arguably more situations where
+it is inadequate.
+
+Instead of using a Dirichlet process as a direct prior for the given data, it
+can be used to a prior for mixing distributions from a given family, and then
+the resulting posterior will naturally inherit the properties of the family,
+such as continuity.
+
 $$
 \begin{align}
 y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \\
@@ -156,10 +169,10 @@ $$
 $$
 
 The Gaussian–gamma distribution is a conjugate prior for the Gaussian data
-distribution with unknown mean and variance, assumed here. This means that the
-posterior is also Gaussian–gamma. Given a data set with $$n_1$$ observations
-$$x_1, \dots, x_{n_1}$$, the mapping of the four parameters of the prior to
-those of the posterior is as follows:[^1]
+distribution with unknown mean and variance, which we assume here. This means
+that the posterior is also Gaussian–gamma. Given a data set with $$n_1$$
+observations $$x_1, \dots, x_{n_1}$$, the mapping of the four parameters of the
+prior to those of the posterior is as follows:[^1]
 
 $$
 \begin{align}
