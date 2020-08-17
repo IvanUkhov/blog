@@ -140,19 +140,25 @@ such as continuity. The general form is as follows:
 
 $$
 \begin{align}
-y_i | \theta_i & \sim P_y \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{4} \\
-\theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_\theta & \sim \text{Dirichlet Process}(\nu).
+y_i | \theta_i & \sim P_1 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{4} \\
+\theta_i | P_0 & \sim P_0, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_0 & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
 To begin with, the $$i$$th data point, $$y_i$$, is distributed according to a
-distribution $$P_y$$ with parameters $$\theta_i$$. For instance, $$P_y$$ could
+distribution $$P_1$$ with parameters $$\theta_i$$. For instance, $$P_1$$ could
 refer the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$ identifying a
 particular member of the family by its mean and precision. Parameters $$\{
 \theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
-$$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
-process prior with measure $$\nu$$.
+$$P_0$$. Distribution $$P_0$$ is not known either and gets a Dirichlet process
+prior with measure $$\nu$$.
+
+Similarly to Equation (3), we have the following decomposition:
+
+$$
+P_1(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i).
+$$
 
 It can be seen in Equation (4) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
@@ -164,7 +170,7 @@ For concreteness, consider the following choices:
 $$
 \begin{align}
 \theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
-P_y (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
+P_1 (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
 \nu(\cdot) &= \nu_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
