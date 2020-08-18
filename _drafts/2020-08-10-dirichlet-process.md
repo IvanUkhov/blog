@@ -154,21 +154,36 @@ particular member of the family by its mean and precision. Parameters $$\{
 $$P_0$$. Distribution $$P_0$$ is not known either and gets a Dirichlet process
 prior with measure $$\nu$$.
 
-Unlike the previous model, there is no conjugacy in this case, and hence the
-posterior is not a Dirichlet process. There is, however, a simple Markov chain
-Monte Carlo sampling strategy based on the stick-breaking construction. It
-belongs to the class of blocked Gibbs samples and is as follows. (_Blocked_
-refers to sampling multiple variables together from their joint distribution as
-opposed to sampling them individually from the corresponding conditional
-distributions.)
-
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i)
+P_2(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i) \tag{5}
 $$
 
 where $$P_2$$ is the probability measure of the mixture.
+
+Unlike the previous model, there is no conjugacy in this case, and hence the
+posterior is not a Dirichlet process. There is, however, a relatively simple
+Markov chain Monte Carlo sampling strategy based on the stick-breaking
+construction. It belongs to the class of Gibbs samplers and is as follows.
+
+As before, the infinite decomposition in Equation (5) has to be made finite to
+be usable in practice. To this end, let $$m$$ be an upper limit on the number of
+mixture components, which results in
+
+$$
+P_2(\cdot) = \sum_{i = 1}^m p_i P_0(\cdot | \theta_i).
+$$
+
+Then each data point $$x_i$$, for $$i = 1, \dots, n$$, is mapped to one of the
+$$m$$ components, which is represented by a vector $$k \in \{ 1, \dots, m
+\}^n$$. For instance, $$k_i$$ takes values from 1 to $$m$$ and gives the index
+of the component that the $$i$$th observation is mapped to. The Gibbs sampler
+has the following three steps.
+
+(_Blocked_ refers to sampling multiple variables together from their joint
+distribution as opposed to sampling them individually from the corresponding
+conditional distributions.)
 
 It can be seen in Equation (4) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
