@@ -87,7 +87,7 @@ $$
 Atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized base
 measure $$P_0$$. The calculation of probabilities $$\{ p_i \}$$ is more
 elaborate, and this is where the construction gets its name, “stick breaking.”
-Specifically, we shall take an imaginary stick of length 1, representing the
+Specifically, we shall take an imaginary stick of length one, representing the
 total probability, and keep breaking it into two parts where, for each
 iteration, the left part yields $$p_i$$, and the right one, the remainder, is
 carried over to the next iteration. How much to break off is decided on by
@@ -95,20 +95,20 @@ drawing $$m$$ independent realizations from a carefully chosen beta
 distribution:
 
 $$
-q_i \sim \text{Beta}(1, \nu_0) \text{ for } i = 1, \dots, m.
+q_i \sim \text{Beta}(1, \nu_0), \text{ for } i = 1, \dots, m. \tag{4}
 $$
 
 All of them lie in the unit interval and are the proportions to break off of the
 remainder. Then the desired probabilities are given by the following expression:
 
 $$
-p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j) \text{ for } i = 1, \dots, m,
+p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j), \text{ for } i = 1, \dots, m,
 $$
 
 which, as noted earlier, are the left parts of the remainder of the stick during
 each iteration. For instance, $$p_1 = q_1$$, $$p_2 = q_2 (1 - q_1)$$, and so on.
 Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
-to one, and it is common to set $$q_m = 1$$ so that $$p_m$$ takes up the
+to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
 Now, let us complete the model by choosing a concrete measure:
@@ -140,7 +140,7 @@ such as continuity. The general form is as follows:
 
 $$
 \begin{align}
-y_i | \theta_i & \sim P_1 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{4} \\
+y_i | \theta_i & \sim P_1 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
 \theta_i | P_0 & \sim P_0, \text{ for } i = 1, \dots, n; \text{ and} \\
 P_0 & \sim \text{Dirichlet Process}(\nu).
 \end{align}
@@ -157,7 +157,7 @@ prior with measure $$\nu$$.
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i) \tag{5}
+P_2(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i) \tag{6}
 $$
 
 where $$P_2$$ is the probability measure of the mixture.
@@ -167,7 +167,7 @@ posterior is not a Dirichlet process. There is, however, a relatively simple
 Markov chain Monte Carlo sampling strategy based on the stick-breaking
 construction. It belongs to the class of Gibbs samplers and is as follows.
 
-As before, the infinite decomposition in Equation (5) has to be made finite to
+As before, the infinite decomposition in Equation (6) has to be made finite to
 be usable in practice:
 
 $$
@@ -187,8 +187,8 @@ parameters are $$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{
 k_i \}_{i = 1}^n$$. As usual in Gibbs sampling, the parameters assume random but
 compatible initial values.
 
-First, the mapping of the observations onto the mixture components is updated as
-follows:
+First, the mapping of the observations onto the mixture components, $$\{ k_i
+\}$$, is updated as follows:
 
 $$
 k_i \sim \text{Categorical}\left(
@@ -201,11 +201,26 @@ That is, each entry in $$k$$ is a draw from a categorical distribution with
 $$m$$ categories whose unnormalized probabilities are given by $$p_j P_0(x_i |
 \theta_j)$$, for $$j = 1, \dots, m$$.
 
+Second, the probabilities of the mixture components, $$\{ p_i \}$$, are updated
+using the stick-breaking construction described earlier. This time, however, the
+beta distribution for sampling $$\{ q_i \}$$ in Equation (4) is replaced with
+the following:
+
+$$
+q_i \sim \text{Beta}\left( 1 + n_i, \nu_0 + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,
+$$
+
+where $$n_i$$ is the number of data points that are currently allocated to
+component $$i$$. As before, in order for the $$p_i$$’s to sum up to one, it is
+common to set $$q_m := 1$$.
+
+Third.
+
 (_Blocked_ refers to sampling multiple variables together from their joint
 distribution as opposed to sampling them individually from the corresponding
 conditional distributions.)
 
-It can be seen in Equation (4) that each data point can potentially has its own
+It can be seen in Equation (5) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
 Instead, many data points share the same parameters, which is akin to
 clustering: the data come from a mixture of a handful of distributions.
