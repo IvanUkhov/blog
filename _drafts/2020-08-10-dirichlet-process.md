@@ -200,24 +200,29 @@ That is, each entry in $$k$$ is a draw from a categorical distribution with
 $$m$$ categories whose unnormalized probabilities are given by $$p_j P_0(x_i |
 \theta_j)$$, for $$j = 1, \dots, m$$.
 
-Second, the probabilities of the mixture components, $$\{ p_i \}$$, are updated
-using the stick-breaking construction described earlier. This time, however, the
-beta distribution for sampling $$\{ q_i \}$$ in Equation (4) is replaced with
-the following:
+Second, given $$\{ k_i \}$$, the probabilities of the mixture components, $$\{ p_i
+\}$$, are updated using the stick-breaking construction described earlier. This
+time, however, the beta distribution for sampling $$\{ q_i \}$$ in Equation (4)
+is replaced with the following:
 
 $$
 q_i \sim \text{Beta}\left( 1 + n_i, \nu_0 + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,
 $$
 
-where $$n_i$$ is the number of data points that are currently allocated to
-component $$i$$. As before, in order for the $$p_i$$’s to sum up to one, it is
-common to set $$q_m := 1$$.
+where
 
-Third, the parameters of the mixture components, $$\{ \theta_i \}$$ are updated.
+$$
+n_i = \sum_{j = 1}^m I_{\{i\}}(k_j)
+$$
 
-(_Blocked_ refers to sampling multiple variables together from their joint
-distribution as opposed to sampling them individually from the corresponding
-conditional distributions.)
+is the number of data points that are currently allocated to component $$i$$.
+Here, $$I_A$$ is the indicator function of a set $$A$$. As before, in order for
+the $$p_i$$’s to sum up to one, it is common to set $$q_m := 1$$.
+
+Third, still given $$\{ k_i \}$$, the parameters of the mixture components, $$\{
+\theta_i \}$$ are updated. This is done by sampling from the posterior of each
+component. In this case, the posterior is a prior of choice updated using that
+data points that are currently allocated to the corresponding component.
 
 It can be seen in Equation (5) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
