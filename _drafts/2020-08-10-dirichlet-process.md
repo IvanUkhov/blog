@@ -269,16 +269,25 @@ $$
 where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 (x_i - \mu_x)^2 / n_1$$.
 
+# Acknowledgments
+
+I would like to thank [Mattias Villani] for the insightful and informative
+graduate course in statistics titled “[Advanced Bayesian learning][Villani
+2020],” which was the inspiration behind writing this article.
+
 # References
 
 * Andrew Gelman et al., _[Bayesian Data Analysis][BDA]_, Chapman and Hall/CRC,
   2014.
 * Rick Durrett, _[Probability: Theory and Examples][PTE]_, Cambridge University
-  Press, 2010
+  Press, 2010.
 
 # Footnotes
 
 [^1]: “[Posterior distribution of the parameters][Wikipedia],” Wikipedia, 2020.
+
+[Mattias Villani]: https://www.mattiasvillani.com/
+[Villani 2020]: https://github.com/mattiasvillani/AdvBayesLearnCourse
 
 [BDA]: http://www.stat.columbia.edu/~gelman/book/
 [PTE]: https://services.math.duke.edu/~rtd/PTE/pte.html
