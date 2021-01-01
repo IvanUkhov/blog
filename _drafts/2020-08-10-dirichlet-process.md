@@ -24,7 +24,7 @@ set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall
 use the following notation:
 
 $$
-P \sim \text{Dirichlet Process}(\nu).
+P \sim \text{Dirichlet Process}(\nu)
 $$
 
 where $$P$$ is a _random_ probability distribution that is distributed according
@@ -38,7 +38,7 @@ P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
 $$
 
 Given a data set of $$n$$ observations $$\{ x_i \}_{i = 1}^n$$, a Dirichlet
-process process can be used as a prior:
+process can be used as a prior:
 
 $$
 \begin{align}
@@ -48,7 +48,7 @@ P & \sim \text{Dirichlet Process}(\nu). \tag{1}
 $$
 
 It is important to realize that the $$x_i$$’s are assumed to be distributed
-_not_ according to the Dirichlet process but according to the distribution drawn
+_not_ according to the Dirichlet process but according to a distribution drawn
 from the Dirichlet process.
 
 Due to the conjugacy property of the Dirichlet process, which substantially
@@ -75,10 +75,10 @@ $$
 where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
 \}$$ is a set of points in $$\mathcal{X}$$.
 
-A draw as in Equation (3) can be obtained using the so-called stick-breaking
-construction, which prescribes $$\{ p_i \}$$ and $$\{ x_i \}$$. To begin with,
-for practical computations, the infinite summation is truncated to retain the
-only first $$m$$ elements:
+A draw as shown in Equation (3) can be obtained using the so-called
+stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{ x_i \}$$.
+To begin with, for practical computations, the infinite summation is truncated
+to retain the only first $$m$$ elements:
 
 $$
 P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
@@ -148,7 +148,7 @@ $$
 
 To begin with, the $$i$$th data point, $$y_i$$, is distributed according to a
 distribution $$P_1$$ with parameters $$\theta_i$$. For instance, $$P_1$$ could
-refer the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$ identifying a
+refer to the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$, identifying a
 particular member of the family by its mean and precision. Parameters $$\{
 \theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
 $$P_0$$. Distribution $$P_0$$ is not known either and gets a Dirichlet process
