@@ -175,17 +175,16 @@ P_2(\cdot) = \sum_{i = 1}^m p_i P_0(\cdot | \theta_i).
 $$
 
 Here, $$m$$ represents an upper limit on the number of mixture components. Each
-data point $$x_i$$, for $$i = 1, \dots, n$$, is then mapped to one of the $$m$$
+data point $$x_i$$, for $$i = 1, \dots, n$$, is mapped to one of the $$m$$
 components, which we denote by $$k_i \in \{ 1, \dots, m \}$$. In other words,
-$$k_i$$ takes values from 1 to $$m$$ and gives the index of the component that
-the $$i$$th observation is mapped to. The Gibbs sampler has the following three
-steps.
+$$k_i$$ takes values from 1 to $$m$$ and gives the index of the component of
+the $$i$$th observation.
 
-To set the stage, there are $$m + m \times |\theta| + n$$ parameters to be
-inferred where $$|\theta|$$ denotes the number of parameters of $$P_1$$. These
-parameters are $$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{
-k_i \}_{i = 1}^n$$. As usual in Gibbs sampling, the parameters assume random but
-compatible initial values.
+There are $$m + m \times |\theta| + n$$ parameters to be inferred where
+$$|\theta|$$ denotes the number of parameters of $$P_1$$. These parameters are
+$$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{ k_i \}_{i =
+1}^n$$. As usual in Gibbs sampling, the parameters assume random but compatible
+initial values. The sampler has the following three steps.
 
 First, the mapping of the observations onto the mixture components, $$\{ k_i
 \}$$, is updated as follows:
@@ -214,7 +213,7 @@ where $$n_i$$ is the number of data points that are currently allocated to
 component $$i$$. As before, in order for the $$p_i$$’s to sum up to one, it is
 common to set $$q_m := 1$$.
 
-Third.
+Third, the parameters of the mixture components, $$\{ \theta_i \}$$ are updated.
 
 (_Blocked_ refers to sampling multiple variables together from their joint
 distribution as opposed to sampling them individually from the corresponding
