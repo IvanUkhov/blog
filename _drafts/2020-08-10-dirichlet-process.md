@@ -157,7 +157,7 @@ prior with measure $$\nu$$.
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^\infty p_i P_0(\cdot | \theta_i) \tag{6}
+P_2(\cdot) = \sum_{i = 1}^\infty p_i P_1(\cdot | \theta_i) \tag{6}
 $$
 
 where $$P_2$$ is the probability measure of the mixture.
@@ -171,7 +171,7 @@ As before, the infinite decomposition in Equation (6) has to be made finite to
 be usable in practice:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^m p_i P_0(\cdot | \theta_i).
+P_2(\cdot) = \sum_{i = 1}^m p_i P_1(\cdot | \theta_i).
 $$
 
 Here, $$m$$ represents an upper limit on the number of mixture components. Each
@@ -192,12 +192,12 @@ First, the mapping of the observations onto the mixture components, $$\{ k_i
 $$
 k_i \sim \text{Categorical}\left(
   m,
-  \left\{ \frac{p_j P_0(x_i | \theta_j)}{\sum_{l = 1}^m p_l P_0(x_i | \theta_l)} \right\}_{j = 1}^m
+  \left\{ \frac{p_j P_1(x_i | \theta_j)}{\sum_{l = 1}^m p_l P_1(x_i | \theta_l)} \right\}_{j = 1}^m
 \right), \text{ for } i = 1, \dots, n.
 $$
 
-That is, each entry in $$k$$ is a draw from a categorical distribution with
-$$m$$ categories whose unnormalized probabilities are given by $$p_j P_0(x_i |
+That is, $$k_i$$ is a draw from a categorical distribution with
+$$m$$ categories whose unnormalized probabilities are given by $$p_j P_1(x_i |
 \theta_j)$$, for $$j = 1, \dots, m$$.
 
 Second, given $$\{ k_i \}$$, the probabilities of the mixture components, $$\{ p_i
