@@ -186,8 +186,8 @@ $$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{ k_i \}_{i =
 1}^n$$. As usual in Gibbs sampling, the parameters assume random but compatible
 initial values. The sampler has the following three steps.
 
-First, the mapping of the observations onto the mixture components, $$\{ k_i
-\}$$, is updated as follows:
+First, given $$\{ p_i \}$$ and $$\{ \theta_i \}$$, the mapping of the
+observations onto the mixture components, $$\{ k_i \}$$, is updated as follows:
 
 $$
 k_i \sim \text{Categorical}\left(
@@ -212,7 +212,7 @@ $$
 where
 
 $$
-n_i = \sum_{j = 1}^m I_{\{i\}}(k_j)
+n_i = \sum_{j = 1}^n I_{\{i\}}(k_j), \text{ for } i = 1, \dots, m,
 $$
 
 is the number of data points that are currently allocated to component $$i$$.
