@@ -31,10 +31,10 @@ where $$P_1$$ is a _random_ probability distribution that is distributed
 according to the Dirichlet process. Note that measure $$\nu$$ does not have to
 be a probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In
 order to obtain a probability measure, one can divide $$\nu$$ by the total
-volume $$\nu_0 = \nu(\mathcal{X})$$:
+volume $$\lambda = \nu(\mathcal{X})$$:
 
 $$
-P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
+P_0(\cdot) = \frac{1}{\lambda} \nu(\cdot).
 $$
 
 Given a data set of $$n$$ observations $$\{ x_i \}_{i = 1}^n$$, a Dirichlet
@@ -62,7 +62,8 @@ $$
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
 if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise. It
 can be seen that the base measure has simply been augmented with unit masses
-placed at the $$n$$ observed data points. The total volume is now $$\nu_0 + n$$.
+placed at the $$n$$ observed data points. The total volume is now $$\lambda +
+n$$.
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
 distribution $$P$$. The probability measure of this distribution admits the
@@ -95,16 +96,16 @@ drawing $$m$$ independent realizations from a carefully chosen beta
 distribution:
 
 $$
-q_i \sim \text{Beta}(1, \nu_0), \text{ for } i = 1, \dots, m. \tag{4}
+q_i \sim \text{Beta}(1, \lambda), \text{ for } i = 1, \dots, m. \tag{4}
 $$
 
 All of them lie in the unit interval and are the proportions to break off of the
-remainder. When $$\nu_0 = 1$$, these proportions (of the reminder) are uniformly
-distributed. When $$\nu_0 < 1$$, the probability mass is shifted to the right,
-which means that there are likely to be a small number of large pieces, covering
-virtually the entire stick. When $$\nu_0 > 1$$, the probability mass is shifted
-to the left, which means that there are likely to be a large number of small
-pieces, struggling to reach the end of the stick.
+remainder. When $$\lambda = 1$$, these proportions (of the reminder) are
+uniformly distributed. When $$\lambda < 1$$, the probability mass is shifted to
+the right, which means that there are likely to be a small number of large
+pieces, covering virtually the entire stick. When $$\lambda > 1$$, the
+probability mass is shifted to the left, which means that there are likely to be
+a large number of small pieces, struggling to reach the end of the stick.
 
 The desired probabilities are given by the following expression:
 
@@ -121,13 +122,13 @@ remaining probability mass.
 Now, let us complete the model by choosing a concrete measure:
 
 $$
-\nu(\cdot) = \nu_0 \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
+\nu(\cdot) = \lambda \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution. In this case, we use the precision-based parameterization
 of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
-the usual variance parameter. Multiplier $$\nu_0 = \nu(\mathcal{X}) > 0$$ is
+the usual variance parameter. Multiplier $$\lambda = \nu(\mathcal{X}) > 0$$ is
 there to allow us to control the total volume of the space implied by the
 Dirichlet prior.
 
@@ -213,7 +214,7 @@ time, however, the beta distribution for sampling $$\{ q_i \}$$ in Equation (4)
 is replaced with the following:
 
 $$
-q_i \sim \text{Beta}\left( 1 + n_i, \nu_0 + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,
+q_i \sim \text{Beta}\left( 1 + n_i, \lambda + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,
 $$
 
 where
@@ -242,7 +243,7 @@ $$
 \begin{align}
 \theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
 P_2 (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
-\nu(\cdot) &= \nu_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
+\nu(\cdot) &= \lambda \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
 
