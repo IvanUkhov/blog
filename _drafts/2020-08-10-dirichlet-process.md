@@ -62,7 +62,7 @@ $$
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
 if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise. It
 can be seen that the base measure has simply been augmented with unit masses
-placed at the $$n$$ observed data points.
+placed at the $$n$$ observed data points. The total volume is now $$\nu_0 + n$$.
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
 distribution $$P$$. The probability measure of this distribution admits the
@@ -99,7 +99,14 @@ q_i \sim \text{Beta}(1, \nu_0), \text{ for } i = 1, \dots, m. \tag{4}
 $$
 
 All of them lie in the unit interval and are the proportions to break off of the
-remainder. Then the desired probabilities are given by the following expression:
+remainder. When $$\nu_0 = 1$$, these proportions (of the reminder) are uniformly
+distributed. When $$\nu_0 < 1$$, the probability mass is shifted to the right,
+which means that there are likely to be a small number of large pieces, covering
+virtually the entire stick. When $$\nu_0 > 1$$, the probability mass is shifted
+to the left, which means that there are likely to be a large number of small
+pieces, struggling to reach the end of the stick.
+
+The desired probabilities are given by the following expression:
 
 $$
 p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j), \text{ for } i = 1, \dots, m,
