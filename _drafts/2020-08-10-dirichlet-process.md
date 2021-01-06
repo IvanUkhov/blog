@@ -24,14 +24,14 @@ set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall
 use the following notation:
 
 $$
-P \sim \text{Dirichlet Process}(\nu)
+P_1 \sim \text{Dirichlet Process}(\nu)
 $$
 
-where $$P$$ is a _random_ probability distribution that is distributed according
-to the Dirichlet process. Note that measure $$\nu$$ does not have to be a
-probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In order
-to obtain a probability measure, one can divide $$\nu$$ by the total volume
-$$\nu_0 = \nu(\mathcal{X})$$:
+where $$P_1$$ is a _random_ probability distribution that is distributed
+according to the Dirichlet process. Note that measure $$\nu$$ does not have to
+be a probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In
+order to obtain a probability measure, one can divide $$\nu$$ by the total
+volume $$\nu_0 = \nu(\mathcal{X})$$:
 
 $$
 P_0(\cdot) = \frac{1}{\nu_0} \nu(\cdot).
@@ -42,8 +42,8 @@ process can be used as a prior:
 
 $$
 \begin{align}
-x_i | P & \sim P, \text{ for } i = 1, \dots, n; \text{ and} \\
-P & \sim \text{Dirichlet Process}(\nu). \tag{1}
+x_i | P_1 & \sim P_1, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_1 & \sim \text{Dirichlet Process}(\nu). \tag{1}
 \end{align}
 $$
 
@@ -55,7 +55,7 @@ Due to the conjugacy property of the Dirichlet process, which substantially
 simplifies the inference, the posterior is also a Dirichlet process as follows:
 
 $$
-P | \{ x_i \}_{i = 1}^n
+P_1 | \{ x_i \}_{i = 1}^n
 \sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
 $$
 
@@ -69,7 +69,7 @@ distribution $$P$$. The probability measure of this distribution admits the
 follow representation:
 
 $$
-P(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{3}
+P_1(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{3}
 $$
 
 where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
@@ -81,7 +81,7 @@ To begin with, for practical computations, the infinite summation is truncated
 to retain the only first $$m$$ elements:
 
 $$
-P(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
+P_1(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
 $$
 
 Atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized base
@@ -147,27 +147,27 @@ such as continuity. The general form is as follows:
 
 $$
 \begin{align}
-y_i | \theta_i & \sim P_1 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
-\theta_i | P_0 & \sim P_0, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_0 & \sim \text{Dirichlet Process}(\nu).
+y_i | \theta_i & \sim P_2 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
+\theta_i | P_1 & \sim P_1, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_1 & \sim \text{Dirichlet Process}(\nu).
 \end{align}
 $$
 
 To begin with, the $$i$$th data point, $$y_i$$, is distributed according to a
-distribution $$P_1$$ with parameters $$\theta_i$$. For instance, $$P_1$$ could
+distribution $$P_2$$ with parameters $$\theta_i$$. For instance, $$P_2$$ could
 refer to the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$, identifying a
 particular member of the family by its mean and precision. Parameters $$\{
 \theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
-$$P_0$$. Distribution $$P_0$$ is not known either and gets a Dirichlet process
+$$P_1$$. Distribution $$P_1$$ is not known either and gets a Dirichlet process
 prior with measure $$\nu$$.
 
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^\infty p_i P_1(\cdot | \theta_i) \tag{6}
+P_3(\cdot) = \sum_{i = 1}^\infty p_i P_2(\cdot | \theta_i) \tag{6}
 $$
 
-where $$P_2$$ is the probability measure of the mixture.
+where $$P_3$$ is the probability measure of the mixture.
 
 Unlike the previous model, there is no conjugacy in this case, and hence the
 posterior is not a Dirichlet process. There is, however, a relatively simple
@@ -178,7 +178,7 @@ As before, the infinite decomposition in Equation (6) has to be made finite to
 be usable in practice:
 
 $$
-P_2(\cdot) = \sum_{i = 1}^m p_i P_1(\cdot | \theta_i).
+P_3(\cdot) = \sum_{i = 1}^m p_i P_2(\cdot | \theta_i).
 $$
 
 Here, $$m$$ represents an upper limit on the number of mixture components. Each
@@ -188,7 +188,7 @@ $$k_i$$ takes values from 1 to $$m$$ and gives the index of the component of
 the $$i$$th observation.
 
 There are $$m + m \times |\theta| + n$$ parameters to be inferred where
-$$|\theta|$$ denotes the number of parameters of $$P_1$$. These parameters are
+$$|\theta|$$ denotes the number of parameters of $$P_2$$. These parameters are
 $$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{ k_i \}_{i =
 1}^n$$. As usual in Gibbs sampling, the parameters assume random but compatible
 initial values. The sampler has the following three steps.
@@ -199,13 +199,13 @@ observations onto the mixture components, $$\{ k_i \}$$, is updated as follows:
 $$
 k_i \sim \text{Categorical}\left(
   m,
-  \left\{ \frac{p_j P_1(x_i | \theta_j)}{\sum_{l = 1}^m p_l P_1(x_i | \theta_l)} \right\}_{j = 1}^m
+  \left\{ \frac{p_j P_2(x_i | \theta_j)}{\sum_{l = 1}^m p_l P_2(x_i | \theta_l)} \right\}_{j = 1}^m
 \right), \text{ for } i = 1, \dots, n.
 $$
 
-That is, $$k_i$$ is a draw from a categorical distribution with
-$$m$$ categories whose unnormalized probabilities are given by $$p_j P_1(x_i |
-\theta_j)$$, for $$j = 1, \dots, m$$.
+That is, $$k_i$$ is a draw from a categorical distribution with $$m$$ categories
+whose unnormalized probabilities are given by $$p_j P_2(x_i | \theta_j)$$, for
+$$j = 1, \dots, m$$.
 
 Second, given $$\{ k_i \}$$, the probabilities of the mixture components, $$\{ p_i
 \}$$, are updated using the stick-breaking construction described earlier. This
@@ -241,7 +241,7 @@ For concreteness, consider the following choices:
 $$
 \begin{align}
 \theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
-P_1 (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
+P_2 (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
 \nu(\cdot) &= \nu_0 \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
