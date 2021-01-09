@@ -1,16 +1,27 @@
 ---
 layout: post
-title: Breaking sticks, or density estimation via the Dirichlet process
+title: Breaking sticks, or estimation of probability distributions using the Dirichlet process
 date: 2020-08-10T08:00:00+02:00
 math: true
 keywords:
   - Bayesian statistics
   - Dirichlet process
+  - Gibbs sampling
   - R
   - data science
 ---
 
-She sells seashells by the seashore.
+Recall the last time you tried to understand the distribution of given data. One
+alternative is to plot a histogram. However, it often results in frustration due
+to the choice is the number of bins to use, which leads to drastically different
+outcomes. Another alternative is kernel density estimation. Despite having a
+similar choice to make, it has the advantage of producing smooth estimates,
+which are more realistic for continuous quantities with regularities. However,
+kernel density estimation is blunt: it does not aid in understanding the
+underlying structure and provides no means of quantifying uncertainty. In this
+article, we discuss a Bayesian approach to the estimation of data-generating
+distributions that is based on the Dirichlet process, which addresses the
+aforementioned concerns.
 
 # Direct prior
 
@@ -156,7 +167,7 @@ it is inadequate.
 Instead of using a Dirichlet process as a direct prior for the given data, it
 can be used as a prior for mixing distributions from a given family. The
 resulting posterior will then naturally inherit the properties of the family,
-such as continuity. The structure is as follows:
+such as continuity. The general structure is as follows:
 
 $$
 \begin{align}
@@ -177,7 +188,8 @@ process prior with measure $$\lambda P_0$$.
 It can be seen in Equation (5) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
 Instead, many data points share the same parameters, which is akin to
-clustering: the data come from a mixture of a handful of distributions.
+clustering. In fact, clustering is a prominent use case for the Dirichlet
+process.
 
 ## Inference
 
