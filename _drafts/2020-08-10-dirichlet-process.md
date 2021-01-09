@@ -51,6 +51,8 @@ It is important to realize that the $$x_i$$’s are assumed to be distributed
 _not_ according to the Dirichlet process but according to a distribution drawn
 from the Dirichlet process.
 
+## Inference
+
 Due to the conjugacy property of the Dirichlet process, which substantially
 simplifies the inference, the posterior is also a Dirichlet process as follows:
 
@@ -74,12 +76,10 @@ P_1(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{3}
 $$
 
 where $$\{ p_i \}$$ is a set of probabilities that sum up to one, and $$\{ x_i
-\}$$ is a set of points in $$\mathcal{X}$$.
-
-A draw as shown in Equation (3) can be obtained using the so-called
-stick-breaking construction, which prescribes $$\{ p_i \}$$ and $$\{ x_i \}$$.
-To begin with, for practical computations, the infinite summation is truncated
-to retain the only first $$m$$ elements:
+\}$$ is a set of points in $$\mathcal{X}$$. Such a draw can be obtained using
+the so-called stick-breaking construction, which prescribes $$\{ p_i \}$$ and
+$$\{ x_i \}$$. To begin with, for practical computations, the infinite summation
+is truncated to retain the only first $$m$$ elements:
 
 $$
 P_1(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).
@@ -119,6 +119,8 @@ Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
+## Illustration
+
 Now, let us complete the model by choosing a concrete measure:
 
 $$
@@ -144,7 +146,7 @@ it is inadequate.
 Instead of using a Dirichlet process as a direct prior for the given data, it
 can be used as a prior for mixing distributions from a given family. The
 resulting posterior will then naturally inherit the properties of the family,
-such as continuity. The general form is as follows:
+such as continuity. The structure is as follows:
 
 $$
 \begin{align}
@@ -162,21 +164,21 @@ particular member of the family by its mean and precision. Parameters $$\{
 $$P_1$$. Distribution $$P_1$$ is not known either and gets a Dirichlet process
 prior with measure $$\nu$$.
 
-Similarly to Equation (3), we have the following decomposition:
-
-$$
-P_3(\cdot) = \sum_{i = 1}^\infty p_i P_2(\cdot | \theta_i) \tag{6}
-$$
-
-where $$P_3$$ is the probability measure of the mixture.
+## Inference
 
 Unlike the previous model, there is no conjugacy in this case, and hence the
 posterior is not a Dirichlet process. There is, however, a relatively simple
 Markov chain Monte Carlo sampling strategy based on the stick-breaking
 construction. It belongs to the class of Gibbs samplers and is as follows.
 
-As before, the infinite decomposition in Equation (6) has to be made finite to
-be usable in practice:
+Similarly to Equation (3), we have the following decomposition:
+
+$$
+P_3(\cdot) = \sum_{i = 1}^\infty p_i P_2(\cdot | \theta_i) \tag{6}
+$$
+
+where $$P_3$$ is the probability measure of the mixture. As before, the infinite
+decomposition in Equation (6) has to be made finite to be usable in practice:
 
 $$
 P_3(\cdot) = \sum_{i = 1}^m p_i P_2(\cdot | \theta_i).
@@ -236,6 +238,8 @@ It can be seen in Equation (5) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
 Instead, many data points share the same parameters, which is akin to
 clustering: the data come from a mixture of a handful of distributions.
+
+## Illustration
 
 For concreteness, consider the following choices:
 
