@@ -162,17 +162,22 @@ $$
 \begin{align}
 x_i | \theta_i & \sim P_x \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
 \theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_\theta & \sim \text{Dirichlet Process}(\lambda P_0).
+P_\theta & \sim \text{Dirichlet Process}(\lambda P_0). \\
 \end{align}
 $$
 
-To begin with, the $$i$$th data point, $$x_i$$, is distributed according to a
+To begin with, the $$i$$th data point, $$x_i$$, is distributed according to
 distribution $$P_x$$ with parameters $$\theta_i$$. For instance, $$P_x$$ could
 refer to the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$, identifying a
 particular member of the family by its mean and precision. Parameters $$\{
-\theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
+\theta_i \}_{i = 1}^n$$ are unknown and distributed according to distribution
 $$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
 process prior with measure $$\lambda P_0$$.
+
+It can be seen in Equation (5) that each data point can potentially has its own
+unique set of parameters. However, this is not what usually happens in practice.
+Instead, many data points share the same parameters, which is akin to
+clustering: the data come from a mixture of a handful of distributions.
 
 ## Inference
 
@@ -240,14 +245,19 @@ Here, $$I_A$$ is the indicator function of a set $$A$$. As before, in order for
 the $$p_i$$’s to sum up to one, it is common to set $$q_m := 1$$.
 
 Third, still given $$\{ k_i \}$$, the parameters of the mixture components, $$\{
-\theta_i \}$$ are updated. This is done by sampling from the posterior of each
-component. In this case, the posterior is a prior of choice updated using that
-data points that are currently allocated to the corresponding component.
+\theta_i \}$$ are updated. This is done by sampling from the posterior
+distribution of each component. In this case, the posterior is a prior of choice
+that is combined with the data distribution, which is $$P_x$$, using the data
+points that are currently allocated to the corresponding component. In order to
+streamline this step, a conjugate prior for the data distribution is commonly
+utilized, which we shall illustrate shortly.
 
-It can be seen in Equation (5) that each data point can potentially has its own
-unique set of parameters. However, this is not what usually happens in practice.
-Instead, many data points share the same parameters, which is akin to
-clustering: the data come from a mixture of a handful of distributions.
+The Gibbs procedure above is very flexible. Other parameters can be inferred
+too, instead of setting them to fixed values. An important example is the
+concentration parameter, $$\lambda$$. This parameter controls the formation of
+clusters, and one might let the data decide what the value should be, in which
+case a step similar to the third one is added to the process to update
+$$\lambda$$. This will be also illustrated below.
 
 ## Illustration
 
