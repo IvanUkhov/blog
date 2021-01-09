@@ -17,11 +17,11 @@ She sells seashells by the seashore.
 A Dirichlet process is a stochastic process, that is, an indexed sequence of
 random variables. Each realization of this process is a discrete probability
 distribution, which makes the process a distribution over distributions,
-similarly to a Dirichlet distribution. The process has only one parameter: the
-measure $$\nu: \mathcal{B} \to [0, \infty]$$, which is a measure in a suitable
-measure space $$(\mathcal{X}, \mathcal{B}, \nu)$$ where $$\mathcal{X}$$ is a
-set, and $$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall
-use the following notation:
+similarly to a Dirichlet distribution. The process has only one parameter: a
+measure $$\nu: \mathcal{B} \to [0, \infty]$$ in a suitable finite measure space
+$$(\mathcal{X}, \mathcal{B}, \nu)$$ where $$\mathcal{X}$$ is a set, and
+$$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall use the
+following notation:
 
 $$
 P_1 \sim \text{Dirichlet Process}(\nu)
@@ -37,19 +37,31 @@ $$
 P_0(\cdot) = \frac{1}{\lambda} \nu(\cdot).
 $$
 
+Since this normalization is always possible, it is common and convenient to
+replace $$\nu$$ with $$\lambda P_0$$ and consider the process to be
+parametrized by two quantities instead of one:
+
+$$
+P_1 \sim \text{Dirichlet Process}(\lambda P_0)
+$$
+
+where $$\lambda$$ is referred to as the concentration parameter of the process.
+
 Given a data set of $$n$$ observations $$\{ x_i \}_{i = 1}^n$$, a Dirichlet
 process can be used as a prior:
 
 $$
 \begin{align}
 x_i | P_1 & \sim P_1, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_1 & \sim \text{Dirichlet Process}(\nu). \tag{1}
+P_1 & \sim \text{Dirichlet Process}(\lambda P_0). \tag{1}
 \end{align}
 $$
 
-It is important to realize that the $$x_i$$’s are assumed to be distributed
-_not_ according to the Dirichlet process but according to a distribution drawn
-from the Dirichlet process.
+Parameter $$\lambda$$ allows one to control the strength of the Dirichlet prior:
+the larger it is, the more shrinkage towards the prior is induced. It is
+important to realize that the $$x_i$$’s are assumed to be distributed _not_
+according to the Dirichlet process but according to a distribution drawn from
+the Dirichlet process.
 
 ## Inference
 
@@ -58,7 +70,7 @@ simplifies the inference, the posterior is also a Dirichlet process as follows:
 
 $$
 P_1 | \{ x_i \}_{i = 1}^n
-\sim \text{Dirichlet Process}\left( \nu + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
+\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
 $$
 
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
@@ -124,15 +136,13 @@ remaining probability mass.
 Now, let us complete the model by choosing a concrete measure:
 
 $$
-\nu(\cdot) = \lambda \, \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
+P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution. In this case, we use the precision-based parameterization
 of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
-the usual variance parameter. Multiplier $$\lambda = \nu(\mathcal{X}) > 0$$ is
-there to allow us to control the total volume of the space implied by the
-Dirichlet prior.
+the usual variance parameter.
 
 # Mixing prior
 
@@ -152,7 +162,7 @@ $$
 \begin{align}
 y_i | \theta_i & \sim P_2 \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
 \theta_i | P_1 & \sim P_1, \text{ for } i = 1, \dots, n; \text{ and} \\
-P_1 & \sim \text{Dirichlet Process}(\nu).
+P_1 & \sim \text{Dirichlet Process}(\lambda P_0).
 \end{align}
 $$
 
@@ -162,7 +172,7 @@ refer to the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$, identifying a
 particular member of the family by its mean and precision. Parameters $$\{
 \theta_i \}_{i = 1}^n$$ are unknown and distributed according to a distribution
 $$P_1$$. Distribution $$P_1$$ is not known either and gets a Dirichlet process
-prior with measure $$\nu$$.
+prior with measure $$\lambda P_0$$.
 
 ## Inference
 
@@ -247,7 +257,7 @@ $$
 \begin{align}
 \theta_i &= (\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \\
 P_2 (\theta_i) &= \text{Gaussian}(\mu_i, \tau_i), \text{ for } i = 1, \dots, n; \text{ and} \\
-\nu(\cdot) &= \lambda \, \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
+P_0(\cdot) &= \text{Gaussian–Gamma}(\, \cdot \, | \mu_0, n_0, \alpha_0, \beta_0).
 \end{align}
 $$
 
