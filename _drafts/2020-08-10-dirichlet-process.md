@@ -17,10 +17,10 @@ to the choice is the number of bins to use, which leads to drastically different
 outcomes. Another alternative is kernel density estimation. Despite having a
 similar choice to make, it has the advantage of producing smooth estimates,
 which are more realistic for continuous quantities with regularities. However,
-kernel density estimation is blunt: it does not aid in understanding the
-underlying structure and provides no means of quantifying uncertainty. In this
-article, we discuss a Bayesian approach to the estimation of data-generating
-distributions that is based on the Dirichlet process, which addresses the
+kernel density estimation is blunt: it provides no means of quantifying the
+uncertainty associated with results and does not aid in understanding the
+underlying structure of the data. In this article, we discuss a Bayesian
+approach to the estimation of data-generating distributions that addresses the
 aforementioned concerns.
 
 # Direct prior
