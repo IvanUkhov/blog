@@ -137,7 +137,7 @@ p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j), \text{ for } i = 1, \dots, m,
 $$
 
 which, as noted earlier, are the left parts of the remainder of the stick during
-each iteration. For instance, $$p_1 = q_1$$, $$P_x = q_2 (1 - q_1)$$, and so on.
+each iteration. For instance, $$p_1 = q_1$$, $$p_2 = q_2 (1 - q_1)$$, and so on.
 Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
