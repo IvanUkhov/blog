@@ -12,6 +12,8 @@ keywords:
 ---
 
 ```{r, echo = FALSE, message = FALSE}
+library(MASS)
+library(latex2exp)
 library(tidyverse)
 
 work_directory <- '../_scripts/2021-01-25-dirichlet-process'
@@ -155,6 +157,32 @@ to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
 ## Illustration
+
+```{r data, include = FALSE}
+data <- tibble(x = galaxies / 1000)
+```
+
+```{r data-cdf, include = FALSE}
+ggplot() +
+  geom_reference(data) +
+  labs(x = 'Velocity (1000 km/s)',
+       y = 'Probability') +
+  scale_color() +
+  theme(legend.position = 'none')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/data-cdf-1.svg)
+
+```{r data-histogram, include = FALSE}
+ggplot() +
+  geom_reference(data, type = 'histogram') +
+  labs(x = 'Velocity (1000 km/s)',
+       y = 'Number of galaxies') +
+  scale_color() +
+  theme(legend.position = 'none')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg)
 
 Now, let us complete the model by choosing a concrete measure:
 

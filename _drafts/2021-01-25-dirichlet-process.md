@@ -146,6 +146,16 @@ remaining probability mass.
 
 ## Illustration
 
+
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/data-cdf-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg)
+
 Now, let us complete the model by choosing a concrete measure:
 
 $$
