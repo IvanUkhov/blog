@@ -99,8 +99,8 @@ induced.
 
 ## Inference
 
-Due to the conjugacy property of the Dirichlet process, which substantially
-simplifies the inference, the posterior is also a Dirichlet process as follows:
+Due to the conjugacy property of the Dirichlet process in the above setting, the
+posterior is also a Dirichlet process and has the follow simple form:
 
 $$
 P_x | \{ x_i \}_{i = 1}^n
@@ -108,13 +108,16 @@ P_x | \{ x_i \}_{i = 1}^n
 $$
 
 where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
-if $$x \in X$$ for any $$X \subset \mathcal{X}$$, and it is zero otherwise. It
+if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and it is zero otherwise. It
 can be seen that the base measure has simply been augmented with unit masses
 placed at the $$n$$ observed data points. The total volume is now $$\lambda +
 n$$.
 
+However, the main question remains: how to draw samples from a Dirichlet
+process?
+
 As noted earlier, a draw from a Dirichlet process is a discrete probability
-distribution $$P$$. The probability measure of this distribution admits the
+distribution $$P_x$$. The probability measure of this distribution admits the
 follow representation:
 
 $$
@@ -133,13 +136,13 @@ $$
 
 Atoms $$\{ x_i \}_{i = 1}^m$$ are drawn independently from the normalized base
 measure $$P_0$$. The calculation of probabilities $$\{ p_i \}$$ is more
-elaborate, and this is where the construction gets its name, “stick breaking.”
-Specifically, we shall take an imaginary stick of length one, representing the
-total probability, and keep breaking it into two parts where, for each
-iteration, the left part yields $$p_i$$, and the right one, the remainder, is
-carried over to the next iteration. How much to break off is decided on by
-drawing $$m$$ independent realizations from a carefully chosen beta
-distribution:
+elaborate, and this is where the construction and this article get their name,
+“stick breaking.” Imagine a stick of unit length, representing the total
+probability. The procedure is to keep breaking the stick into two parts where,
+for each iteration, the left part yields $$p_i$$, and the right one, the
+remainder, is carried over to the next iteration. How much to break off is
+decided on by drawing $$m$$ independent realizations from a carefully chosen
+beta distribution:
 
 $$
 q_i \sim \text{Beta}(1, \lambda), \text{ for } i = 1, \dots, m. \tag{4}
@@ -153,7 +156,7 @@ pieces, covering virtually the entire stick. When $$\lambda > 1$$, the
 probability mass is shifted to the left, which means that there are likely to be
 a large number of small pieces, struggling to reach the end of the stick.
 
-The desired probabilities are given by the following expression:
+Formally, the desired probabilities are given by the following expression:
 
 $$
 p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j), \text{ for } i = 1, \dots, m,
@@ -166,6 +169,12 @@ to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
 ## Illustration
+
+It is time to demonstrate how the Dirichlet process behaves as a direct prior.
+To this end, we shall use a [data set][galaxies] containing velocities of “82
+galaxies from six well-separated conic sections of an unfilled survey of the
+Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
+reference point.
 
 ```{r data, include = FALSE}
 data <- tibble(x = galaxies / 1000)
@@ -530,6 +539,9 @@ graduate course in statistics titled “[Advanced Bayesian learning][Villani
 
 * Andrew Gelman et al., _[Bayesian Data Analysis][BDA]_, Chapman and Hall/CRC,
   2014.
+* Kathryn Roeder, “[Density estimation with confidence sets exemplified by
+  superclusters and voids in galaxies][Roeder (1990)],” Journal of the American
+  Statistical Association, 1990.
 * Rick Durrett, _[Probability: Theory and Examples][PTE]_, Cambridge University
   Press, 2010.
 
@@ -543,3 +555,5 @@ graduate course in statistics titled “[Advanced Bayesian learning][Villani
 [BDA]: http://www.stat.columbia.edu/~gelman/book/
 [PTE]: https://services.math.duke.edu/~rtd/PTE/pte.html
 [Wikipedia]: https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters
+[galaxies]: https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/galaxies.html
+[Roeder (1990)]: https://doi.org/10.2307/2289993
