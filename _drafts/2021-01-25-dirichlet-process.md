@@ -13,19 +13,21 @@ keywords:
 
 
 
-Recall the last time you tried to understand the distribution of given data. One
-alternative is to plot a histogram. However, it often results in frustration due
-to the choice is the number of bins to use, which leads to drastically different
-outcomes. Another alternative is kernel density estimation. Despite having a
+Recall the last time you wanted to understand the distribution of given data.
+One alternative was to plot a histogram. However, it resulted in frustration due
+to the choice of the number of bins to use, which led to drastically different
+outcomes. Another alternative was kernel density estimation. Despite having a
 similar choice to make, it has the advantage of producing smooth estimates,
 which are more realistic for continuous quantities with regularities. However,
-kernel density estimation is blunt: it provides no means of quantifying the
-uncertainty associated with results and does not aid in understanding the
-underlying structure of the data. In this article, we discuss a Bayesian
-approach to the estimation of data-generating distributions that addresses the
-aforementioned concerns.
+kernel density estimation was unsatisfactory too: it did not aid in
+understanding the underlying structure of the data and, moreover, provided no
+means of quantifying the uncertainty associated with the results. In this
+article, we discuss a Bayesian approach to the estimation of data-generating
+distributions that addresses the aforementioned concerns.
 
-# Direct prior
+The approach we shall discuss is based on the family of Dirichlet processes. How
+specifically such processes are constructed will be described in the next
+section; here, we focus on the big picture.
 
 A Dirichlet process is a stochastic process, that is, an indexed sequence of
 random variables. Each realization of this process is a discrete probability
@@ -33,18 +35,18 @@ distribution, which makes the process a distribution over distributions,
 similarly to a Dirichlet distribution. The process has only one parameter: a
 measure $$\nu: \mathcal{B} \to [0, \infty]$$ in a suitable finite measure space
 $$(\mathcal{X}, \mathcal{B}, \nu)$$ where $$\mathcal{X}$$ is a set, and
-$$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall use the
+$$\mathcal{B}$$ is a $$\sigma$$-algebra on $$\mathcal{X}$$. We shall adopt the
 following notation:
 
 $$
-P_x \sim \text{Dirichlet Process}(\nu)
+P \sim \text{Dirichlet Process}(\nu)
 $$
 
-where $$P_x$$ is a _random_ probability distribution that is distributed
-according to the Dirichlet process. Note that measure $$\nu$$ does not have to
-be a probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In
-order to obtain a probability measure, one can divide $$\nu$$ by the total
-volume $$\lambda = \nu(\mathcal{X})$$:
+where $$P$$ is a _random_ probability distribution that is distributed according
+to the Dirichlet process. Note that measure $$\nu$$ does not have to be a
+probability measure; that is, $$\nu(\mathcal{X}) = 1$$ is not required. In order
+to obtain a probability measure, one can divide $$\nu$$ by the total volume
+$$\lambda = \nu(\mathcal{X})$$:
 
 $$
 P_0(\cdot) = \frac{1}{\lambda} \nu(\cdot).
@@ -55,10 +57,17 @@ replace $$\nu$$ with $$\lambda P_0$$ and consider the process to be
 parametrized by two quantities instead of one:
 
 $$
-P_x \sim \text{Dirichlet Process}(\lambda P_0)
+P \sim \text{Dirichlet Process}(\lambda P_0).
 $$
 
-where $$\lambda$$ is referred to as the concentration parameter of the process.
+Parameter $$\lambda$$ is commonly referred to as the concentration parameter of
+the process.
+
+There are two major alternatives of using the Dirichlet process for estimating
+distributions: as a direct prior for the data at hand and as a mixing prior. We
+begin with the former.
+
+# Direct prior
 
 Given a data set of $$n$$ observations $$\{ x_i \}_{i = 1}^n$$, a Dirichlet
 process can be used as a prior:
@@ -70,11 +79,11 @@ P_x & \sim \text{Dirichlet Process}(\lambda P_0). \tag{1}
 \end{align}
 $$
 
-Parameter $$\lambda$$ allows one to control the strength of the Dirichlet prior:
-the larger it is, the more shrinkage towards the prior is induced. It is
-important to realize that the $$x_i$$’s are assumed to be distributed _not_
-according to the Dirichlet process but according to a distribution drawn from
-the Dirichlet process.
+It is important to realize that the $$x_i$$’s are assumed to be distributed
+_not_ according to the Dirichlet process but according to a distribution drawn
+from the Dirichlet process. Parameter $$\lambda$$ allows one to control the
+strength of the prior: the larger it is, the more shrinkage towards the prior is
+induced.
 
 ## Inference
 
