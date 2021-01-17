@@ -167,6 +167,14 @@ Gaussian distribution. In this case, we use the precision-based parameterization
 of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
 the usual variance parameter.
 
+
+
+![](/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
+
 # Mixing prior
 
 The model discussed in the previous section has a serious limitation: it assumes

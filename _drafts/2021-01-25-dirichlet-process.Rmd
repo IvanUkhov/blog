@@ -164,7 +164,7 @@ data <- tibble(x = galaxies / 1000)
 
 ```{r data-cdf, include = FALSE}
 ggplot() +
-  geom_reference(data) +
+  geom_observation(data) +
   labs(x = 'Velocity (1000 km/s)',
        y = 'Probability') +
   scale_color() +
@@ -175,7 +175,7 @@ ggplot() +
 
 ```{r data-histogram, include = FALSE}
 ggplot() +
-  geom_reference(data, type = 'histogram') +
+  geom_observation(data, type = 'histogram') +
   labs(x = 'Velocity (1000 km/s)',
        y = 'Number of galaxies') +
   scale_color() +
@@ -194,6 +194,45 @@ In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution. In this case, we use the precision-based parameterization
 of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
 the usual variance parameter.
+
+```{r direct-prior, fig.asp = 1, include = FALSE}
+set.seed(42)
+
+tibble(lambda = c(1, 10, 100, 1000)) %>%
+  mutate(data = map(lambda, ~ sample_DP(l = 10000,
+                                        nu = nu_prior(lambda = .x,
+                                                      mu0 = mean(data$x),
+                                                      sigma0 = sd(data$x))))) %>%
+  unnest(data) %>%
+  mutate(lambda = str_c('$\\lambda$ = ', lambda)) %>%
+  group_by(lambda) %>%
+  plot_distribution(data) +
+  facet_wrap(vars(lambda),
+             ncol = 1,
+             labeller = as_labeller(TeX, default = label_parsed))
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg)
+
+```{r direct-posterior, fig.asp = 1, include = FALSE}
+set.seed(42)
+
+tibble(lambda = c(1, 10, 100, 1000)) %>%
+  mutate(data = map(lambda, ~ sample_DP(l = 10000,
+                                        nu = nu_posterior(data$x,
+                                                          lambda = .x,
+                                                          mu0 = mean(data$x),
+                                                          sigma0 = sd(data$x))))) %>%
+  unnest(data) %>%
+  mutate(lambda = str_c('$\\lambda$ = ', lambda)) %>%
+  group_by(lambda) %>%
+  plot_distribution(data) +
+  facet_wrap(vars(lambda),
+             ncol = 1,
+             labeller = as_labeller(TeX, default = label_parsed))
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
 
 # Mixing prior
 
