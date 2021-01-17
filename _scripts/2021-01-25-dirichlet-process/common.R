@@ -134,7 +134,7 @@ evaluate_Pm <- function(draws, grid, ...) {
     bind_rows()
 }
 
-evaluate_DP <- function(draws, observed, size = 1000, ...) {
+evaluate_DPM <- function(draws, observed, size = 1000, ...) {
   grid <- seq(min(observed$x) - 5, to = max(observed$x) + 5, length.out = size)
   evaluate_Pm(draws, grid, ...)
 }
@@ -235,10 +235,10 @@ sample_DPM <- function(x, m, l,
   draws
 }
 
-check_predictive <- function(draws, observed, type = 'cdf', ...) {
+check_predictive <- function(draws, observed, type = 'pdf', ...) {
   ggplot() +
     geom_observation(observed, type = type, ...) +
-    geom_line(data = evaluate_DP(draws, observed, type = type),
+    geom_line(data = evaluate_DPM(draws, observed, type = type),
               mapping = aes(x, y, color = 'Model', group = .draw),
               size = 1) +
     scale_color() +
@@ -247,24 +247,27 @@ check_predictive <- function(draws, observed, type = 'cdf', ...) {
     theme(legend.position = 'none')
 }
 
-summarize_inference <- function(draws, observed, type = 'cdf', probability = 0.95, ...) {
-  draws <- evaluate_DP(draws, observed, type = type) %>%
+summarize_inference <- function(draws, observed, type = 'pdf', probability = 0.95, ...) {
+  evaluate_DPM(draws, observed, type = type) %>%
     group_by(x) %>%
     summarize(y_mean = mean(y),
               y_lower = quantile(y, (1 - probability) / 2),
               y_upper = quantile(y, 1 - (1 - probability) / 2),
               .groups = 'drop')
+}
+
+plot_inference <- function(draws_summarized, observed, type = 'pdf', probability = 0.95, ...) {
   ggplot() +
     geom_observation(observed, type = type, ...) +
-    geom_line(data = draws,
+    geom_line(data = draws_summarized,
               mapping = aes(x, y_lower, color = 'Model'),
               linetype = 'dashed',
               size = 0.5) +
-    geom_line(data = draws,
+    geom_line(data = draws_summarized,
               mapping = aes(x, y_upper, color = 'Model'),
               linetype = 'dashed',
               size = 0.5) +
-    geom_line(data = draws,
+    geom_line(data = draws_summarized,
               mapping = aes(x, y_mean, color = 'Model'),
               size = 1) +
     scale_color() +

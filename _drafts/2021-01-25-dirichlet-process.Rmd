@@ -393,7 +393,7 @@ where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 (x_i - \mu_x)^2 / n_1$$.
 
 ```{r mixture-prior-check, include = FALSE}
-cache_path <- file.path(cache_directory, 'mixture-prior-draws.RData')
+cache_path <- file.path(cache_directory, 'mixture-prior.RData')
 if (!file.exists(cache_path)) {
   set.seed(42)
   draws0 <- sample_DPM(data$x, 25, 1000, kappa0 = 0.01, prior_only = TRUE)
@@ -402,13 +402,13 @@ if (!file.exists(cache_path)) {
   load(cache_path)
 }
 
-check_predictive(sample(tail(draws0, length(draws0) / 2), 2), data, type = 'pdf')
+check_predictive(sample(tail(draws0, length(draws0) / 2), 2), data)
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg)
 
 ```{r mixture-posterior-check, include = FALSE}
-cache_path <- file.path(cache_directory, 'mixture-posterior-draws.RData')
+cache_path <- file.path(cache_directory, 'mixture-posterior.RData')
 if (!file.exists(cache_path)) {
   set.seed(42)
   draws <- sample_DPM(data$x, 25, 1000, kappa0 = 0.01)
@@ -417,13 +417,22 @@ if (!file.exists(cache_path)) {
   load(cache_path)
 }
 
-check_predictive(sample(tail(draws, length(draws) / 2), 2), data, type = 'pdf')
+check_predictive(sample(tail(draws, length(draws) / 2), 2), data)
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg)
 
 ```{r mixture-posterior-summary, include = FALSE}
-summarize_inference(tail(draws, length(draws) / 2), data, type = 'pdf')
+cache_path <- file.path(cache_directory, 'mixture-posterior-summarized')
+if (!file.exists(cache_path)) {
+  set.seed(42)
+  draws_summarized <- summarize_inference(tail(draws, length(draws) / 2), data)
+  save(draws_summarized, file = cache_path)
+} else {
+  load(cache_path)
+}
+
+plot_inference(draws_summarized, data)
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
