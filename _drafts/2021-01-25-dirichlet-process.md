@@ -335,6 +335,18 @@ where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 
 
 
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-mu-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-sigma-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-lambda-1.svg)
+
+
+
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg)
 
 
@@ -347,7 +359,11 @@ where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 
 
 
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-allocation-1.svg)
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-k-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
 
 # Acknowledgments
 

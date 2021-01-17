@@ -392,6 +392,57 @@ $$
 where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 (x_i - \mu_x)^2 / n_1$$.
 
+```{r mixture-prior-mu, include = FALSE}
+set.seed(42)
+sample_Ptheta_prior(1000, mu0 = mean(data$x), kappa0 = 0.01) %>%
+  ggplot() +
+  geom_vline(aes(xintercept = mean(data$x), color = 'Observation'),
+             size = 1,
+             show.legend = FALSE) +
+  stat_density(aes(mu, color = 'Model'),
+               geom = 'line',
+               position = 'identity',
+               size = 1) +
+  scale_color() +
+  labs(x = TeX('Mean of a component, $\\mu_i$ (1000 km/s)'),
+       y = 'Probability density') +
+  theme(legend.position = 'top',
+        legend.title = element_blank())
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-mu-1.svg)
+
+```{r mixture-prior-sigma, include = FALSE}
+set.seed(42)
+sample_Ptheta_prior(1000, mu0 = mean(data$x), kappa0 = 0.01) %>%
+  ggplot() +
+  geom_vline(aes(xintercept = sd(data$x), color = 'Observation'),
+             size = 1,
+             show.legend = FALSE) +
+  stat_density(aes(sigma, color = 'Model'),
+               geom = 'line',
+               position = 'identity',
+               size = 1) +
+  scale_color() +
+  labs(x = TeX('Standard deviation of a component, $\\sigma_i$ (1000 km/s)'),
+       y = 'Probability density') +
+  theme(legend.position = 'top',
+        legend.title = element_blank())
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-sigma-1.svg)
+
+```{r mixture-prior-lambda, include = FALSE}
+set.seed(42)
+tibble(lambda = sample_Plambda_prior(1000)) %>%
+  ggplot() +
+  geom_density(aes(lambda), color = 'gray30', size = 1) +
+  labs(x = TeX('Concentration parameter, $\\lambda$'),
+       y = 'Probability density')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-lambda-1.svg)
+
 ```{r mixture-prior-check, include = FALSE}
 cache_path <- file.path(cache_directory, 'mixture-prior.RData')
 if (!file.exists(cache_path)) {
@@ -437,17 +488,28 @@ plot_inference(draws_summarized, data)
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
 
-```{r mixture-posterior-allocation, include = FALSE}
+```{r mixture-posterior-k, include = FALSE}
 tibble(value = sapply(draws, function(draw) length(unique(draw$k)))) %>%
   mutate(draw = row_number()) %>%
   ggplot(aes(draw, value)) +
-  geom_line(size = 0.25) +
+  geom_line(color = 'gray30', size = 0.5) +
   ylim(1, 25) +
   labs(x = 'Iteration',
        y = 'Number of components')
 ```
 
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-allocation-1.svg)
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-k-1.svg)
+
+```{r mixture-posterior-lambda, include = FALSE}
+tibble(value = sapply(draws, function(draw) draw$lambda)) %>%
+  mutate(draw = row_number()) %>%
+  ggplot(aes(draw, value)) +
+  geom_line(color = 'gray30', size = 0.5) +
+  labs(x = 'Iteration',
+       y = TeX('Concentration parameter, $\\lambda$'))
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
 
 # Acknowledgments
 
