@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Breaking sticks, or estimation of probability distributions using the Dirichlet process
-date: 2020-08-10T08:00:00+02:00
+date: 2021-01-25T08:00:00+02:00
 math: true
 keywords:
   - Bayesian statistics
@@ -10,6 +10,8 @@ keywords:
   - R
   - data science
 ---
+
+
 
 Recall the last time you tried to understand the distribution of given data. One
 alternative is to plot a histogram. However, it often results in frustration due
