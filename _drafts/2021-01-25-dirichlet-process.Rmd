@@ -437,6 +437,18 @@ plot_inference(draws_summarized, data)
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
 
+```{r mixture-posterior-allocation, include = FALSE}
+tibble(value = sapply(draws, function(draw) length(unique(draw$k)))) %>%
+  mutate(draw = row_number()) %>%
+  ggplot(aes(draw, value)) +
+  geom_line(size = 0.25) +
+  ylim(1, 25) +
+  labs(x = 'Iteration',
+       y = 'Number of components')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-allocation-1.svg)
+
 # Acknowledgments
 
 I would like to thank [Mattias Villani] for the insightful and informative
