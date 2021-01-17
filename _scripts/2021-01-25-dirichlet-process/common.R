@@ -50,13 +50,13 @@ sample_DP <- function(l, nu) {
   tibble(x = x, p = p)
 }
 
-plot_distribution <- function(sampled, observed) {
-  sampled <- sampled %>%
+plot_distribution <- function(draws, observed) {
+  draws <- draws %>%
     arrange(x) %>%
     mutate(p = cumsum(p))
   ggplot() +
     geom_observation(observed) +
-    geom_line(data = sampled,
+    geom_line(data = draws,
               mapping = aes(x, p, color = 'Model'),
               size = 1) +
     scale_color() +
@@ -64,4 +64,211 @@ plot_distribution <- function(sampled, observed) {
          y = 'Probability') +
     theme(legend.title = element_blank(),
           legend.position = 'top')
+}
+
+sample_Ptheta_prior <- function(l, mu0 = 0, kappa0 = 1, nu0 = 3, sigma0 = 1) {
+  sigma <- sqrt((nu0 * sigma0^2) / rchisq(l, nu0))
+  mu <- rnorm(l, mu0, sigma / sqrt(kappa0))
+  tibble(mu = mu, sigma = sigma)
+}
+
+sample_Ptheta_posterior <- function(l, x, mu0 = mean(x), kappa0 = 1, nu0 = 3, sigma0 = sd(x)) {
+  n1 <- length(x)
+  if (n1 == 0) {
+    mu1 <- 0
+    ss1 <- 0
+  } else {
+    mu1 <- mean(x)
+    ss1 <- sum((x - mu1)^2)
+  }
+  sample_Ptheta_prior(
+    l = l,
+    mu0 = kappa0 / (kappa0 + n1) * mu0 + n1 / (kappa0 + n1) * mu1,
+    kappa0 = kappa0 + n1,
+    nu0 = nu0 + n1,
+    sigma0 = sqrt((nu0 * sigma0^2 + ss1 + kappa0 * n1 / (kappa0 + n1) * (mu1 - mu0)^2) / (nu0 + n1))
+  )
+}
+
+sample_Plambda_prior <- function(l, alpha0 = 2, beta0 = 0.1) {
+  rgamma(l, alpha0, beta0)
+}
+
+sample_Plambda_posterior <- function(l, q, alpha0 = 2, beta0 = 0.1) {
+  sample_Plambda_prior(
+    l = l,
+    alpha0 = alpha0 + length(q) - 1,
+    beta0 = beta0 - sum(log(head(q, -1)))
+  )
+}
+
+evaluate_Px <- function(x, theta) {
+  dnorm(x, theta$mu, sqrt(theta$sigma))
+}
+
+evaluate_Pm_ <- function(draw, grid, type = 'cdf') {
+  if (type == 'cdf') {
+    method <- pnorm
+  } else if (type == 'pdf') {
+    method <- dnorm
+  }
+  bind_cols(draw$theta, tibble(p = draw$stick$p)) %>%
+    mutate(.component = row_number()) %>%
+    select(.component, everything()) %>%
+    mutate(data = map2(mu, sigma, function(mu, sigma) {
+                                  tibble(x = grid,
+                                         y = method(grid, mu, sigma))
+                                  })) %>%
+    unnest(data) %>%
+    group_by(x) %>%
+    summarize(y = sum(p * y), .groups = 'drop')
+}
+
+evaluate_Pm <- function(draws, grid, ...) {
+  process <- function(i) {
+    evaluate_Pm_(draws[[i]], grid, ...) %>%
+      mutate(.draw = i) %>%
+      select(.draw, everything())
+  }
+  sapply(1:length(draws), process, simplify = FALSE) %>%
+    bind_rows()
+}
+
+evaluate_DP <- function(draws, observed, size = 1000, ...) {
+  grid <- seq(min(observed$x) - 5, to = max(observed$x) + 5, length.out = size)
+  evaluate_Pm(draws, grid, ...)
+}
+
+count_subjects <- function(m, k) {
+  n <- rep(0, m)
+  k <- as.data.frame(table(k))
+  n[as.numeric(levels(k[ , 1]))[k[ , 1]]] <- k[ , 2]
+  n
+}
+
+update_k <- function(x, state, prior_only = FALSE) {
+  m <- length(state$stick$p)
+  n <- length(x)
+  if (prior_only) {
+    p <- matrix(rep(1 / m, m * n), nrow = m, ncol = n)
+  } else {
+    x <- rep(x, each = m)
+    theta <- state$theta %>% slice(rep(1:m, n))
+    p <- matrix(evaluate_Px(x, theta), nrow = m, ncol = n)
+    p <- sweep(p, 1, state$stick$p, `*`)
+    p <- sweep(p, 2, colSums(p), `/`)
+  }
+  apply(p, 2, function(p) sample(1:m, 1, prob = p))
+}
+
+update_stick <- function(x, state, prior_only = FALSE) {
+  m <- length(state$stick$p)
+  if (prior_only) {
+    alpha <- 1
+    beta <- state$lambda
+  } else {
+    n <- count_subjects(m, state$k)
+    alpha <- 1 + n
+    beta <- state$lambda + sum(n) - cumsum(n)
+  }
+  stick_break(m, alpha, beta)
+}
+
+update_theta <- function(x, state, prior_only = FALSE, ...) {
+  m <- length(state$stick$p)
+  if (prior_only) {
+    sapply(1:m, function(i) sample_Ptheta_prior(1, ...), simplify = FALSE) %>%
+      bind_rows()
+  } else {
+    sapply(1:m, function(i) sample_Ptheta_posterior(1, x[state$k == i], ...),
+           simplify = FALSE) %>%
+      bind_rows()
+  }
+}
+
+update_lambda <- function(x, state, prior_only = FALSE, ...) {
+  if (prior_only) {
+    sample_Plambda_prior(1, ...)
+  } else {
+    sample_Plambda_posterior(1, state$stick$q, ...)
+  }
+}
+
+sample_DPM <- function(x, m, l,
+                       n0 = 3,
+                       mu0 = mean(x),
+                       kappa0 = n0,
+                       nu0 = n0,
+                       sigma0 = 1,
+                       lambda0 = 1,
+                       alpha0 = n0,
+                       beta0 = sqrt(n0) / 10,
+                       prior_only = FALSE) {
+  theta_prior <- list(
+    mu0 = mu0,
+    kappa0 = kappa0,
+    nu0 = nu0,
+    sigma0 = sigma0
+  )
+  lambda_prior <- list(
+    alpha0 = alpha0,
+    beta0 = beta0
+  )
+  state <- list(
+    k = sample(1:m, length(x), replace = TRUE),
+    stick = stick_break(m, 1, lambda0),
+    theta = do.call(sample_Ptheta_prior, c(list(m), theta_prior)),
+    lambda = lambda0
+  )
+  draws <- vector('list', l)
+  for(i in 1:l) {
+    arguments <- list(x, state, prior_only = prior_only)
+    state$k <- do.call(update_k, arguments)
+    arguments <- list(x, state, prior_only = prior_only)
+    state$stick <- do.call(update_stick, arguments)
+    arguments <- c(list(x, state, prior_only = prior_only), theta_prior)
+    state$theta <- do.call(update_theta, arguments)
+    arguments <- c(list(x, state, prior_only = prior_only), lambda_prior)
+    state$lambda <- do.call(update_lambda, arguments)
+    draws[[i]] <- state
+  }
+  draws
+}
+
+check_predictive <- function(draws, observed, type = 'cdf', ...) {
+  ggplot() +
+    geom_observation(observed, type = type, ...) +
+    geom_line(data = evaluate_DP(draws, observed, type = type),
+              mapping = aes(x, y, color = 'Model', group = .draw),
+              size = 1) +
+    scale_color() +
+    labs(x = 'Velocity (1000 km/s)',
+         y = 'Probability density') +
+    theme(legend.position = 'none')
+}
+
+summarize_inference <- function(draws, observed, type = 'cdf', probability = 0.95, ...) {
+  draws <- evaluate_DP(draws, observed, type = type) %>%
+    group_by(x) %>%
+    summarize(y_mean = mean(y),
+              y_lower = quantile(y, (1 - probability) / 2),
+              y_upper = quantile(y, 1 - (1 - probability) / 2),
+              .groups = 'drop')
+  ggplot() +
+    geom_observation(observed, type = type, ...) +
+    geom_line(data = draws,
+              mapping = aes(x, y_lower, color = 'Model'),
+              linetype = 'dashed',
+              size = 0.5) +
+    geom_line(data = draws,
+              mapping = aes(x, y_upper, color = 'Model'),
+              linetype = 'dashed',
+              size = 0.5) +
+    geom_line(data = draws,
+              mapping = aes(x, y_mean, color = 'Model'),
+              size = 1) +
+    scale_color() +
+    labs(x = 'Velocity (1000 km/s)',
+         y = 'Probability density') +
+    theme(legend.position = 'none')
 }

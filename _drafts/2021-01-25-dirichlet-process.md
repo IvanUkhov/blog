@@ -333,6 +333,18 @@ $$
 where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 (x_i - \mu_x)^2 / n_1$$.
 
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg)
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
+
 # Acknowledgments
 
 I would like to thank [Mattias Villani] for the insightful and informative
