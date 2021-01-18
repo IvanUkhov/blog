@@ -158,32 +158,50 @@ remaining probability mass.
 
 ## Illustration
 
+
+
 It is time to demonstrate how the Dirichlet process behaves as a direct prior.
 To this end, we shall use a [data set][galaxies] containing velocities of “82
-galaxies from six well-separated conic sections of an unfilled survey of the
+galaxies from 6 well-separated conic sections of an unfilled survey of the
 Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
 reference point.
 
-
+The empirical cumulative distribution function of the velocity is as follows:
 
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-cdf-1.svg)
 
+Already here, it is apparent that the distribution is multimodal: there are two
+distinct regions, one to the left and one to the right, where the curve is flat,
+meaning there are no observations there. The proverbial histogram gives a
+confirmation:
+
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg)
 
+It can be seen that there is a handful of galaxies moving relatively slowly and
+relatively fast compared to the majority somewhere in the middle around twenty
+thousand kilometers per second. For completeness, kernel density estimation
+results in the following plot:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/data-kde-1.svg)
+
+How many clusters of galaxies are there? What are their velocities? How
+uncertain are these estimates? Our goal is to answer these questions by virtue
+of the Dirichlet process.
+
 Now, let us complete the model by choosing a concrete measure:
 
 $$
-P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
+P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
-Gaussian distribution. In this case, we use the precision-based parameterization
-of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
-the usual variance parameter.
+Gaussian distribution.
 
 
 

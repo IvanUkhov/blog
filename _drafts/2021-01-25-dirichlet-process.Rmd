@@ -170,20 +170,22 @@ remaining probability mass.
 
 ## Illustration
 
-It is time to demonstrate how the Dirichlet process behaves as a direct prior.
-To this end, we shall use a [data set][galaxies] containing velocities of “82
-galaxies from six well-separated conic sections of an unfilled survey of the
-Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
-reference point.
-
 ```{r data, include = FALSE}
 data <- tibble(x = galaxies / 1000)
 ```
 
+It is time to demonstrate how the Dirichlet process behaves as a direct prior.
+To this end, we shall use a [data set][galaxies] containing velocities of “82
+galaxies from 6 well-separated conic sections of an unfilled survey of the
+Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
+reference point.
+
+The empirical cumulative distribution function of the velocity is as follows:
+
 ```{r data-cdf, include = FALSE}
 ggplot() +
   geom_observation(data) +
-  labs(x = 'Velocity (1000 km/s)',
+  labs(x = TeX('Velocity ($10^6$ m/s)'),
        y = 'Probability') +
   scale_color() +
   theme(legend.position = 'none')
@@ -191,10 +193,15 @@ ggplot() +
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-cdf-1.svg)
 
+Already here, it is apparent that the distribution is multimodal: there are two
+distinct regions, one to the left and one to the right, where the curve is flat,
+meaning there are no observations there. The proverbial histogram gives a
+confirmation:
+
 ```{r data-histogram, include = FALSE}
 ggplot() +
   geom_observation(data, type = 'histogram') +
-  labs(x = 'Velocity (1000 km/s)',
+  labs(x = TeX('Velocity ($10^6$ m/s)'),
        y = 'Number of galaxies') +
   scale_color() +
   theme(legend.position = 'none')
@@ -202,16 +209,32 @@ ggplot() +
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg)
 
+It can be seen that there is a handful of galaxies moving relatively slowly and
+relatively fast compared to the majority somewhere in the middle around twenty
+thousand kilometers per second. For completeness, kernel density estimation
+results in the following plot:
+
+```{r data-kde, include = FALSE}
+ggplot(data, aes(x)) +
+  geom_density(color = 'gray70', size = 1) +
+  labs(x = TeX('Velocity ($10^6$ m/s)'),
+       y = 'Probability density')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/data-kde-1.svg)
+
+How many clusters of galaxies are there? What are their velocities? How
+uncertain are these estimates? Our goal is to answer these questions by virtue
+of the Dirichlet process.
+
 Now, let us complete the model by choosing a concrete measure:
 
 $$
-P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \tau_0).
+P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
-Gaussian distribution. In this case, we use the precision-based parameterization
-of the Gaussian family of distributions where $$\tau_0$$ is the reciprocal of
-the usual variance parameter.
+Gaussian distribution.
 
 ```{r direct-prior, fig.asp = 1.2, include = FALSE}
 set.seed(42)
