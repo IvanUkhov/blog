@@ -1,34 +1,4 @@
-geom_observation <- function(data, type = 'cdf', binwidth = 1) {
-  if (type == 'cdf') {
-    stat_ecdf(data = data,
-              mapping = aes(x, color = 'Observation'),
-              size = 1)
-  } else if (type == 'pdf') {
-    geom_histogram(data = data,
-                   mapping = aes(x,
-                                 y = ..count.. / sum(..count..),
-                                 color = 'Observation'),
-                   binwidth = binwidth,
-                   fill = 'gray70')
-  } else if (type == 'histogram') {
-    geom_histogram(data = data,
-                   mapping = aes(x, color = 'Observation'),
-                   binwidth = binwidth,
-                   fill = 'gray70')
-  }
-}
-
-scale_color <- function() {
-  scale_color_manual(breaks = c('Observation', 'Model'),
-                     values = c('Observation' = 'gray70',
-                                'Model' = 'gray30'))
-}
-
-stick_break <- function(l, alpha, beta) {
-  q <- rbeta(l, shape1 = alpha, shape2 = beta)
-  q <- c(head(q, -1), 1)
-  list(p = q * c(1, cumprod(1 - head(q, -1))), q = q)
-}
+# Direct prior
 
 nu_prior <- function(lambda = 1, mu0 = 0, sigma0 = 1) {
   sample_P0 <- function(l) rnorm(l, mean = mu0, sd = sigma0)
@@ -50,21 +20,7 @@ sample_DP <- function(l, nu) {
   tibble(x = x, p = p)
 }
 
-plot_distribution <- function(draws, observed) {
-  draws <- draws %>%
-    arrange(x) %>%
-    mutate(p = cumsum(p))
-  ggplot() +
-    geom_observation(observed) +
-    geom_line(data = draws,
-              mapping = aes(x, p, color = 'Model'),
-              size = 1) +
-    scale_color() +
-    labs(x = 'Velocity (1000 km/s)',
-         y = 'Probability') +
-    theme(legend.title = element_blank(),
-          legend.position = 'top')
-}
+# Mixing prior
 
 sample_Ptheta_prior <- function(l, mu0 = 0, kappa0 = 1, nu0 = 3, sigma0 = 1) {
   sigma <- sqrt((nu0 * sigma0^2) / rchisq(l, nu0))
@@ -90,11 +46,11 @@ sample_Ptheta_posterior <- function(l, x, mu0 = mean(x), kappa0 = 1, nu0 = 3, si
   )
 }
 
-sample_Plambda_prior <- function(l, alpha0 = 2, beta0 = 0.1) {
+sample_Plambda_prior <- function(l, alpha0 = 3, beta0 = 0.1) {
   rgamma(l, alpha0, beta0)
 }
 
-sample_Plambda_posterior <- function(l, q, alpha0 = 2, beta0 = 0.1) {
+sample_Plambda_posterior <- function(l, q, alpha0 = 3, beta0 = 0.1) {
   sample_Plambda_prior(
     l = l,
     alpha0 = alpha0 + length(q) - 1,
@@ -116,8 +72,8 @@ evaluate_Pm_ <- function(draw, grid, type = 'cdf') {
     mutate(.component = row_number()) %>%
     select(.component, everything()) %>%
     mutate(data = map2(mu, sigma, function(mu, sigma) {
-                                  tibble(x = grid,
-                                         y = method(grid, mu, sigma))
+                                    tibble(x = grid,
+                                           y = method(grid, mu, sigma))
                                   })) %>%
     unnest(data) %>%
     group_by(x) %>%
@@ -139,11 +95,45 @@ evaluate_DPM <- function(draws, observed, size = 1000, ...) {
   evaluate_Pm(draws, grid, ...)
 }
 
-count_subjects <- function(m, k) {
-  n <- rep(0, m)
-  k <- as.data.frame(table(k))
-  n[as.numeric(levels(k[ , 1]))[k[ , 1]]] <- k[ , 2]
-  n
+sample_DPM <- function(x, m, l,
+                       n0 = 3,
+                       mu0 = mean(x),
+                       kappa0 = n0,
+                       nu0 = n0,
+                       sigma0 = 1,
+                       lambda0 = 1,
+                       alpha0 = n0,
+                       beta0 = sqrt(n0) / 10,
+                       prior_only = FALSE) {
+  theta_prior <- list(
+    mu0 = mu0,
+    kappa0 = kappa0,
+    nu0 = nu0,
+    sigma0 = sigma0
+  )
+  lambda_prior <- list(
+    alpha0 = alpha0,
+    beta0 = beta0
+  )
+  state <- list(
+    k = sample(1:m, length(x), replace = TRUE),
+    stick = stick_break(m, 1, lambda0),
+    theta = do.call(sample_Ptheta_prior, c(list(m), theta_prior)),
+    lambda = lambda0
+  )
+  draws <- vector('list', l)
+  for(i in 1:l) {
+    arguments <- list(x, state, prior_only = prior_only)
+    state$k <- do.call(update_k, arguments)
+    arguments <- list(x, state, prior_only = prior_only)
+    state$stick <- do.call(update_stick, arguments)
+    arguments <- c(list(x, state, prior_only = prior_only), theta_prior)
+    state$theta <- do.call(update_theta, arguments)
+    arguments <- c(list(x, state, prior_only = prior_only), lambda_prior)
+    state$lambda <- do.call(update_lambda, arguments)
+    draws[[i]] <- state
+  }
+  draws
 }
 
 update_k <- function(x, state, prior_only = FALSE) {
@@ -194,47 +184,6 @@ update_lambda <- function(x, state, prior_only = FALSE, ...) {
   }
 }
 
-sample_DPM <- function(x, m, l,
-                       n0 = 3,
-                       mu0 = mean(x),
-                       kappa0 = n0,
-                       nu0 = n0,
-                       sigma0 = 1,
-                       lambda0 = 1,
-                       alpha0 = n0,
-                       beta0 = sqrt(n0) / 10,
-                       prior_only = FALSE) {
-  theta_prior <- list(
-    mu0 = mu0,
-    kappa0 = kappa0,
-    nu0 = nu0,
-    sigma0 = sigma0
-  )
-  lambda_prior <- list(
-    alpha0 = alpha0,
-    beta0 = beta0
-  )
-  state <- list(
-    k = sample(1:m, length(x), replace = TRUE),
-    stick = stick_break(m, 1, lambda0),
-    theta = do.call(sample_Ptheta_prior, c(list(m), theta_prior)),
-    lambda = lambda0
-  )
-  draws <- vector('list', l)
-  for(i in 1:l) {
-    arguments <- list(x, state, prior_only = prior_only)
-    state$k <- do.call(update_k, arguments)
-    arguments <- list(x, state, prior_only = prior_only)
-    state$stick <- do.call(update_stick, arguments)
-    arguments <- c(list(x, state, prior_only = prior_only), theta_prior)
-    state$theta <- do.call(update_theta, arguments)
-    arguments <- c(list(x, state, prior_only = prior_only), lambda_prior)
-    state$lambda <- do.call(update_lambda, arguments)
-    draws[[i]] <- state
-  }
-  draws
-}
-
 check_predictive <- function(draws, observed, type = 'pdf', ...) {
   ggplot() +
     geom_observation(observed, type = type, ...) +
@@ -254,6 +203,63 @@ summarize_inference <- function(draws, observed, type = 'pdf', probability = 0.9
               y_lower = quantile(y, (1 - probability) / 2),
               y_upper = quantile(y, 1 - (1 - probability) / 2),
               .groups = 'drop')
+}
+
+# Auxiliary
+
+stick_break <- function(l, alpha, beta) {
+  q <- rbeta(l, shape1 = alpha, shape2 = beta)
+  q <- c(head(q, -1), 1)
+  list(p = q * c(1, cumprod(1 - head(q, -1))), q = q)
+}
+
+count_subjects <- function(m, k) {
+  n <- rep(0, m)
+  k <- as.data.frame(table(k))
+  n[as.numeric(levels(k[ , 1]))[k[ , 1]]] <- k[ , 2]
+  n
+}
+
+geom_observation <- function(data, type = 'cdf', binwidth = 1) {
+  if (type == 'cdf') {
+    stat_ecdf(data = data,
+              mapping = aes(x, color = 'Observation'),
+              size = 1)
+  } else if (type == 'pdf') {
+    geom_histogram(data = data,
+                   mapping = aes(x,
+                                 y = ..count.. / sum(..count..),
+                                 color = 'Observation'),
+                   binwidth = binwidth,
+                   fill = 'gray70')
+  } else if (type == 'histogram') {
+    geom_histogram(data = data,
+                   mapping = aes(x, color = 'Observation'),
+                   binwidth = binwidth,
+                   fill = 'gray70')
+  }
+}
+
+scale_color <- function() {
+  scale_color_manual(breaks = c('Observation', 'Model'),
+                     values = c('Observation' = 'gray70',
+                                'Model' = 'gray30'))
+}
+
+plot_distribution <- function(draws, observed) {
+  draws <- draws %>%
+    arrange(x) %>%
+    mutate(p = cumsum(p))
+  ggplot() +
+    geom_observation(observed) +
+    geom_line(data = draws,
+              mapping = aes(x, p, color = 'Model'),
+              size = 1) +
+    scale_color() +
+    labs(x = 'Velocity (1000 km/s)',
+         y = 'Probability') +
+    theme(legend.title = element_blank(),
+          legend.position = 'top')
 }
 
 plot_inference <- function(draws_summarized, observed, type = 'pdf', probability = 0.95, ...) {
