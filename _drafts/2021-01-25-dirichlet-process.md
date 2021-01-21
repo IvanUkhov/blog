@@ -251,14 +251,14 @@ small, virtually no data points come from $$P_0$$, and the curve is nearly
 indistinguishable from the one of the data. As $$\lambda$$ gets larger, the
 prior gets stronger, and the estimate gets shrunk toward it.
 
-# Mixing prior
+The above model has a serious limitation: it assumes a discrete probability
+distribution for the data-generating process, which can be seen in the prior and
+posterior given in Equation (1) and (2), respectively, and it is also apparent
+in the decomposition given in Equation (3). In some cases, it might be
+appropriate; however, there is arguably more situations where it is inadequate,
+including the running example.
 
-The model discussed in the previous section has a serious limitation: it assumes
-a discrete probability distribution for the data-generating process, which can
-be seen in the prior and posterior given in Equation (1) and (2), respectively,
-and it is also apparent in the decomposition given in Equation (3). In some
-cases, it might be appropriate; however, there is arguably more situations where
-it is inadequate.
+# Mixing prior
 
 Instead of using a Dirichlet process as a direct prior for the given data, it
 can be used as a prior for mixing distributions from a given family. The
