@@ -104,17 +104,26 @@ posterior is also a Dirichlet process and has the follow simple form:
 
 $$
 P_x | \{ x_i \}_{i = 1}^n
-\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
+\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right). \tag{2}
 $$
 
-where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
-if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and it is zero otherwise. It
-can be seen that the base measure has simply been augmented with unit masses
-placed at the $$n$$ observed data points. The total volume is now $$\lambda +
-n$$.
+That is, the total volume and normalized measure are updated as follows:
 
-However, the main question remains: how to draw samples from a Dirichlet
-process?
+$$
+\begin{align}
+\lambda & := \lambda + n \quad \text{and} \\
+P_0 & := \frac{\lambda}{\lambda + n} P_0 + \frac{1}{\lambda + n} \sum_{i = 1}^n \delta_{x_i}.
+\end{align}
+$$
+
+Here, $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
+if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and otherwise, it is zero.
+It can be seen in Equation (2) that the base measure has simply been augmented
+with unit masses placed at the $$n$$ observed data points.
+
+However, the main question remains: how to draw samples from a Dirichlet process
+given $$\lambda$$ and
+$$P_0$$?
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
 distribution $$P_x$$. The probability measure of this distribution admits the
