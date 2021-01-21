@@ -94,7 +94,7 @@ $$
 It is important to realize that the $$x_i$$’s are assumed to be distributed
 _not_ according to the Dirichlet process but according to a distribution drawn
 from the Dirichlet process. Parameter $$\lambda$$ allows one to control the
-strength of the prior: the larger it is, the more shrinkage towards the prior is
+strength of the prior: the larger it is, the more shrinkage toward the prior is
 induced.
 
 ## Inference
@@ -202,7 +202,7 @@ The empirical cumulative distribution function of the velocity is as follows:
 ggplot() +
   geom_observation(data) +
   labs(x = TeX('Velocity ($10^6$ m/s)'),
-       y = 'Probability') +
+       y = 'Cumulative probability') +
   scale_color() +
   theme(legend.position = 'none')
 ```
@@ -239,18 +239,29 @@ ggplot(data, aes(x)) +
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-kde-1.svg)
 
-How many clusters of galaxies are there? What are their velocities? How
+How many clusters of galaxies are there? What are their average velocities? How
 uncertain are these estimates? Our goal is to answer these questions by virtue
 of the Dirichlet process.
 
-Now, let us complete the model by choosing a concrete measure:
+Now that we want to apply the theory presented earlier, we have to make all
+choices we have conveniently glanced over. Specifically, $$P_0$$ has to be
+chosen, and we shall use the following:
 
 $$
 P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
-Gaussian distribution.
+Gaussian distribution with parameters $$\mu_0$$ and $$\sigma_0$$. In addition to
+these two parameters, there is one more: $$\lambda$$. We shall set $$\mu_0$$ and
+$$\sigma_0$$ to 20 and 5, respectively—which correspond roughly to the mean and
+standard deviation of the data—and present results for different $$\lambda$$ to
+investigate how the prior volume affects shrinkage toward the prior.
+
+First, we do not condition on the data to get a better understanding for the
+prior itself, which corresponds to Equation (1). The following figure shows a
+single draw from four Dirichlet processes with different $$\lambda$$’s (the gray
+curves show the cumulative distribution function of the data as a reference):
 
 ```{r direct-prior, fig.asp = 1.2, include = FALSE}
 set.seed(42)
@@ -258,8 +269,8 @@ set.seed(42)
 tibble(lambda = c(1, 10, 100, 1000)) %>%
   mutate(data = map(lambda, ~ sample_DP(l = 10000,
                                         nu = nu_prior(lambda = .x,
-                                                      mu0 = mean(data$x),
-                                                      sigma0 = sd(data$x))))) %>%
+                                                      mu0 = 20,
+                                                      sigma0 = 5)))) %>%
   unnest(data) %>%
   mutate(lambda = str_c('$\\lambda$ = ', lambda)) %>%
   group_by(lambda) %>%
@@ -271,6 +282,14 @@ tibble(lambda = c(1, 10, 100, 1000)) %>%
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg)
 
+It can be seen that the larger the $$\lambda$$ parameter, the smoother the
+curve. This is because larger $$\lambda$$’s “break” the stick into many small
+pieces (small probabilities), allowing the normalized base measure to be
+extensively sampled, which, in the limit, converges to this very measure.
+
+Conditioning on the observed data, which is what Equation (2) shows, we obtain
+the following sample draws from the posterior Dirichlet distribution:
+
 ```{r direct-posterior, fig.asp = 1.2, include = FALSE}
 set.seed(42)
 
@@ -278,8 +297,8 @@ tibble(lambda = c(1, 10, 100, 1000)) %>%
   mutate(data = map(lambda, ~ sample_DP(l = 10000,
                                         nu = nu_posterior(data$x,
                                                           lambda = .x,
-                                                          mu0 = mean(data$x),
-                                                          sigma0 = sd(data$x))))) %>%
+                                                          mu0 = 20,
+                                                          sigma0 = 5)))) %>%
   unnest(data) %>%
   mutate(lambda = str_c('$\\lambda$ = ', lambda)) %>%
   group_by(lambda) %>%
@@ -290,6 +309,11 @@ tibble(lambda = c(1, 10, 100, 1000)) %>%
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
+
+The model no longer ignores the data. When the prior volume, $$\lambda$$, is
+small, virtually no data points come from $$P_0$$, and the curve is nearly
+indistinguishable from the one of the data. As $$\lambda$$ gets larger, the
+prior gets stronger, and the estimate gets shrunk toward it.
 
 # Mixing prior
 

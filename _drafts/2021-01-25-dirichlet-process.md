@@ -82,7 +82,7 @@ $$
 It is important to realize that the $$x_i$$’s are assumed to be distributed
 _not_ according to the Dirichlet process but according to a distribution drawn
 from the Dirichlet process. Parameter $$\lambda$$ allows one to control the
-strength of the prior: the larger it is, the more shrinkage towards the prior is
+strength of the prior: the larger it is, the more shrinkage toward the prior is
 induced.
 
 ## Inference
@@ -92,17 +92,25 @@ posterior is also a Dirichlet process and has the follow simple form:
 
 $$
 P_x | \{ x_i \}_{i = 1}^n
-\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right) \tag{2}
+\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right). \tag{2}
 $$
 
-where $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
-if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and it is zero otherwise. It
-can be seen that the base measure has simply been augmented with unit masses
-placed at the $$n$$ observed data points. The total volume is now $$\lambda +
-n$$.
+That is, the total volume and normalized measure are updated as follows:
 
-However, the main question remains: how to draw samples from a Dirichlet
-process?
+$$
+\begin{align}
+\lambda & := \lambda + n \quad \text{and} \\
+P_0 & := \frac{\lambda}{\lambda + n} P_0 + \frac{1}{\lambda + n} \sum_{i = 1}^n \delta_{x_i}.
+\end{align}
+$$
+
+Here, $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
+if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and otherwise, it is zero.
+It can be seen in Equation (2) that the base measure has simply been augmented
+with unit masses placed at the $$n$$ observed data points.
+
+The main question now is, How to draw samples from a Dirichlet process given
+$$\lambda$$ and $$P_0$$?
 
 As noted earlier, a draw from a Dirichlet process is a discrete probability
 distribution $$P_x$$. The probability measure of this distribution admits the
@@ -156,6 +164,14 @@ Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
+To recapitulate, a single draw from a Dirichlet process is done in two steps:
+prescribe atoms $$\{ x_i \}$$ via draws from the normalized base measure and
+prescribe the corresponding probabilities $$\{ p_i \}$$ via the stick-breaking
+construction. The two give a complete description of a discrete probability
+distribution. Recall that this distribution is still a single draw. By repeating
+this process many times, one obtains the distribution of this distribution,
+which can be used to, for instance, quantify uncertainty in the estimation.
+
 ## Illustration
 
 
@@ -190,26 +206,50 @@ results in the following plot:
 
 ![](/assets/images/2021-01-25-dirichlet-process/data-kde-1.svg)
 
-How many clusters of galaxies are there? What are their velocities? How
+How many clusters of galaxies are there? What are their average velocities? How
 uncertain are these estimates? Our goal is to answer these questions by virtue
 of the Dirichlet process.
 
-Now, let us complete the model by choosing a concrete measure:
+Now that we want to apply the theory presented earlier, we have to make all
+choices we have conveniently glanced over. Specifically, $$P_0$$ has to be
+chosen, and we shall use the following:
 
 $$
 P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2).
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
-Gaussian distribution.
+Gaussian distribution with parameters $$\mu_0$$ and $$\sigma_0$$. In addition to
+these two parameters, there is one more: $$\lambda$$. We shall set $$\mu_0$$ and
+$$\sigma_0$$ to 20 and 5, respectively—which correspond roughly to the mean and
+standard deviation of the data—and present results for different $$\lambda$$ to
+investigate how the prior volume affects shrinkage toward the prior.
+
+First, we do not condition on the data to get a better understanding for the
+prior itself, which corresponds to Equation (1). The following figure shows a
+single draw from four Dirichlet processes with different $$\lambda$$’s (the gray
+curves show the cumulative distribution function of the data as a reference):
 
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg)
 
+It can be seen that the larger the $$\lambda$$ parameter, the smoother the
+curve. This is because larger $$\lambda$$’s “break” the stick into many small
+pieces (small probabilities), allowing the normalized base measure to be
+extensively sampled, which, in the limit, converges to this very measure.
+
+Conditioning on the observed data, which is what Equation (2) shows, we obtain
+the following sample draws from the posterior Dirichlet distribution:
+
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
+
+The model no longer ignores the data. When the prior volume, $$\lambda$$, is
+small, virtually no data points come from $$P_0$$, and the curve is nearly
+indistinguishable from the one of the data. As $$\lambda$$ gets larger, the
+prior gets stronger, and the estimate gets shrunk toward it.
 
 # Mixing prior
 

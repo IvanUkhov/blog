@@ -191,7 +191,7 @@ check_predictive <- function(draws, observed, type = 'pdf', ...) {
               mapping = aes(x, y, color = 'Model', group = .draw),
               size = 1) +
     scale_color() +
-    labs(x = 'Velocity (1000 km/s)',
+    labs(x = TeX('Velocity ($10^6$ m/s)'),
          y = 'Probability density') +
     theme(legend.position = 'none')
 }
@@ -256,8 +256,8 @@ plot_distribution <- function(draws, observed) {
               mapping = aes(x, p, color = 'Model'),
               size = 1) +
     scale_color() +
-    labs(x = 'Velocity (1000 km/s)',
-         y = 'Probability') +
+    labs(x = TeX('Velocity ($10^6$ m/s)'),
+         y = 'Cumulative probability') +
     theme(legend.title = element_blank(),
           legend.position = 'top')
 }
@@ -277,7 +277,7 @@ plot_inference <- function(draws_summarized, observed, type = 'pdf', probability
               mapping = aes(x, y_mean, color = 'Model'),
               size = 1) +
     scale_color() +
-    labs(x = 'Velocity (1000 km/s)',
+    labs(x = TeX('Velocity ($10^6$ m/s)'),
          y = 'Probability density') +
     theme(legend.position = 'none')
 }
