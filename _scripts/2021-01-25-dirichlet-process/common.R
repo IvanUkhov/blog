@@ -31,18 +31,18 @@ sample_Ptheta_prior <- function(l, mu0 = 0, kappa0 = 1, nu0 = 3, sigma0 = 1) {
 sample_Ptheta_posterior <- function(l, x, mu0 = mean(x), kappa0 = 1, nu0 = 3, sigma0 = sd(x)) {
   n <- length(x)
   if (n == 0) {
-    mu1 <- 0
-    ss1 <- 0
+    mu <- 0
+    ss <- 0
   } else {
-    mu1 <- mean(x)
-    ss1 <- sum((x - mu1)^2)
+    mu <- mean(x)
+    ss <- sum((x - mu)^2)
   }
   sample_Ptheta_prior(
     l = l,
-    mu0 = kappa0 / (kappa0 + n) * mu0 + n / (kappa0 + n) * mu1,
+    mu0 = kappa0 / (kappa0 + n) * mu0 + n / (kappa0 + n) * mu,
     kappa0 = kappa0 + n,
     nu0 = nu0 + n,
-    sigma0 = sqrt((nu0 * sigma0^2 + ss1 + kappa0 * n / (kappa0 + n) * (mu1 - mu0)^2) / (nu0 + n))
+    sigma0 = sqrt((nu0 * sigma0^2 + ss + kappa0 * n / (kappa0 + n) * (mu - mu0)^2) / (nu0 + n))
   )
 }
 
