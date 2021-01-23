@@ -471,20 +471,23 @@ $$
 This prior is a conjugate prior for a Gaussian data distribution with unknown
 mean and variance, which we assume here. This means that the posterior is also a
 Gaussian–scaled-inverse-chi-squared distribution. Given a data set with
-$$n_1$$ observations $$x_1, \dots, x_{n_1}$$, the four parameters of the prior
+$$n$$ observations $$x_1, \dots, x_n$$, the four parameters of the prior
 are updated simultaneously (not sequentially) as follows:
 
 $$
 \begin{align}
-\mu_0 & := \frac{\kappa_0}{\kappa_0 + n_1} \mu_0 + \frac{n_1}{\kappa_0 + n_1} \mu_x, \\
-\kappa_0 & := \kappa_0 + n_1, \\
-\nu_0 & := \nu_0 + n_1, \text{ and} \\
-\sigma_0^2 & := \frac{1}{\nu_0 + n_1} \left( \nu_0 \sigma_0^2 + ss_x + \frac{\kappa_0 n_1}{\kappa_0 + n_1}(\mu_x - \mu_0)^2 \right)
+\mu_0 & := \frac{\kappa_0}{\kappa_0 + n} \mu_0 + \frac{n}{\kappa_0 + n} \mu_x, \\
+\kappa_0 & := \kappa_0 + n, \\
+\nu_0 & := \nu_0 + n, \text{ and} \\
+\sigma_0^2 & := \frac{1}{\nu_0 + n} \left( \nu_0 \sigma_0^2 + ss_x + \frac{\kappa_0 n}{\kappa_0 + n}(\mu_x - \mu_0)^2 \right)
 \end{align}
 $$
 
-where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$ss_x = \sum_{i = 1}^{n_1}
-(x_i - \mu_x)^2$$.
+where $$\mu_x = \sum_{i = 1}^n x_i / n$$ and $$ss_x = \sum_{i = 1}^n (x_i -
+\mu_x)^2$$. It can be seen that $$\kappa_0$$ and $$\nu_0$$ act as counters of
+the number of observations; $$\mu_0$$ is a weighted sum of two means; and
+$$\nu_0 \sigma_0^2$$ is a sum of two sums of squares and a third term increasing
+the uncertainty due to the difference in the means.
 
 ```{r mixture-prior-mu, include = FALSE}
 set.seed(42)
