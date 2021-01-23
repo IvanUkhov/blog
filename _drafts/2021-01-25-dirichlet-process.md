@@ -60,7 +60,7 @@ $$
 P \sim \text{Dirichlet Process}(\lambda P_0).
 $$
 
-Parameter $$\lambda$$ is commonly referred to as the concentration parameter of
+Parameter $$\lambda$$ is sometimes referred to as the concentration parameter of
 the process.
 
 There are two major alternatives of using the Dirichlet process for estimating
@@ -164,13 +164,14 @@ Due to the truncation, the probabilities $$\{ p_i \}_{i = 1}^m$$ do not sum up
 to one, and it is common to set $$q_m := 1$$ so that $$p_m$$ takes up the
 remaining probability mass.
 
-To recapitulate, a single draw from a Dirichlet process is done in two steps:
-prescribe atoms $$\{ x_i \}$$ via draws from the normalized base measure and
-prescribe the corresponding probabilities $$\{ p_i \}$$ via the stick-breaking
-construction. The two give a complete description of a discrete probability
-distribution. Recall that this distribution is still a single draw. By repeating
-this process many times, one obtains the distribution of this distribution,
-which can be used to, for instance, quantify uncertainty in the estimation.
+To recapitulate, a single draw from a Dirichlet process is obtained in two
+steps: prescribe atoms $$\{ x_i \}$$ via draws from the normalized base measure
+and prescribe the corresponding probabilities $$\{ p_i \}$$ via the
+stick-breaking construction. The two give a complete description of a discrete
+probability distribution. Recall that this distribution is still a single draw.
+By repeating this process many times, one obtains the distribution of this
+distribution, which can be used to, for instance, quantify uncertainty in the
+estimation.
 
 ## Illustration
 
@@ -280,35 +281,37 @@ P_\theta & \sim \text{Dirichlet Process}(\lambda P_0). \\
 \end{align}
 $$
 
-To begin with, the $$i$$th data point, $$x_i$$, is distributed according to
-distribution $$P_x$$ with parameters $$\theta_i$$. For instance, $$P_x$$ could
-refer to the Gaussian family with $$\theta_i = (\mu_i, \tau_i)$$, identifying a
-particular member of the family by its mean and precision. Parameters $$\{
+The $$i$$th data point, $$x_i$$, is distributed according to distribution
+$$P_x$$ with parameters $$\theta_i$$. For instance, $$P_x$$ could refer to the
+Gaussian family with $$\theta_i = (\mu_i, \sigma_i)$$ identifying a particular
+member of the family by its mean and standard deviation. Parameters $$\{
 \theta_i \}_{i = 1}^n$$ are unknown and distributed according to distribution
 $$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
 process prior with measure $$\lambda P_0$$.
 
-It can be seen in Equation (6) that each data point can potentially has its own
+It can be seen in Equation (6) that each data point can potentially have its own
 unique set of parameters. However, this is not what usually happens in practice.
-Instead, many data points share the same parameters, which is akin to
-clustering. In fact, clustering is a prominent use case for the Dirichlet
-process.
+If $$\lambda$$ is reasonably small, the vast majority of the stick—the one we
+explained how to break in the previous section—tends to be consumed by a small
+number of pieces. This makes many data points share the same parameters, which
+is akin to clustering. In fact, clustering is a prominent use case for the
+Dirichlet process.
 
 ## Inference
 
 Unlike the previous model, there is no conjugacy in this case, and hence the
-posterior is not a Dirichlet process. There is, however, a relatively simple
-Markov chain Monte Carlo sampling strategy based on the stick-breaking
-construction. It belongs to the class of Gibbs samplers and is as follows.
+posterior is not a Dirichlet process. There is, however, a simple Markov chain
+Monte Carlo sampling strategy based on the stick-breaking construction. It
+belongs to the class of Gibbs samplers and is as follows.
 
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i) \tag{7}
+P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i)
 $$
 
 where $$P_m$$ is the probability measure of the mixture. As before, the infinite
-decomposition in Equation (7) has to be made finite to be usable in practice:
+decomposition has to be made finite to be usable in practice:
 
 $$
 P_m(\cdot) = \sum_{i = 1}^m p_i P_x(\cdot | \theta_i).
@@ -323,11 +326,12 @@ the $$i$$th observation.
 There are $$m + m \times |\theta| + n$$ parameters to be inferred where
 $$|\theta|$$ denotes the number of parameters of $$P_x$$. These parameters are
 $$\{ p_i \}_{i = 1}^m$$, $$\{ \theta_i \}_{i = 1}^m$$, and $$\{ k_i \}_{i =
-1}^n$$. As usual in Gibbs sampling, the parameters assume random but compatible
-initial values. The sampler has the following three steps.
+1}^n$$. As usual in Gibbs sampling, the parameters assume arbitrary but
+compatible initial values. The sampler has the following three steps.
 
-First, given $$\{ p_i \}$$ and $$\{ \theta_i \}$$, the mapping of the
-observations onto the mixture components, $$\{ k_i \}$$, is updated as follows:
+First, given $$\{ p_i \}$$, $$\{ \theta_i \}$$, and $$\{ x_i \}$$, the mapping
+of the observations to the mixture components, $$\{ k_i \}$$, is updated as
+follows:
 
 $$
 k_i \sim \text{Categorical}\left(
@@ -359,19 +363,22 @@ is the number of data points that are currently allocated to component $$i$$.
 Here, $$I_A$$ is the indicator function of a set $$A$$. As before, in order for
 the $$p_i$$’s to sum up to one, it is common to set $$q_m := 1$$.
 
-Third, still given $$\{ k_i \}$$, the parameters of the mixture components, $$\{
-\theta_i \}$$ are updated. This is done by sampling from the posterior
-distribution of each component. In this case, the posterior is a prior of choice
-that is combined with the data distribution, which is $$P_x$$, using the data
-points that are currently allocated to the corresponding component. In order to
-streamline this step, a conjugate prior for the data distribution is commonly
-utilized, which we shall illustrate shortly.
+Third, given $$\{ k_i \}$$ and $$\{ x_i \}$$, the parameters of the mixture
+components, $$\{ \theta_i \}$$, are updated. This is done by sampling from the
+posterior distribution of each component. In this case, the posterior is a prior
+of choice that is updated using the data points that are currently allocated to
+the corresponding component. In order to streamline this step, a conjugate prior
+for the data distribution, $$P_x$$, is commonly utilized, which we shall
+illustrate shortly.
 
-The Gibbs procedure above is very flexible. Other parameters can be inferred
-too, instead of setting them to fixed values. An important example is the
-concentration parameter, $$\lambda$$. This parameter controls the formation of
-clusters, and one might let the data decide what the value should be, in which
-case a step similar to the third one is added to the process to update
+To recapitulate, a single draw from the posterior is obtained in a number of
+steps where parameters or groups of parameters are updated in turn, while
+treating the other parameters as known. This Gibbs procedure is very flexible.
+Other parameters can be inferred too, instead of setting them to fixed values.
+An important example is the prior volume, $$\lambda$$. This parameter controls
+the formation of clusters, and one might let the data decide what the value
+should be, in which case a step similar to the third one is added to the
+procedure to update
 $$\lambda$$. This will be also illustrated below.
 
 ## Illustration
