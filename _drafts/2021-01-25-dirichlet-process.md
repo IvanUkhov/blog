@@ -182,6 +182,10 @@ galaxies from 6 well-separated conic sections of an unfilled survey of the
 Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
 reference point.
 
+> For the curious reader, the source code of this R [notebook] along with
+> auxiliary [scripts] that are used for performing the calculations presented
+> below can be found on GitHub.
+
 The empirical cumulative distribution function of the velocity is as follows:
 
 
@@ -215,7 +219,7 @@ choices we have conveniently glanced over. Specifically, $$P_0$$ has to be
 chosen, and we shall use the following:
 
 $$
-P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2).
+P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2). \tag{5}
 $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
@@ -234,22 +238,22 @@ curves show the cumulative distribution function of the data as a reference):
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg)
 
-It can be seen that the larger the $$\lambda$$ parameter, the smoother the
-curve. This is because larger $$\lambda$$’s “break” the stick into many small
-pieces (small probabilities), allowing the normalized base measure to be
-extensively sampled, which, in the limit, converges to this very measure.
+It can be seen that the larger the prior volume, the smoother the curve. This is
+because larger $$\lambda$$’s “break” the stick into more pieces, allowing the
+normalized base measure—as shown in Equation (5)—to be extensively sampled,
+which, in the limit, converges to this very measure.
 
-Conditioning on the observed data, which is what Equation (2) shows, we obtain
-the following sample draws from the posterior Dirichlet distribution:
+Now, conditioning on the observed data, which is what Equation (2) shows, we
+obtain the following sample draws from the posterior Dirichlet distribution:
 
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
 
-The model no longer ignores the data. When the prior volume, $$\lambda$$, is
-small, virtually no data points come from $$P_0$$, and the curve is nearly
-indistinguishable from the one of the data. As $$\lambda$$ gets larger, the
-prior gets stronger, and the estimate gets shrunk toward it.
+The model no longer ignores the data. When the prior volume is small, virtually
+no data points come from $$P_0$$, and the curve is nearly indistinguishable from
+the one of the data. As $$\lambda$$ gets larger, the prior gets stronger, and
+the estimate gets shrunk toward it.
 
 The above model has a serious limitation: it assumes a discrete probability
 distribution for the data-generating process, which can be seen in the prior and
@@ -267,7 +271,7 @@ such as continuity. The general structure is as follows:
 
 $$
 \begin{align}
-x_i | \theta_i & \sim P_x \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{5} \\
+x_i | \theta_i & \sim P_x \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{6} \\
 \theta_i | P_\theta & \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
 P_\theta & \sim \text{Dirichlet Process}(\lambda P_0). \\
 \end{align}
@@ -281,7 +285,7 @@ particular member of the family by its mean and precision. Parameters $$\{
 $$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
 process prior with measure $$\lambda P_0$$.
 
-It can be seen in Equation (5) that each data point can potentially has its own
+It can be seen in Equation (6) that each data point can potentially has its own
 unique set of parameters. However, this is not what usually happens in practice.
 Instead, many data points share the same parameters, which is akin to
 clustering. In fact, clustering is a prominent use case for the Dirichlet
@@ -297,11 +301,11 @@ construction. It belongs to the class of Gibbs samplers and is as follows.
 Similarly to Equation (3), we have the following decomposition:
 
 $$
-P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i) \tag{6}
+P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i) \tag{7}
 $$
 
 where $$P_m$$ is the probability measure of the mixture. As before, the infinite
-decomposition in Equation (6) has to be made finite to be usable in practice:
+decomposition in Equation (7) has to be made finite to be usable in practice:
 
 $$
 P_m(\cdot) = \sum_{i = 1}^m p_i P_x(\cdot | \theta_i).
@@ -395,7 +399,7 @@ The Gaussian–gamma distribution is a conjugate prior for the Gaussian data
 distribution with unknown mean and variance, which we assume here. This means
 that the posterior is also Gaussian–gamma. Given a data set with $$n_1$$
 observations $$x_1, \dots, x_{n_1}$$, the mapping of the four parameters of the
-prior to those of the posterior is as follows:[^1]
+prior to those of the posterior is as follows:
 
 $$
 \begin{align}
@@ -445,27 +449,26 @@ where $$\mu_x = \sum_{i = 1}^{n_1} x_i / n_1$$ and $$s^2_x = \sum_{i = 1}^{n_1}
 
 I would like to thank [Mattias Villani] for the insightful and informative
 graduate course in statistics titled “[Advanced Bayesian learning][Villani
-2020],” which was the inspiration behind writing this article.
+(2020)],” which was the inspiration behind writing this article.
 
 # References
 
-* Andrew Gelman et al., _[Bayesian Data Analysis][BDA]_, Chapman and Hall/CRC,
-  2014.
+* Andrew Gelman et al., _[Bayesian Data Analysis][Gelman (2014)]_, Chapman and
+  Hall/CRC, 2014.
 * Kathryn Roeder, “[Density estimation with confidence sets exemplified by
   superclusters and voids in galaxies][Roeder (1990)],” Journal of the American
   Statistical Association, 1990.
-* Rick Durrett, _[Probability: Theory and Examples][PTE]_, Cambridge University
-  Press, 2010.
+* Rick Durrett, _[Probability: Theory and Examples][Durrett (2010)]_, Cambridge
+  University Press, 2010.
 
 # Footnotes
 
-[^1]: “[Posterior distribution of the parameters][Wikipedia],” Wikipedia, 2020.
-
+[Durrett (2010)]: https://services.math.duke.edu/~rtd/PTE/pte.html
+[Gelman (2014)]: http://www.stat.columbia.edu/~gelman/book/
 [Mattias Villani]: https://www.mattiasvillani.com/
-[Villani 2020]: https://github.com/mattiasvillani/AdvBayesLearnCourse
-
-[BDA]: http://www.stat.columbia.edu/~gelman/book/
-[PTE]: https://services.math.duke.edu/~rtd/PTE/pte.html
-[Wikipedia]: https://en.wikipedia.org/wiki/Normal-gamma_distribution#Posterior_distribution_of_the_parameters
-[galaxies]: https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/galaxies.html
 [Roeder (1990)]: https://doi.org/10.2307/2289993
+[Villani (2020)]: https://github.com/mattiasvillani/AdvBayesLearnCourse
+[galaxies]: https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/galaxies.html
+
+[notebook]: https://github.com/IvanUkhov/blog/blob/master/_posts/2021-01-25-dirichlet-process.Rmd
+[scripts]: https://github.com/IvanUkhov/blog/tree/master/_scripts/2021-01-25-dirichlet-process
