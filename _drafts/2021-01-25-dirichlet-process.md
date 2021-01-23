@@ -399,7 +399,7 @@ intuition about this distribution can be built via the following decomposition:
 
 $$
 \begin{align}
-\mu | \sigma^2 & \sim \text{Gaussian}\left(\mu_0, \frac{\sigma^2}{\kappa_0}\right) \text{ and} \\
+\mu | \sigma^2 & \sim \text{Gaussian}\left(\mu_0, \frac{\sigma^2}{\kappa_0}\right) \text{ and} \tag{7} \\
 \sigma^2 & \sim \text{Scaled-Inverse-}\chi^2(\nu_0, \sigma_0^2).
 \end{align}
 $$
@@ -423,7 +423,42 @@ where $$\mu_x = \sum_{i = 1}^n x_i / n$$ and $$ss_x = \sum_{i = 1}^n (x_i -
 \mu_x)^2$$. It can be seen that $$\kappa_0$$ and $$\nu_0$$ act as counters of
 the number of observations; $$\mu_0$$ is a weighted sum of two means; and
 $$\nu_0 \sigma_0^2$$ is a sum of two sums of squares and a third term increasing
-the uncertainty due to the difference in the means.
+the uncertainty due to the difference in the means. In the Gibbs sampler, each
+component will have its own posterior based on the data points that are assigned
+to that component during each iteration of the process. Therefore, $$n$$,
+$$\mu_x$$, and $$ss_x$$ will generally be different for each component and,
+moreover, will vary from iteration to iteration.
+
+We set $$\mu_0$$ to 20, which is roughly the mean of the data, and $$\nu_0$$ to
+3, which is the smallest integer that allows the scaled chi-squared distribution
+to have a finite expectation. The choice of $$\kappa_0$$ and $$\sigma_0$$ is
+more subtle. Recall Equation (7). What we would like from the prior is to allow
+for free formation of clusters in a region generously covering the support of
+the data. To this end, the uncertainty in the mean has to be high; however, it
+should not come from $$\sigma$$, since it would produce very diffuse clusters.
+We set $$\kappa_0$$ to 0.01 to magnify the variance of $$\mu$$ without affecting
+$$\sigma$$, and $$\sigma_0$$ to 1 to keep clusters compact.
+
+As mentioned, we would like to include $$\lambda$$ in the inference. We put the
+following prior:
+
+$$
+\lambda \sim \text{Gamma}(\alpha_0, \beta_0)
+$$
+
+where $$\alpha_0$$ and $$\beta_0$$ are hyperparameters, which we set to 1 and 1,
+respectively. Conditionally, this is a conjugate prior with the following update
+rule for the two parameters:
+
+$$
+\begin{align}
+\alpha_0 & := \alpha_0 + m - 1 \quad \text{and} \\
+\beta_0 & := \beta_0 - \sum_{i = 1}^{m - 1} \ln(1 - q_i)
+\end{align}
+$$
+
+where $$\{ q_i \}$$ come from the stick-breaking construction. This is a fourth
+step in the Gibbs sampler.
 
 
 
@@ -472,8 +507,6 @@ graduate course in statistics titled “[Advanced Bayesian learning][Villani
   Statistical Association, 1990.
 * Rick Durrett, _[Probability: Theory and Examples][Durrett (2010)]_, Cambridge
   University Press, 2010.
-
-# Footnotes
 
 [Durrett (2010)]: https://services.math.duke.edu/~rtd/PTE/pte.html
 [Gelman (2014)]: http://www.stat.columbia.edu/~gelman/book/
