@@ -183,8 +183,8 @@ Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
 reference point.
 
 > For the curious reader, the source code of this R [notebook] along with
-> auxiliary [scripts] that are used for performing the calculations presented
-> below can be found on GitHub.
+> auxiliary [scripts] that are used for performing all the calculations
+> presented below can be found on GitHub.
 
 The empirical cumulative distribution function of the velocity is as follows:
 
@@ -202,9 +202,9 @@ confirmation:
 ![](/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg)
 
 It can be seen that there is a handful of galaxies moving relatively slowly and
-relatively fast compared to the majority somewhere in the middle around twenty
-thousand kilometers per second. For completeness, kernel density estimation
-results in the following plot:
+relatively fast compared to the majority located somewhere in the middle around
+twenty thousand kilometers per second. For completeness, kernel density
+estimation results in the following plot:
 
 
 
@@ -214,9 +214,9 @@ How many clusters of galaxies are there? What are their average velocities? How
 uncertain are these estimates? Our goal is to answer these questions by virtue
 of the Dirichlet process.
 
-Now that we want to apply the theory presented earlier, we have to make all
-choices we have conveniently glanced over. Specifically, $$P_0$$ has to be
-chosen, and we shall use the following:
+Now that the intention is to apply the presented theory in practice, we have to
+make all choices we have conveniently glanced over. Specifically, $$P_0$$ has to
+be chosen, and we shall use the following:
 
 $$
 P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2). \tag{5}
@@ -229,7 +229,7 @@ $$\sigma_0$$ to 20 and 5, respectively—which correspond roughly to the mean an
 standard deviation of the data—and present results for different $$\lambda$$ to
 investigate how the prior volume affects shrinkage toward the prior.
 
-First, we do not condition on the data to get a better understanding for the
+First, we do not condition on the data to get a better understanding of the
 prior itself, which corresponds to Equation (1). The following figure shows a
 single draw from four Dirichlet processes with different $$\lambda$$’s (the gray
 curves show the cumulative distribution function of the data as a reference):
@@ -250,10 +250,12 @@ obtain the following sample draws from the posterior Dirichlet distribution:
 
 ![](/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg)
 
-The model no longer ignores the data. When the prior volume is small, virtually
-no data points come from $$P_0$$, and the curve is nearly indistinguishable from
-the one of the data. As $$\lambda$$ gets larger, the prior gets stronger, and
-the estimate gets shrunk toward it.
+When the prior volume is small, virtually no data points come from $$P_0$$;
+instead, they are mostly uniform draws from the observed data set, leading to a
+curve that is nearly indistinguishable from the one of the data (the top curve).
+As $$\lambda$$ gets larger, the prior gets stronger, and the estimate gets
+shrunk toward it, up to a point where the observations appear to be entirely
+ignored (the bottom curve).
 
 The above model has a serious limitation: it assumes a discrete probability
 distribution for the data-generating process, which can be seen in the prior and
