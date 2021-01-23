@@ -224,10 +224,10 @@ $$
 
 In the above, $$\text{Gaussian}(\cdot)$$ refers to the probability measure of a
 Gaussian distribution with parameters $$\mu_0$$ and $$\sigma_0$$. In addition to
-these two parameters, there is one more: $$\lambda$$. We shall set $$\mu_0$$ and
+these two, there is one more: $$\lambda$$. We shall set $$\mu_0$$ and
 $$\sigma_0$$ to 20 and 5, respectively—which correspond roughly to the mean and
-standard deviation of the data—and present results for different $$\lambda$$ to
-investigate how the prior volume affects shrinkage toward the prior.
+standard deviation of the data—and present results for different $$\lambda$$’s
+to investigate how the prior volume affects shrinkage toward the prior.
 
 First, we do not condition on the data to get a better understanding of the
 prior itself, which corresponds to Equation (1). The following figure shows a
@@ -240,11 +240,12 @@ curves show the cumulative distribution function of the data as a reference):
 
 It can be seen that the larger the prior volume, the smoother the curve. This is
 because larger $$\lambda$$’s “break” the stick into more pieces, allowing the
-normalized base measure—as shown in Equation (5)—to be extensively sampled,
-which, in the limit, converges to this very measure.
+normalized base measure to be extensively sampled, which, in the limit,
+converges to this very measure; see Equation (5).
 
-Now, conditioning on the observed data, which is what Equation (2) shows, we
-obtain the following sample draws from the posterior Dirichlet distribution:
+Now, conditioning on the observed data—that is, sampling as shown in Equation
+(2)—we obtain the following draws from the posterior Dirichlet distributions
+with different $$\lambda$$’s:
 
 
 
