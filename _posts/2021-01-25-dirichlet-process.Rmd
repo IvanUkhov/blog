@@ -751,15 +751,15 @@ is a prominent advantage of Bayesian inference.
 # Conclusion
 
 > Recall that the source code of this [notebook] along with auxiliary [scripts]
-> that were used for performing all the calculations presented above can be
-> found on GitHub.
+> that were used for performing the calculations presented above can be found on
+> GitHub. Any feedback is welcome!
 
 # Acknowledgments
 
 I would like to thank [Mattias Villani] for the insightful and informative
 graduate course in Bayesian statistics titled “[Advanced Bayesian
 learning][Villani (2020)],” which was the inspiration behind writing this
-article, and for his guidance about the implementation.
+article, and for his guidance regarding the implementation.
 
 # References
 
