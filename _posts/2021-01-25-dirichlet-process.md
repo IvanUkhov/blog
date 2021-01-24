@@ -6,9 +6,11 @@ math: true
 keywords:
   - Bayesian statistics
   - Dirichlet process
+  - Dirichlet process mixture
   - Gibbs sampling
   - R
   - data science
+  - galaxy velocity
 ---
 
 
@@ -569,9 +571,9 @@ is a prominent advantage of Bayesian inference.
 # Acknowledgments
 
 I would like to thank [Mattias Villani] for the insightful and informative
-graduate course in statistics titled “[Advanced Bayesian learning][Villani
-(2020)],” which was the inspiration behind writing this article, and for his
-help with troubleshooting the implementation.
+graduate course in Bayesian statistics titled “[Advanced Bayesian
+learning][Villani (2020)],” which was the inspiration behind writing this
+article, and for his guidance about the implementation.
 
 # References
 
