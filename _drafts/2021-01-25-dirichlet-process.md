@@ -244,9 +244,9 @@ because larger $$\lambda$$’s “break” the stick into more pieces, allowing 
 normalized base measure to be extensively sampled, which, in the limit,
 converges to this very measure; see Equation (5).
 
-Now, conditioning on the observed data—that is, sampling as shown in Equation
-(2)—we obtain the following draws from the posterior Dirichlet distributions
-with different $$\lambda$$’s:
+Now, conditioning on the observed velocities of galaxies—that is, sampling as
+shown in Equation (2)—we obtain the following draws from the posterior Dirichlet
+distributions with different $$\lambda$$’s:
 
 
 
@@ -382,7 +382,8 @@ procedure to update $$\lambda$$. This will be also illustrated below.
 
 ## Illustration
 
-For concreteness, consider the following choices:
+We continue working with the galaxy data. For concreteness, consider the
+following choices:
 
 $$
 \begin{align}
@@ -399,8 +400,8 @@ intuition about this distribution can be built via the following decomposition:
 
 $$
 \begin{align}
-\mu | \sigma^2 & \sim \text{Gaussian}\left(\mu_0, \frac{\sigma^2}{\kappa_0}\right) \text{ and} \tag{7} \\
-\sigma^2 & \sim \text{Scaled-Inverse-}\chi^2(\nu_0, \sigma_0^2).
+\mu_i | \sigma_i^2 & \sim \text{Gaussian}\left(\mu_0, \frac{\sigma_i^2}{\kappa_0}\right) \text{ and} \tag{7} \\
+\sigma_i^2 & \sim \text{Scaled-Inverse-}\chi^2(\nu_0, \sigma_0^2).
 \end{align}
 $$
 
@@ -424,23 +425,43 @@ where $$\mu_x = \sum_{i = 1}^n x_i / n$$ and $$ss_x = \sum_{i = 1}^n (x_i -
 the number of observations; $$\mu_0$$ is a weighted sum of two means; and
 $$\nu_0 \sigma_0^2$$ is a sum of two sums of squares and a third term increasing
 the uncertainty due to the difference in the means. In the Gibbs sampler, each
-component will have its own posterior based on the data points that are assigned
-to that component during each iteration of the process. Therefore, $$n$$,
-$$\mu_x$$, and $$ss_x$$ will generally be different for each component and,
-moreover, will vary from iteration to iteration.
+component (each cluster of galaxies) will have its own posterior based on the
+data points that are assigned to that component during each iteration of the
+process. Therefore, $$n$$, $$\mu_x$$, and $$ss_x$$ will generally be different
+for different components and, moreover, will vary from iteration to iteration.
 
 We set $$\mu_0$$ to 20, which is roughly the mean of the data, and $$\nu_0$$ to
 3, which is the smallest integer that allows the scaled chi-squared distribution
 to have a finite expectation. The choice of $$\kappa_0$$ and $$\sigma_0$$ is
 more subtle. Recall Equation (7). What we would like from the prior is to allow
 for free formation of clusters in a region generously covering the support of
-the data. To this end, the uncertainty in the mean has to be high; however, it
-should not come from $$\sigma$$, since it would produce very diffuse clusters.
-We set $$\kappa_0$$ to 0.01 to magnify the variance of $$\mu$$ without affecting
-$$\sigma$$, and $$\sigma_0$$ to 1 to keep clusters compact.
+the data. To this end, the uncertainty in the mean, $$\mu_i$$, has to be high;
+however, it should not come from $$\sigma_i$$, since it would produce very
+diffuse clusters. We set $$\kappa_0$$ to 0.01 to magnify the variance of
+$$\mu_i$$ without affecting $$\sigma_i$$, and $$\sigma_0$$ to 1 to keep clusters
+compact.
 
-As mentioned, we would like to include $$\lambda$$ in the inference. We put the
-following prior:
+Now, let us take a look at what the above choices entail. The following figure
+illustrates the prior for the mean of a component:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-mu-1.svg)
+
+The negative part is unrealistic for velocity; however, it is rarely a problem
+in practice. What is important is that there is a generous coverage of the
+plausible values. The following figures shows the prior for the standard
+deviation of a component:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-sigma-1.svg)
+
+The bulk is below the standard deviation of the data; however, this is by
+choice: we expect more than one cluster of galaxies with similar velocities.
+
+As mentioned earlier, we intend to include $$\lambda$$ in the inference. We put
+the following prior:
 
 $$
 \lambda \sim \text{Gamma}(\alpha_0, \beta_0)
@@ -459,14 +480,6 @@ $$
 
 where $$\{ q_i \}$$ come from the stick-breaking construction. This is a fourth
 step in the Gibbs sampler.
-
-
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-mu-1.svg)
-
-
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-sigma-1.svg)
 
 
 
