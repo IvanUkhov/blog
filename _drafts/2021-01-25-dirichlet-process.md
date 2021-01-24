@@ -525,8 +525,16 @@ should. One can plot the actual marginal posterior distribution for the number
 of components; however, it is already clear that the distribution of the number
 of clusters of galaxies is mostly between 5 and 10 with a median of 7.
 
-Let us take a look at the posterior distributions of the first seven components
-(note the different scales on the vertical axis):
+As for the concentration parameter, $$\lambda$$, the chain is as follows:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
+
+The behavior is uneventful, which is a good sign.
+
+Let us now take a look at the posterior distributions of the first seven
+components highlighted earlier (note the different scales on the vertical axis):
 
 
 
@@ -544,31 +552,28 @@ the small formation to the left and right next to the bulk in the middle (at
 16); recall the histogram of the data. The small formation on the other side of
 the bulk at around 26 is captured as well, which is mostly done by Component 6.
 
-As for the concentration parameter, $$\lambda$$, the chain is as follows:
-
-
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
-
-The behavior is uneventful, which is a good sign.
-
-The inference is summarized in the following figure where the mean distribution
-and a 95% uncertainty band around it are plotted:
+Lastly, we summarize the inference using the following figure where the median
+distribution and a 95% uncertainty band—composed of distributions at the 0.025
+and 0.975 quantiles—are plotted:
 
 
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
 
-There is clearly a lot of uncertainty in the estimation, and it is important to
-communicate this to those who base decisions on the inference. The ability to
-quantify uncertainty with such an ease is a prominent advantage of Bayesian
-inference.
+In this view, only five components are visible to the naked eye. Judging by
+width of the uncertainty band, there is clearly a lot of plausible alternative
+scenarios, and it is important to communicate this uncertainty to those who base
+decisions on the inference. The ability to quantify uncertainty with such an
+ease is a prominent advantage of Bayesian inference.
+
+# Conclusion
 
 # Acknowledgments
 
 I would like to thank [Mattias Villani] for the insightful and informative
 graduate course in statistics titled “[Advanced Bayesian learning][Villani
-(2020)],” which was the inspiration behind writing this article.
+(2020)],” which was the inspiration behind writing this article, and for his
+help with troubleshooting the implementation.
 
 # References
 

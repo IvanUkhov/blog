@@ -199,7 +199,7 @@ check_predictive <- function(draws, observed, type = 'pdf', ...) {
 summarize_inference <- function(draws, observed, type = 'pdf', probability = 0.95, ...) {
   evaluate_DPM(draws, observed, type = type) %>%
     group_by(x) %>%
-    summarize(y_mean = mean(y),
+    summarize(y_middle = median(y),
               y_lower = quantile(y, (1 - probability) / 2),
               y_upper = quantile(y, 1 - (1 - probability) / 2),
               .groups = 'drop')
@@ -274,7 +274,7 @@ plot_inference <- function(draws_summarized, observed, type = 'pdf', probability
               linetype = 'dashed',
               size = 0.5) +
     geom_line(data = draws_summarized,
-              mapping = aes(x, y_mean, color = 'Model'),
+              mapping = aes(x, y_middle, color = 'Model'),
               size = 1) +
     scale_color() +
     labs(x = TeX('Velocity ($10^6$ m/s)'),
