@@ -525,6 +525,25 @@ should. One can plot the actual marginal posterior distribution for the number
 of components; however, it is already clear that the distribution of the number
 of clusters of galaxies is mostly between 5 and 10 with a median of 7.
 
+Let us take a look at the posterior distributions of the first seven components
+(note the different scales on the vertical axis):
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg)
+
+The components clearly change roles, which can be seen by the multimodal nature
+of the distributions. Component 1 is most often at 10 (times $$10^6$$ m/s);
+however, it also peaks between 24 and 25 and even above 30. Components 2 and 3
+are the most certain ones, which is due to a relatively large number of samples
+present in the corresponding region. They seem to exchanges roles and capture
+velocities of around 20 and 23. Components 4 and 5, on the other hand, appear to
+play the same role. Unlike Component 1, they are most likely to be found at
+around 33. Components 6 and 7 are similar too. They seem to be responsible for
+the small formation to the left and right next to the bulk in the middle (at
+16); recall the histogram of the data. The small formation on the other side of
+the bulk at around 26 is captured as well, which is mostly done by Component 6.
+
 As for the concentration parameter, $$\lambda$$, the chain is as follows:
 
 

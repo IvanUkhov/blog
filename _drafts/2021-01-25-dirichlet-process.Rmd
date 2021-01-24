@@ -663,6 +663,47 @@ should. One can plot the actual marginal posterior distribution for the number
 of components; however, it is already clear that the distribution of the number
 of clusters of galaxies is mostly between 5 and 10 with a median of 7.
 
+Let us take a look at the posterior distributions of the first seven components
+(note the different scales on the vertical axis):
+
+```{r mixture-posterior-mu, fig.asp = 2, include = FALSE}
+tail(draws, length(draws) / 2) %>%
+  sapply(function(draw) draw$theta$mu[1:7], simplify = FALSE) %>%
+  { do.call(rbind, .) } %>%
+  as_tibble() %>%
+  rename_all(function(name) gsub('V', 'Component ', name)) %>%
+  pivot_longer(everything()) %>%
+  ggplot(aes(value)) +
+  geom_vline(aes(xintercept = 10, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 16, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 20, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 23, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 24.5, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 26, color = 'Observation'), size = 1) +
+  geom_vline(aes(xintercept = 33, color = 'Observation'), size = 1) +
+  geom_density(aes(color = 'Model'), size = 1) +
+  scale_color() +
+  coord_cartesian(xlim = c(0, 45)) +
+  labs(x = TeX('Velocity ($10^6$ m/s)'),
+       y = 'Probability density') +
+  facet_wrap(~ name, ncol = 1, scales = 'free_y') +
+  theme(legend.position = 'none')
+```
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg)
+
+The components clearly change roles, which can be seen by the multimodal nature
+of the distributions. Component 1 is most often at 10 (times $$10^6$$ m/s);
+however, it also peaks between 24 and 25 and even above 30. Components 2 and 3
+are the most certain ones, which is due to a relatively large number of samples
+present in the corresponding region. They seem to exchanges roles and capture
+velocities of around 20 and 23. Components 4 and 5, on the other hand, appear to
+play the same role. Unlike Component 1, they are most likely to be found at
+around 33. Components 6 and 7 are similar too. They seem to be responsible for
+the small formation to the left and right next to the bulk in the middle (at
+16); recall the histogram of the data. The small formation on the other side of
+the bulk at around 26 is captured as well, which is mostly done by Component 6.
+
 As for the concentration parameter, $$\lambda$$, the chain is as follows:
 
 ```{r mixture-posterior-lambda, include = FALSE}
@@ -678,23 +719,6 @@ tibble(value = sapply(draws, function(draw) draw$lambda)) %>%
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
 
 The behavior is uneventful, which is a good sign.
-
-```{r mixture-posterior-mu, fig.asp = 2, include = FALSE}
-tail(draws, length(draws) / 2) %>%
-  sapply(function(draw) draw$theta$mu[1:7], simplify = FALSE) %>%
-  { do.call(rbind, .) } %>%
-  as_tibble() %>%
-  rename_all(function(name) gsub('V', 'Component ', name)) %>%
-  pivot_longer(everything()) %>%
-  ggplot(aes(value)) +
-  geom_density(color = 'gray30', size = 1) +
-  coord_cartesian(xlim = c(0, 45)) +
-  labs(x = TeX('Velocity ($10^6$ m/s)'),
-       y = 'Probability density') +
-  facet_wrap(~ name, ncol = 1, scales = 'free_y')
-```
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg)
 
 The inference is summarized in the following figure where the mean distribution
 and a 95% uncertainty band around it are plotted:
