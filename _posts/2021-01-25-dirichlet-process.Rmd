@@ -199,7 +199,7 @@ galaxies from 6 well-separated conic sections of an unfilled survey of the
 Corona Borealis region.” It was studied in [Roeder (1990)], which gives us a
 reference point.
 
-> For the curious reader, the source code of this R [notebook] along with
+> For the curious reader, the source code of this [notebook] along with
 > auxiliary [scripts] that are used for performing all the calculations
 > presented below can be found on GitHub.
 
@@ -747,6 +747,12 @@ width of the uncertainty band, there is clearly a lot of plausible alternative
 scenarios, and it is important to communicate this uncertainty to those who base
 decisions on the inference. The ability to quantify uncertainty with such ease
 is a prominent advantage of Bayesian inference.
+
+# Conclusion
+
+> Recall that the source code of this [notebook] along with auxiliary [scripts]
+> that were used for performing all the calculations presented above can be
+> found on GitHub.
 
 # Acknowledgments
 
