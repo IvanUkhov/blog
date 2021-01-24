@@ -670,7 +670,7 @@ tibble(value = sapply(draws, function(draw) draw$lambda)) %>%
   mutate(draw = row_number()) %>%
   ggplot(aes(draw, value)) +
   geom_line(color = 'gray30', size = 0.5) +
-  ylim(0, 4) +
+  ylim(0, 5) +
   labs(x = 'Iteration',
        y = TeX('Concentration parameter, $\\lambda$'))
 ```
