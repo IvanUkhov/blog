@@ -530,7 +530,7 @@ sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
 
 The negative part is unrealistic for velocity; however, it is rarely a problem
 in practice. What is important is that there is a generous coverage of the
-plausible values. The following figures shows the prior for the standard
+plausible values. The following figure shows the prior for the standard
 deviation of a component:
 
 ```{r mixture-prior-sigma, include = FALSE}
@@ -556,16 +556,15 @@ sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
 The bulk is below the standard deviation of the data; however, this is by
 choice: we expect more than one cluster of galaxies with similar velocities.
 
-As mentioned earlier, we intend to include $$\lambda$$ in the inference. We put
-the following prior:
+As mentioned earlier, we intend to include $$\lambda$$ in the inference. First,
+we put the following prior:
 
 $$
-\lambda \sim \text{Gamma}(\alpha_0, \beta_0)
+\lambda \sim \text{Gamma}(\alpha_0, \beta_0).
 $$
 
-where $$\alpha_0$$ and $$\beta_0$$ are hyperparameters, which we set to 1 and 1,
-respectively. Conditionally, this is a conjugate prior with the following update
-rule for the two parameters:
+Note this is the rate parameterization of the Gamma family. Conditionally, this
+is a conjugate prior with the following update rule for the two parameters:
 
 $$
 \begin{align}
@@ -575,7 +574,8 @@ $$
 $$
 
 where $$\{ q_i \}$$ come from the stick-breaking construction. This is a fourth
-step in the Gibbs sampler.
+step in the Gibbs sampler. We set $$\alpha_0$$ and $$\beta_0$$ to 2 and 0.1,
+respectively, which entails the following prior assumption about $$\lambda$$:
 
 ```{r mixture-prior-lambda, include = FALSE}
 set.seed(42)
@@ -587,6 +587,8 @@ tibble(lambda = sample_Plambda_prior(1000)) %>%
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-lambda-1.svg)
+
+It varies freely from small to large values.
 
 ```{r mixture-prior-check, include = FALSE}
 cache_path <- file.path(cache_directory, 'mixture-prior.RData')

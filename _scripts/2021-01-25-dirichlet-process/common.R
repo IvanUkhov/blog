@@ -46,11 +46,11 @@ sample_Ptheta_posterior <- function(l, x, mu0 = mean(x), kappa0 = 1, nu0 = 3, si
   )
 }
 
-sample_Plambda_prior <- function(l, alpha0 = 3, beta0 = 0.1) {
+sample_Plambda_prior <- function(l, alpha0 = 2, beta0 = 0.1) {
   rgamma(l, alpha0, beta0)
 }
 
-sample_Plambda_posterior <- function(l, q, alpha0 = 3, beta0 = 0.1) {
+sample_Plambda_posterior <- function(l, q, alpha0 = 2, beta0 = 0.1) {
   sample_Plambda_prior(
     l = l,
     alpha0 = alpha0 + length(q) - 1,
@@ -102,8 +102,8 @@ sample_DPM <- function(x, m, l,
                        nu0 = n0,
                        sigma0 = 1,
                        lambda0 = 1,
-                       alpha0 = n0,
-                       beta0 = sqrt(n0) / 10,
+                       alpha0 = 2,
+                       beta0 = 0.1,
                        prior_only = FALSE) {
   theta_prior <- list(
     mu0 = mu0,
