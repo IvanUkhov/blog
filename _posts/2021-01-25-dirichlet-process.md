@@ -536,7 +536,7 @@ As for the concentration parameter, $$\lambda$$, the chain is as follows:
 The behavior is uneventful, which is a good sign.
 
 Let us now take a look at the posterior distributions of the first seven
-components highlighted earlier (note the different scales on the vertical axis):
+components highlighted earlier (note the different scales on the vertical axes):
 
 
 
@@ -569,6 +569,21 @@ decisions on the inference. The ability to quantify uncertainty with such ease
 is a prominent advantage of Bayesian inference.
 
 # Conclusion
+
+In this article, the family of Dirichlet processes has been presented in the
+context of Bayesian inference. More specifically, it has been shown how a
+Dirichlet process can be utilized as a prior for an unknown discrete
+distribution and as a prior for mixing distributions from a given family. In
+both cases, it has been illustrated how to perform inference via a finite
+approximation and the stick-breaking construction.
+
+Clearly, the overall procedure is more complicated than counting observations
+falling in a number of fixed bins, which is what a histogram does, or placing
+kernels all over the place, which is what a kernel density estimator does.
+However, “anything in life worth having is worth working for.” The advantages of
+the Bayesian approach include the ability to incorporate prior knowledge, which
+is crucial in situations with little data, and the ability to propagate and
+quantify uncertainty, which is a must.
 
 > Recall that the source code of this [notebook] along with auxiliary [scripts]
 > that were used for performing the calculations presented above can be found on
