@@ -60,8 +60,8 @@ $$
 P \sim \text{Dirichlet Process}(\lambda P_0).
 $$
 
-Parameter $$\lambda$$ is sometimes referred to as the concentration parameter of
-the process.
+Parameter $$\lambda$$ is referred to as the concentration parameter of the
+process.
 
 There are two major alternatives of using the Dirichlet process for estimating
 distributions: as a direct prior for the data at hand and as a mixing prior. We
@@ -375,9 +375,9 @@ To recapitulate, a single draw from the posterior is obtained in a number of
 steps where parameters or groups of parameters are updated in turn, while
 treating the other parameters as known. This Gibbs procedure is very flexible.
 Other parameters can be inferred too, instead of setting them to fixed values.
-An important example is the prior volume, $$\lambda$$. This parameter controls
-the formation of clusters, and one might let the data decide what the value
-should be, in which case a step similar to the third one is added to the
+An important example is the concentration parameter, $$\lambda$$. This parameter
+controls the formation of clusters, and one might let the data decide what the
+value should be, in which case a step similar to the third one is added to the
 procedure to update $$\lambda$$. This will be also illustrated below.
 
 ## Illustration
@@ -509,8 +509,32 @@ distribution in the form of 1000 draws. The following shows two random draws:
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg)
 
 Indeed, mixture components have started to appear in the regions where there are
-observations. The inference is summarized in the following figure where the mean
-distribution and a 95% uncertainty band around it are plotted:
+observations.
+
+Before we proceed to the final summary of results, it is prudent to inspect
+sample chains for a few parameters in order to ensure there are not problems
+with convergence to the stationary distribution. The following shows the number
+of occupied components among the 25 permitted:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-k-1.svg)
+
+The chain fluctuates around a fixed level without any prominent pattern, as it
+should. One can plot the actual marginal posterior distribution for the number
+of components; however, it is already clear that the distribution of the number
+of clusters of galaxies is mostly between 5 and 10 with a median of 7.
+
+As for the concentration parameter, $$\lambda$$, the chain is as follows:
+
+
+
+![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
+
+The behavior is uneventful, which is a good sign.
+
+The inference is summarized in the following figure where the mean distribution
+and a 95% uncertainty band around it are plotted:
 
 
 
@@ -520,14 +544,6 @@ There is clearly a lot of uncertainty in the estimation, and it is important to
 communicate this to those who base decisions on the inference. The ability to
 quantify uncertainty with such an ease is a prominent advantage of Bayesian
 inference.
-
-
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-k-1.svg)
-
-
-
-![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
 
 # Acknowledgments
 
