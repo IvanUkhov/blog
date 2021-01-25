@@ -742,11 +742,12 @@ plot_inference(draws_summarized, data)
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
 
-In this view, only five components are visible to the naked eye. Judging by the
-width of the uncertainty band, there is clearly a lot of plausible alternative
-scenarios, and it is important to communicate this uncertainty to those who base
-decisions on the inference. The ability to quantify uncertainty with such ease
-is a prominent advantage of Bayesian inference.
+In this view, only five components are visible to the naked eye. The median
+curve matches well the findings in [Roeder (1990)]. Judging by the width of the
+uncertainty band, there is a lot of plausible alternatives, and it is important
+to communicate this uncertainty to those who base decisions on the inference.
+The ability to quantify uncertainty with such ease is a prominent advantage of
+Bayesian inference.
 
 # Conclusion
 
