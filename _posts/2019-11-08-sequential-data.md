@@ -462,7 +462,7 @@ def _postprocess(contextual, sequential):
 Currently, `tf.data` does not support padding sparse tensors, which is the
 representation used for sequential features in TensorFlow. In the running
 example about forecasting weather, such features are `duration` and
-`temprature`. This is the reason such features are converted to their dense
+`temperature`. This is the reason such features are converted to their dense
 counterparts in `_preprocess`. However, the final representation has to be
 sparse still. Therefore, the sequential features are converted back to the
 sparse format in `_postprocess`. Hopefully, this back-and-forth conversion will
