@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Interactive notebooks in tightly sealed disposable containers | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Interactive notebooks in tightly sealed disposable containers" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session." />
+<meta property="og:description" content="It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2019/07/24/notebook.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2019/07/24/notebook.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-07-24T06:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Interactive notebooks in tightly sealed disposable containers" />
+<script type="application/ld+json">
+{"datePublished":"2019-07-24T06:00:00+00:00","headline":"Interactive notebooks in tightly sealed disposable containers","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/07/24/notebook.html"},"url":"https://blog.ivanukhov.com/2019/07/24/notebook.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session.","@type":"BlogPosting","dateModified":"2019-07-24T06:00:00+00:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Docker, JupyterLab, Python, R, RStudio, data science"><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Interactive notebooks in tightly sealed disposable containers</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-07-24T06:00:00+00:00" itemprop="datePublished">July 24, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>It is truly amazing how interactive notebooks—where a narrative in a spoken
+language is entwined with executable chunks of code in a programming
+language—have revolutionized the way we work with data and document our thought
+processes and findings for others and, equally importantly, for our future
+selves. They are ubiquitous and taken for granted. It is hard to imagine where
+data enthusiasts would be without them. Most likely, we would be spending too
+much time staring at a terminal window, anxiously re-running scripts from start
+to finish, printing variables, and saving lots of files with tables and graphs
+on disk for further inspection. Interactive notebooks are an essential tool in
+the data scientist’s toolbox, and in this article, we are going to make them
+readily available for our use with our favorite packages installed and
+preferences set up, no matter where we find ourselves working and regardless of
+the mess we might have left behind during the previous session.</p>
+
+<p>Python and R (in alphabetic order) are arguably the primary languages used by
+data scientists nowadays. In the context of interactive computations, <a href="https://ipython.org/">IPython</a>
+and later on <a href="https://jupyter.org/">Project Jupyter</a> have been of paramount importance for the Python
+community (the latter is actually language agnostic). In the R community, this
+role has been played by <a href="https://www.rstudio.com/">RStudio</a>. Therefore, having at one’s disposal
+<a href="https://jupyter.org/">JupyterLab</a>, which is Project Jupyter’s flagship, and RStudio should make one
+well equipped for a wide range of data challenges. As alluded to earlier, the
+objective is to have an environment that has a fixed initial state defined by us
+and is accessible to us on any machine we might happen to work on. This problem
+definition is a perfect fit for containerization. Specifically, we shall build
+custom-tailored <a href="https://www.docker.com/">Docker</a> images for JupyterLab and RStudio and create a few
+convenient shortcuts for launching them.</p>
+
+<p>The code discussed below can be found in the following two repositories:</p>
+
+<ul>
+  <li><a href="https://github.com/chain-rule/JupyterLab/tree/article">JupyterLab</a> and</li>
+  <li><a href="https://github.com/chain-rule/RStudio/tree/article">RStudio</a>.</li>
+</ul>
+
+<h1 id="jupyterlab">JupyterLab</h1>
+
+<p>In order to build a Docker image for JupyterLab, we begin with a
+<a href="https://github.com/chain-rule/JupyterLab/blob/article/Dockerfile"><code class="language-plaintext highlighter-rouge">Dockerfile</code></a>:</p>
+
+<div class="language-docker highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start with a minimal Python image</span>
+<span class="k">FROM</span><span class="s"> python:3.7-slim</span>
+
+<span class="c"># Install the desired Python packages</span>
+<span class="k">COPY</span><span class="s"> requirements.txt /tmp/requirements.txt</span>
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> pip
+<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> <span class="nt">--requirement</span> /tmp/requirements.txt
+
+<span class="c"># Configure JupyterLab to use a specific IP address and port</span>
+<span class="k">RUN </span><span class="nb">mkdir</span> <span class="nt">-p</span> ~/.jupyter
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"c.NotebookApp.ip = '0.0.0.0'"</span> <span class="o">&gt;&gt;</span> ~/.jupyter/jupyter_notebook_config.py
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"c.NotebookApp.port = 8888"</span> <span class="o">&gt;&gt;</span> ~/.jupyter/jupyter_notebook_config.py
+
+<span class="c"># Set the working directory</span>
+<span class="k">WORKDIR</span><span class="s"> /home/jupyterlab</span>
+
+<span class="c"># Stort JupyterLab once the container is launched</span>
+<span class="k">ENTRYPOINT</span><span class="s"> jupyter lab --allow-root --no-browser</span>
+</code></pre></div></div>
+
+<p>In words, we take a minimalistic image with the desired version of Python
+preinstalled—in this case, it is the <a href="https://hub.docker.com/_/python">official Python image</a>
+tagged <code class="language-plaintext highlighter-rouge">3.7-slim</code>, which refers to Python 3.7 with any available bug fixes
+promptly applied—and add packages that we consider to be important for our work.
+These packages are gathered in the usual
+<a href="https://github.com/chain-rule/JupyterLab/blob/article/requirements.txt"><code class="language-plaintext highlighter-rouge">requirements.txt</code></a>, which might look as follows:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>jupyterlab
+matplotlib
+numpy
+pandas
+pylint
+pytest
+scikit-learn
+scipy
+seaborn
+tensorflow
+yapf
+</code></pre></div></div>
+
+<p>The first one, <code class="language-plaintext highlighter-rouge">jupyterlab</code>, is essential; the rest is up to the data
+scientist’s taste. An important aspect to note is that, in this example, the
+versions of the listed packages are not fixed; hence, the latest available
+versions will be taken each time a new image is built. Alternatively, one can
+pin them to specific numbers by changing <code class="language-plaintext highlighter-rouge">requirements.txt</code>. For instance, one
+might write <code class="language-plaintext highlighter-rouge">tensorflow==1.14.0</code> instead of <code class="language-plaintext highlighter-rouge">tensorflow</code>.</p>
+
+<p>Having defined an image, we need a tool for orchestration. We would like to have
+a convenient command for actually building the image and, more importantly, a
+convenient command for launching a container with that image from an arbitrary
+directory. The versatile <code class="language-plaintext highlighter-rouge">make</code> to the rescue!</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># The name of the Docker image
+</span><span class="nv">name</span> <span class="o">:=</span> jupyterlab
+<span class="c"># The directory to be mounted to the container
+</span><span class="nv">root</span> <span class="o">?=</span> <span class="nv">${PWD}</span>
+
+<span class="c"># Build a new image
+</span><span class="nl">build</span><span class="o">:</span>
+	docker rmi <span class="nv">${name}</span> <span class="o">||</span> <span class="nb">true</span>
+	docker build <span class="nt">--tag</span> <span class="nv">${name}</span> .
+
+<span class="c"># Start a new container
+</span><span class="nl">start</span><span class="o">:</span>
+	<span class="p">@</span>docker run <span class="nt">--interactive</span> <span class="nt">--tty</span> <span class="nt">--rm</span> <span class="se">\</span>
+		<span class="nt">--name</span> <span class="nv">${name}</span> <span class="se">\</span>
+		<span class="nt">--publish</span> 8888:8888 <span class="se">\</span>
+		<span class="nt">--volume</span> <span class="s2">"</span><span class="nv">${root}</span><span class="s2">:/home/jupyterlab"</span> <span class="se">\</span>
+		<span class="nv">${name}</span>
+</code></pre></div></div>
+
+<p>In the above <a href="https://github.com/chain-rule/JupyterLab/blob/article/Makefile"><code class="language-plaintext highlighter-rouge">Makefile</code></a>, we define two commands: <code class="language-plaintext highlighter-rouge">build</code>
+and <code class="language-plaintext highlighter-rouge">start</code>. The <code class="language-plaintext highlighter-rouge">build</code> command instructs Docker to build a new image according
+to the recipe in <code class="language-plaintext highlighter-rouge">Dockerfile</code>. The <code class="language-plaintext highlighter-rouge">start</code> command launches a new container and
+mounts the directory specified by the <code class="language-plaintext highlighter-rouge">root</code> variable to the file system inside
+the container using the <code class="language-plaintext highlighter-rouge">--volume</code> option. It also forwards port 8888 inside the
+container, which is the one specified in <code class="language-plaintext highlighter-rouge">Dockerfile</code>, to port 8888 on the host
+machine so that JupyterLab can be reached from the browser.</p>
+
+<p>Let us now go ahead and try the two commands:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
+make start
+</code></pre></div></div>
+
+<p>JupyterLab should come back with usage instructions similar to the following:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>...
+[I 18:40:15.078 LabApp] The Jupyter Notebook is running at:
+[I 18:40:15.078 LabApp] http://e4edba021595:8888/?token=&lt;token&gt;
+[I 18:40:15.078 LabApp]  or http://127.0.0.1:8888/?token=&lt;token&gt;
+[I 18:40:15.078 LabApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 18:40:15.082 LabApp]
+
+    To access the notebook, open this file in a browser:
+        file:///root/.local/share/jupyter/runtime/nbserver-6-open.html
+    Or copy and paste one of these URLs:
+        http://e4edba021595:8888/?token=&lt;token&gt;
+     or http://127.0.0.1:8888/?token=&lt;token&gt;
+...
+</code></pre></div></div>
+
+<p>By clicking on the last link, we end up in a fully fledged JupyterLab.
+Congratulations! However, there is one step left. JupyterLab is currently
+running in the folder with our <code class="language-plaintext highlighter-rouge">Dockerfile</code> and <code class="language-plaintext highlighter-rouge">Makefile</code>, which is not
+particularly useful, as each project we might want to work on probably lives in
+its own folder elsewhere in the file system. Fortunately, it is easy to fix with
+an alias:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">alias </span><span class="nv">jupyterlab</span><span class="o">=</span><span class="s1">'make -C /path/to/the/folder/with/the/Makefile root="${PWD}"'</span>
+</code></pre></div></div>
+
+<p>This command should be placed in the start-up script of the shell being
+utilized. In the case of Bash, it can be done as follows:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"alias jupyterlab='make -C </span><span class="se">\"</span><span class="k">${</span><span class="nv">PWD</span><span class="k">}</span><span class="se">\"</span><span class="s2"> root=</span><span class="se">\"\$</span><span class="s2">{PWD}</span><span class="se">\"</span><span class="s2">'"</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+</code></pre></div></div>
+
+<p>Now, in a new terminal, one should be able to run JupyterLab from any directory
+as follows:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /path/to/some/project
+jupyterlab
+</code></pre></div></div>
+
+<p>Note that the content of the current working directory (that is,
+<code class="language-plaintext highlighter-rouge">/path/to/some/project</code>) is readily available inside JupyterLab. All notebooks
+created and modified in the GUI there will be stored directly in this folder,
+and they will remain here when the container is shut down.</p>
+
+<h1 id="rstudio">RStudio</h1>
+
+<p>It is time to get to grips with an image for R notebooks. As before, we begin
+with a <a href="https://github.com/chain-rule/RStudio/blob/article/Dockerfile"><code class="language-plaintext highlighter-rouge">Dockerfile</code></a>:</p>
+
+<div class="language-docker highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start with an RStudio image</span>
+<span class="k">FROM</span><span class="s"> rocker/rstudio:latest</span>
+
+<span class="c"># Install the software that R packages require</span>
+<span class="k">RUN </span>apt-get update
+<span class="k">RUN </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> libxml2-dev texlive texlive-latex-extra zlib1g-dev
+
+<span class="c"># Set the working directory</span>
+<span class="k">WORKDIR</span><span class="s"> /home/rstudio</span>
+
+<span class="c"># Install the desired R packages</span>
+<span class="k">COPY</span><span class="s"> requirements.txt /tmp/requirements.txt</span>
+<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"install.packages(readLines('/tmp/requirements.txt'), </span><span class="se">\
+</span><span class="s2">                           repos = 'http://cran.us.r-project.org')"</span> | R
+</code></pre></div></div>
+
+<p>Installing RStudio from scratch is not an easy task. Fortunately, we can start
+with the <a href="https://hub.docker.com/r/rocker/rstudio/">official RStudio image</a>, which is what is specified at
+the top of the file. If desired, the <code class="language-plaintext highlighter-rouge">latest</code> tag can be changed to a specific
+version. The second block of Docker instructions is to provide programs and
+libraries that are needed by the R packages that one is planning to install. For
+instance, TeX Live is needed for rendering notebooks as PDF documents using
+LaTeX. The last block of instructions in <code class="language-plaintext highlighter-rouge">Dockerfile</code> is for installing the R
+packages themselves. As with Python, all necessary packages are gathered in a
+single file called <a href="https://github.com/chain-rule/RStudio/blob/article/requirements.txt"><code class="language-plaintext highlighter-rouge">requirements.txt</code></a>:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devtools
+glmnet
+plotly
+rmarkdown
+rstan
+testthat
+tidytext
+tidyverse
+</code></pre></div></div>
+
+<p>The <code class="language-plaintext highlighter-rouge">rmarkdown</code> package is required for notebooks in Markdown. The rest is
+intended to be changed according to one’s preferences; although, <code class="language-plaintext highlighter-rouge">tidyverse</code> is
+arguably a must in modern R.</p>
+
+<p>All right, in order to build the image and launch containers, we create the
+following <a href="https://github.com/chain-rule/RStudio/blob/article/Makefile"><code class="language-plaintext highlighter-rouge">Makefile</code></a>:</p>
+
+<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># The name of the Docker image
+</span><span class="nv">name</span> <span class="o">:=</span> rstudio
+<span class="c"># The directory to be mounted to the container
+</span><span class="nv">root</span> <span class="o">?=</span> <span class="nv">${PWD}</span>
+
+<span class="c"># Build a new image
+</span><span class="nl">build</span><span class="o">:</span>
+	docker rmi <span class="nv">${name}</span> <span class="o">||</span> <span class="nb">true</span>
+	docker build <span class="nt">--tag</span> <span class="nv">${name}</span> .
+
+<span class="c"># Start a new container
+</span><span class="nl">start</span><span class="o">:</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"Address:  http://localhost:8787/"</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"User:     rstudio"</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"Password: rstud10"</span>
+	<span class="p">@</span><span class="nb">echo</span>
+	<span class="p">@</span><span class="nb">echo</span> <span class="s1">'Press Control-C to terminate...'</span>
+	<span class="p">@</span>docker run <span class="nt">--interactive</span> <span class="nt">--tty</span> <span class="nt">--rm</span> <span class="se">\</span>
+		<span class="nt">--name</span> <span class="nv">${name}</span> <span class="se">\</span>
+		<span class="nt">--publish</span> 8787:8787 <span class="se">\</span>
+		<span class="nt">--volume</span> <span class="s2">"</span><span class="nv">${root}</span><span class="s2">:/home/rstudio"</span> <span class="se">\</span>
+		<span class="nt">--env</span> <span class="nv">PASSWORD</span><span class="o">=</span>rstud10 <span class="se">\</span>
+		<span class="nv">${name}</span> <span class="o">&gt;</span> /dev/null
+</code></pre></div></div>
+
+<p>It is similar to the one for JupyterLab; however, since the default prompt of
+RStudio is not as informative as the one of JupyterLab, we print our own usage
+instructions upon <code class="language-plaintext highlighter-rouge">start</code>.</p>
+
+<p>The final piece is the shortcut for launching RStudio:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">alias </span><span class="nv">rstudio</span><span class="o">=</span><span class="s1">'make -C /path/to/the/folder/with/the/Makefile root="${PWD}"'</span>
+</code></pre></div></div>
+
+<p>In the case of Bash, it can be installed as follows:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"alias rstudio='make -C </span><span class="se">\"</span><span class="k">${</span><span class="nv">PWD</span><span class="k">}</span><span class="se">\"</span><span class="s2"> root=</span><span class="se">\"\$</span><span class="s2">{PWD}</span><span class="se">\"</span><span class="s2">'"</span> <span class="o">&gt;&gt;</span> ~/.bashrc
+</code></pre></div></div>
+
+<p>Now it is time to build the image, go to an arbitrary directory, and test the
+alias:</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
+<span class="nb">cd</span> /path/to/some/project
+rstudio
+</code></pre></div></div>
+
+<p>Unlike the JupyterLab image, this one is much slower to build due to R packages
+traditionally compiling a lot of C++ code upon installation.</p>
+
+<p>Lastly, it might be particularly convenient to have one’s GUI preferences (such
+as the font size in the editor) and alike be automatically set up upon each
+container launch. This can be achieved by realizing that RStudio stores user
+preferences in a local folder called <code class="language-plaintext highlighter-rouge">.rstudio</code>. Then the <code class="language-plaintext highlighter-rouge">start</code> command can be
+adjusted to silently plant a preconfigured <code class="language-plaintext highlighter-rouge">.rstudio</code> into the current working
+directory, which can be seen in the <a href="https://github.com/chain-rule/RStudio/tree/article">repository</a> accompanying this
+article.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>Having completed the above steps, we have two Docker images: one is for Python
+notebooks via JupyterLab, and one is for R notebooks via RStudio. At the moment,
+the images are stored locally; however, they can be pushed to a public or
+private image repository, such as <a href="https://hub.docker.com/">Docker Hub</a> and <a href="https://cloud.google.com/container-registry/">Google Container Registry</a>,
+and subsequently pulled on an arbitrary machine having Docker installed.
+Alternatively, they can be built on each machine separately. Regardless of the
+installation, the crucial point is that our working environment will unshakably
+remain in a specific pristine state defined by us.</p>
+
+<p>Lastly, it is worth noting that similar images can straightforwardly be built
+for more specific scenarios. For instance, the following repository provides a
+skeleton for building and using a custom <a href="https://cloud.google.com/datalab/">Datalab</a>, which is Google’s wrapper
+for Jupyter notebooks that run in the cloud: <a href="https://github.com/chain-rule/Datalab">Datalab</a>.</p>
+
+
+  </div><div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2019/07/24/notebook.html';
+      this.page.identifier = 'https://blog.ivanukhov.com/2019/07/24/notebook.html';
+    };
+
+    (function() {
+      var d = document, s = d.createElement('script');
+
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2019/07/24/notebook.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Breaking sticks, or estimation of probability distributions using the Dirichlet process | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Breaking sticks, or estimation of probability distributions using the Dirichlet process" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Recall the last time you wanted to understand the distribution of given data. One alternative was to plot a histogram. However, it resulted in frustration due to the choice of the number of bins to use, which led to drastically different outcomes. Another alternative was kernel density estimation. Despite having a similar choice to make, it has the advantage of producing smooth estimates, which are more realistic for continuous quantities with regularities. However, kernel density estimation was unsatisfactory too: it did not aid in understanding the underlying structure of the data and, moreover, provided no means of quantifying the uncertainty associated with the results. In this article, we discuss a Bayesian approach to the estimation of data-generating distributions that addresses the aforementioned concerns." />
+<meta property="og:description" content="Recall the last time you wanted to understand the distribution of given data. One alternative was to plot a histogram. However, it resulted in frustration due to the choice of the number of bins to use, which led to drastically different outcomes. Another alternative was kernel density estimation. Despite having a similar choice to make, it has the advantage of producing smooth estimates, which are more realistic for continuous quantities with regularities. However, kernel density estimation was unsatisfactory too: it did not aid in understanding the underlying structure of the data and, moreover, provided no means of quantifying the uncertainty associated with the results. In this article, we discuss a Bayesian approach to the estimation of data-generating distributions that addresses the aforementioned concerns." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2021-01-25T06:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Breaking sticks, or estimation of probability distributions using the Dirichlet process" />
+<script type="application/ld+json">
+{"datePublished":"2021-01-25T06:00:00+00:00","headline":"Breaking sticks, or estimation of probability distributions using the Dirichlet process","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html"},"url":"https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"Recall the last time you wanted to understand the distribution of given data. One alternative was to plot a histogram. However, it resulted in frustration due to the choice of the number of bins to use, which led to drastically different outcomes. Another alternative was kernel density estimation. Despite having a similar choice to make, it has the advantage of producing smooth estimates, which are more realistic for continuous quantities with regularities. However, kernel density estimation was unsatisfactory too: it did not aid in understanding the underlying structure of the data and, moreover, provided no means of quantifying the uncertainty associated with the results. In this article, we discuss a Bayesian approach to the estimation of data-generating distributions that addresses the aforementioned concerns.","@type":"BlogPosting","dateModified":"2021-01-25T06:00:00+00:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Bayesian statistics, Dirichlet process, Dirichlet process mixture, Gibbs sampling, R, data science, galaxy velocity"><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Breaking sticks, or estimation of probability distributions using the Dirichlet process</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2021-01-25T06:00:00+00:00" itemprop="datePublished">January 25, 2021
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Recall the last time you wanted to understand the distribution of given data.
+One alternative was to plot a histogram. However, it resulted in frustration due
+to the choice of the number of bins to use, which led to drastically different
+outcomes. Another alternative was kernel density estimation. Despite having a
+similar choice to make, it has the advantage of producing smooth estimates,
+which are more realistic for continuous quantities with regularities. However,
+kernel density estimation was unsatisfactory too: it did not aid in
+understanding the underlying structure of the data and, moreover, provided no
+means of quantifying the uncertainty associated with the results. In this
+article, we discuss a Bayesian approach to the estimation of data-generating
+distributions that addresses the aforementioned concerns.</p>
+
+<p>The approach we shall discuss is based on the family of Dirichlet processes. How
+specifically such processes are constructed will be described in the next
+section; here, we focus on the big picture.</p>
+
+<p>A Dirichlet process is a stochastic process, that is, an indexed sequence of
+random variables. Each realization of this process is a discrete probability
+distribution, which makes the process a distribution over distributions,
+similarly to a Dirichlet distribution. The process has only one parameter: a
+measure \(\nu: \mathcal{B} \to [0, \infty]\) in a suitable finite measure space
+\((\mathcal{X}, \mathcal{B}, \nu)\) where \(\mathcal{X}\) is a set, and
+\(\mathcal{B}\) is a \(\sigma\)-algebra on \(\mathcal{X}\). We shall adopt the
+following notation:</p>
+
+\[P \sim \text{Dirichlet Process}(\nu)\]
+
+<p>where \(P\) is a <em>random</em> probability distribution that is distributed according
+to the Dirichlet process. Note that measure \(\nu\) does not have to be a
+probability measure; that is, \(\nu(\mathcal{X}) = 1\) is not required. To
+obtain a probability measure, one can divide \(\nu\) by the total volume
+\(\lambda = \nu(\mathcal{X})\):</p>
+
+\[P_0(\cdot) = \frac{1}{\lambda} \nu(\cdot).\]
+
+<p>Since this normalization is always possible, it is common and convenient to
+replace \(\nu\) with \(\lambda P_0\) and consider the process to be
+parametrized by two quantities instead of one:</p>
+
+\[P \sim \text{Dirichlet Process}(\lambda P_0).\]
+
+<p>Parameter \(\lambda\) is referred to as the concentration parameter of the
+process.</p>
+
+<p>There are two major alternatives of using the Dirichlet process for estimating
+distributions: as a direct prior for the data at hand and as a mixing prior. We
+begin with the former.</p>
+
+<h1 id="direct-prior">Direct prior</h1>
+
+<p>Given a data set of \(n\) observations \(\{ x_i \}_{i = 1}^n\), a Dirichlet
+process can be used as a prior:</p>
+
+\[\begin{align}
+x_i | P_x &amp; \sim P_x, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_x &amp; \sim \text{Dirichlet Process}(\lambda P_0). \tag{1}
+\end{align}\]
+
+<p>It is important to realize that the \(x_i\)’s are assumed to be distributed
+<em>not</em> according to the Dirichlet process but according to a distribution drawn
+from the Dirichlet process. Parameter \(\lambda\) allows one to control the
+strength of the prior: the larger it is, the more shrinkage toward the prior is
+induced.</p>
+
+<h2 id="inference">Inference</h2>
+
+<p>Due to the conjugacy property of the Dirichlet process in the above setting, the
+posterior is also a Dirichlet process and has the following simple form:</p>
+
+\[P_x | \{ x_i \}_{i = 1}^n
+\sim \text{Dirichlet Process}\left( \lambda P_0 + \sum_{i = 1}^n \delta_{x_i} \right). \tag{2}\]
+
+<p>That is, the total volume and normalized measure are updated as follows:</p>
+
+\[\begin{align}
+\lambda &amp; := \lambda + n \quad \text{and} \\
+P_0 &amp; := \frac{\lambda}{\lambda + n} P_0 + \frac{1}{\lambda + n} \sum_{i = 1}^n \delta_{x_i}.
+\end{align}\]
+
+<p>Here, \(\delta_x(\cdot)\) is the Dirac measure, meaning that \(\delta_x(X) = 1\)
+if \(x \in X\) for any \(X \subseteq \mathcal{X}\), and otherwise, it is zero.
+It can be seen in Equation (2) that the base measure has simply been augmented
+with unit masses placed at the \(n\) observed data points.</p>
+
+<p>The main question now is, How to draw samples from a Dirichlet process given
+\(\lambda\) and \(P_0\)?</p>
+
+<p>As noted earlier, a draw from a Dirichlet process is a discrete probability
+distribution \(P_x\). The probability measure of this distribution admits the
+following representation:</p>
+
+\[P_x(\cdot) = \sum_{i = 1}^\infty p_i \delta_{x_i}(\cdot) \tag{3}\]
+
+<p>where \(\{ p_i \}\) is a set of probabilities that sum up to one, and \(\{ x_i
+\}\) is a set of points in \(\mathcal{X}\). Such a draw can be obtained using
+the so-called stick-breaking construction, which prescribes \(\{ p_i \}\) and
+\(\{ x_i \}\). To begin with, for practical computations, the infinite summation
+is truncated to retain the only first \(m\) elements:</p>
+
+\[P_x(\cdot) = \sum_{i = 1}^m p_i \delta_{x_i}(\cdot).\]
+
+<p>Atoms \(\{ x_i \}_{i = 1}^m\) are drawn independently from the normalized base
+measure \(P_0\). The calculation of probabilities \(\{ p_i \}\) is more
+elaborate, and this is where the construction and this article get their name,
+“stick breaking.” Imagine a stick of unit length, representing the total
+probability. The procedure is to keep breaking the stick into two parts where,
+for each iteration, the left part yields \(p_i\), and the right one, the
+remainder, is carried over to the next iteration. How much to break off is
+decided on by drawing \(m\) independent realizations from a carefully chosen
+beta distribution:</p>
+
+\[q_i \sim \text{Beta}(1, \lambda), \text{ for } i = 1, \dots, m. \tag{4}\]
+
+<p>All of them lie in the unit interval and are the proportions to break off of the
+remainder. When \(\lambda = 1\), these proportions (of the reminder) are
+uniformly distributed. When \(\lambda &lt; 1\), the probability mass is shifted to
+the right, which means that there are likely to be a small number of large
+pieces, covering virtually the entire stick. When \(\lambda &gt; 1\), the
+probability mass is shifted to the left, which means that there are likely to be
+a large number of small pieces, struggling to reach the end of the stick.</p>
+
+<p>Formally, the desired probabilities are given by the following expression:</p>
+
+\[p_i = q_i \prod_{j = 1}^{i - 1} (1 - q_j), \text{ for } i = 1, \dots, m,\]
+
+<p>which, as noted earlier, are the left parts of the remainder of the stick during
+each iteration. For instance, \(p_1 = q_1\), \(p_2 = q_2 (1 - q_1)\), and so on.
+Due to the truncation, the probabilities \(\{ p_i \}_{i = 1}^m\) do not sum up
+to one, and it is common to set \(q_m := 1\) so that \(p_m\) takes up the
+remaining probability mass.</p>
+
+<p>To recapitulate, a single draw from a Dirichlet process is obtained in two
+steps: prescribe atoms \(\{ x_i \}\) via draws from the normalized base measure
+and prescribe the corresponding probabilities \(\{ p_i \}\) via the
+stick-breaking construction. The two give a complete description of a discrete
+probability distribution. Recall that this distribution is still a single draw.
+By repeating this process many times, one obtains the distribution of this
+distribution, which can be used to, for instance, quantify uncertainty in the
+estimation.</p>
+
+<h2 id="illustration">Illustration</h2>
+
+<p>It is time to demonstrate how the Dirichlet process behaves as a direct prior.
+To this end, we shall use a <a href="https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/galaxies.html">data set</a> containing velocities of “82
+galaxies from 6 well-separated conic sections of an unfilled survey of the
+Corona Borealis region.” It was studied in <a href="https://doi.org/10.2307/2289993">Roeder (1990)</a>, which gives us a
+reference point.</p>
+
+<blockquote>
+  <p>For the curious reader, the source code of this <a href="https://github.com/IvanUkhov/blog/blob/master/_posts/2021-01-25-dirichlet-process.Rmd">notebook</a> along with
+auxiliary <a href="https://github.com/IvanUkhov/blog/tree/master/_scripts/2021-01-25-dirichlet-process">scripts</a> that are used for performing all the calculations
+presented below can be found on GitHub.</p>
+</blockquote>
+
+<p>The empirical cumulative distribution function of the velocity is as follows:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/data-cdf-1.svg" alt="" /></p>
+
+<p>Already here, it is apparent that the distribution is multimodal: there are two
+distinct regions, one to the left and one to the right, where the curve is flat,
+meaning there are no observations there. The proverbial histogram gives a
+confirmation:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/data-histogram-1.svg" alt="" /></p>
+
+<p>It can be seen that there is a handful of galaxies moving relatively slowly and
+relatively fast compared to the majority located somewhere in the middle around
+twenty thousand kilometers per second. For completeness, kernel density
+estimation results in the following plot:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/data-kde-1.svg" alt="" /></p>
+
+<p>How many clusters of galaxies are there? What are their average velocities? How
+uncertain are these estimates? Our goal is to answer these questions by virtue
+of the Dirichlet process.</p>
+
+<p>Now that the intention is to apply the presented theory in practice, we have to
+make all choices we have conveniently glanced over. Specifically, \(P_0\) has to
+be chosen, and we shall use the following:</p>
+
+\[P_0(\cdot) = \text{Gaussian}(\, \cdot \, | \mu_0, \sigma_0^2). \tag{5}\]
+
+<p>In the above, \(\text{Gaussian}(\cdot)\) refers to the probability measure of a
+Gaussian distribution with parameters \(\mu_0\) and \(\sigma_0\). In addition to
+these two, there is one more: \(\lambda\). We shall set \(\mu_0\) and
+\(\sigma_0\) to 20 and 5, respectively—which correspond roughly to the mean and
+standard deviation of the data—and present results for different \(\lambda\)’s
+to investigate how the prior volume affects shrinkage toward the prior.</p>
+
+<p>First, we do not condition on the data to get a better understanding of the
+prior itself, which corresponds to Equation (1). The following figure shows a
+single draw from four Dirichlet processes with different \(\lambda\)’s (the gray
+curves show the cumulative distribution function of the data as a reference):</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/direct-prior-1.svg" alt="" /></p>
+
+<p>It can be seen that the larger the prior volume, the smoother the curve. This is
+because larger \(\lambda\)’s “break” the stick into more pieces, allowing the
+normalized base measure to be extensively sampled, which, in the limit,
+converges to this very measure; see Equation (5).</p>
+
+<p>Now, conditioning on the observed velocities of galaxies—that is, sampling as
+shown in Equation (2)—we obtain the following draws from the posterior Dirichlet
+distributions with different \(\lambda\)’s:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg" alt="" /></p>
+
+<p>When the prior volume is small, virtually no data points come from \(P_0\);
+instead, they are mostly uniform draws from the observed data set, leading to a
+curve that is nearly indistinguishable from the one of the data (the top curve).
+As \(\lambda\) gets larger, the prior gets stronger, and the estimate gets
+shrunk toward it, up to a point where the observations appear to be entirely
+ignored (the bottom curve).</p>
+
+<p>The above model has a serious limitation: it assumes a discrete probability
+distribution for the data-generating process, which can be seen in the prior and
+posterior given in Equation (1) and (2), respectively, and it is also apparent
+in the decomposition given in Equation (3). In some cases, it might be
+appropriate; however, there is arguably more situations where it is inadequate,
+including the running example.</p>
+
+<h1 id="mixing-prior">Mixing prior</h1>
+
+<p>Instead of using a Dirichlet process as a direct prior for the given data, it
+can be used as a prior for mixing distributions from a given family. The
+resulting posterior will then naturally inherit the properties of the family,
+such as continuity. The general structure is as follows:</p>
+
+\[\begin{align}
+x_i | \theta_i &amp; \sim P_x \left( \theta_i \right), \text{ for } i = 1, \dots, n; \tag{6} \\
+\theta_i | P_\theta &amp; \sim P_\theta, \text{ for } i = 1, \dots, n; \text{ and} \\
+P_\theta &amp; \sim \text{Dirichlet Process}(\lambda P_0). \\
+\end{align}\]
+
+<p>The \(i\)th data point, \(x_i\), is distributed according to distribution
+\(P_x\) with parameters \(\theta_i\). For instance, \(P_x\) could refer to the
+Gaussian family with \(\theta_i = (\mu_i, \sigma_i)\) identifying a particular
+member of the family by its mean and standard deviation. Parameters \(\{
+\theta_i \}_{i = 1}^n\) are unknown and distributed according to distribution
+\(P_\theta\). Distribution \(P_\theta\) is not known either and gets a Dirichlet
+process prior with measure \(\lambda P_0\).</p>
+
+<p>It can be seen in Equation (6) that each data point can potentially have its own
+unique set of parameters. However, this is not what usually happens in practice.
+If \(\lambda\) is reasonably small, the vast majority of the stick—the one we
+explained how to break in the previous section—tends to be consumed by a small
+number of pieces. This makes many data points share the same parameters, which
+is akin to clustering. In fact, clustering is a prominent use case for the
+Dirichlet process.</p>
+
+<h2 id="inference-1">Inference</h2>
+
+<p>Unlike the previous model, there is no conjugacy in this case, and hence the
+posterior is not a Dirichlet process. There is, however, a simple Markov chain
+Monte Carlo sampling strategy based on the stick-breaking construction. It
+belongs to the class of Gibbs samplers and is as follows.</p>
+
+<p>Similarly to Equation (3), we have the following decomposition:</p>
+
+\[P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i)\]
+
+<p>where \(P_m\) is the probability measure of the mixture. As before, the infinite
+decomposition has to be made finite to be usable in practice:</p>
+
+\[P_m(\cdot) = \sum_{i = 1}^m p_i P_x(\cdot | \theta_i).\]
+
+<p>Here, \(m\) represents an upper limit on the number of mixture components. Each
+data point \(x_i\), for \(i = 1, \dots, n\), is mapped to one of the \(m\)
+components, which we denote by \(k_i \in \{ 1, \dots, m \}\). In other words,
+\(k_i\) takes values from 1 to \(m\) and gives the index of the component of
+the \(i\)th observation.</p>
+
+<p>There are \(m + m \times |\theta| + n\) parameters to be inferred where
+\(|\theta|\) denotes the number of parameters of \(P_x\). These parameters are
+\(\{ p_i \}_{i = 1}^m\), \(\{ \theta_i \}_{i = 1}^m\), and \(\{ k_i \}_{i =
+1}^n\). As usual in Gibbs sampling, the parameters assume arbitrary but
+compatible initial values. The sampler has the following three steps.</p>
+
+<p>First, given \(\{ p_i \}\), \(\{ \theta_i \}\), and \(\{ x_i \}\), the mapping
+of the observations to the mixture components, \(\{ k_i \}\), is updated as
+follows:</p>
+
+\[k_i \sim \text{Categorical}\left(
+  m,
+  \left\{ \frac{p_j P_x(x_i | \theta_j)}{\sum_{l = 1}^m p_l P_x(x_i | \theta_l)} \right\}_{j = 1}^m
+\right), \text{ for } i = 1, \dots, n.\]
+
+<p>That is, \(k_i\) is a draw from a categorical distribution with \(m\) categories
+whose unnormalized probabilities are given by \(p_j P_x(x_i | \theta_j)\), for
+\(j = 1, \dots, m\).</p>
+
+<p>Second, given \(\{ k_i \}\), the probabilities of the mixture components, \(\{ p_i
+\}\), are updated using the stick-breaking construction described earlier. This
+time, however, the beta distribution for sampling \(\{ q_i \}\) in Equation (4)
+is replaced with the following:</p>
+
+\[q_i \sim \text{Beta}\left( 1 + n_i, \lambda + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,\]
+
+<p>where</p>
+
+\[n_i = \sum_{j = 1}^n I_{\{i\}}(k_j), \text{ for } i = 1, \dots, m,\]
+
+<p>is the number of data points that are currently allocated to component \(i\).
+Here, \(I_A\) is the indicator function of a set \(A\). As before, in order for
+the \(p_i\)’s to sum up to one, it is common to set \(q_m := 1\).</p>
+
+<p>Third, given \(\{ k_i \}\) and \(\{ x_i \}\), the parameters of the mixture
+components, \(\{ \theta_i \}\), are updated. This is done by sampling from the
+posterior distribution of each component. In this case, the posterior is a prior
+of choice that is updated using the data points that are currently allocated to
+the corresponding component. To streamline this step, a conjugate prior for the
+data distribution, \(P_x\), is commonly utilized, which we shall illustrate
+shortly.</p>
+
+<p>To recapitulate, a single draw from the posterior is obtained in a number of
+steps where parameters or groups of parameters are updated in turn, while
+treating the other parameters as known. This Gibbs procedure is very flexible.
+Other parameters can be inferred too, instead of setting them to fixed values.
+An important example is the concentration parameter, \(\lambda\). This parameter
+controls the formation of clusters, and one might let the data decide what the
+value should be, in which case a step similar to the third one is added to the
+procedure to update \(\lambda\). This will be also illustrated below.</p>
+
+<h2 id="illustration-1">Illustration</h2>
+
+<p>We continue working with the galaxy data. For concreteness, consider the
+following choices:</p>
+
+\[\begin{align}
+\theta_i &amp;= (\mu_i, \sigma_i), \text{ for } i = 1, \dots, n; \\
+P_x (\theta_i) &amp;= \text{Gaussian}(\mu_i, \sigma_i^2), \text{ for } i = 1, \dots, n; \text{ and} \\
+P_0(\cdot) &amp;= \text{Gaussian–Scaled-Inverse-}\chi^2(\, \cdot \, | \mu_0, \kappa_0, \nu_0, \sigma_0^2).
+\end{align} \tag{7}\]
+
+<p>In the above, \(\text{Gaussian–Scaled-Inverse-}\chi^2(\cdot)\) refers to the
+probability measure of a bivariate distribution composed of a conditional
+Gaussian and an unconditional scaled inverse chi-squared distribution. Some
+intuition about this distribution can be built via the following decomposition:</p>
+
+\[\begin{align}
+\mu_i | \sigma_i^2 &amp; \sim \text{Gaussian}\left(\mu_0, \frac{\sigma_i^2}{\kappa_0}\right) \text{ and} \\
+\sigma_i^2 &amp; \sim \text{Scaled-Inverse-}\chi^2(\nu_0, \sigma_0^2).
+\end{align} \tag{8}\]
+
+<p>This prior is a conjugate prior for a Gaussian data distribution with unknown
+mean and variance, which we assume here. This means that the posterior is also a
+Gaussian–scaled-inverse-chi-squared distribution. Given a data set with
+\(n\) observations \(x_1, \dots, x_n\), the four parameters of the prior
+are updated simultaneously (not sequentially) as follows:</p>
+
+\[\begin{align}
+\mu_0 &amp; := \frac{\kappa_0}{\kappa_0 + n} \mu_0 + \frac{n}{\kappa_0 + n} \mu_x, \\
+\kappa_0 &amp; := \kappa_0 + n, \\
+\nu_0 &amp; := \nu_0 + n, \text{ and} \\
+\sigma_0^2 &amp; := \frac{1}{\nu_0 + n} \left( \nu_0 \sigma_0^2 + ss_x + \frac{\kappa_0 n}{\kappa_0 + n}(\mu_x - \mu_0)^2 \right)
+\end{align}\]
+
+<p>where \(\mu_x = \sum_{i = 1}^n x_i / n\) and \(ss_x = \sum_{i = 1}^n (x_i -
+\mu_x)^2\). It can be seen that \(\kappa_0\) and \(\nu_0\) act as counters of
+the number of observations; \(\mu_0\) is a weighted sum of two means; and
+\(\nu_0 \sigma_0^2\) is a sum of two sums of squares and a third term increasing
+the uncertainty due to the difference in the means. In the Gibbs sampler, each
+component (each cluster of galaxies) will have its own posterior based on the
+data points that are assigned to that component during each iteration of the
+process. Therefore, \(n\), \(\mu_x\), and \(ss_x\) will generally be different
+for different components and, moreover, will vary from iteration to iteration.</p>
+
+<p>We set \(\mu_0\) to 20, which is roughly the mean of the data, and \(\nu_0\) to
+3, which is the smallest integer that allows the scaled chi-squared distribution
+to have a finite expectation. The choice of \(\kappa_0\) and \(\sigma_0\) is
+more subtle. Recall Equation (8). What we would like from the prior is to allow
+for free formation of clusters in a region generously covering the support of
+the data. To this end, the uncertainty in the mean, \(\mu_i\), has to be high;
+however, it should not come from \(\sigma_i\), since it would produce very
+diffuse clusters. We set \(\kappa_0\) to 0.01 to magnify the variance of
+\(\mu_i\) without affecting \(\sigma_i\), and \(\sigma_0\) to 1 to keep clusters
+compact.</p>
+
+<p>Now, let us take a look at what the above choices entail. The following figure
+illustrates the prior for the mean of a component:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-prior-mu-1.svg" alt="" /></p>
+
+<p>The negative part is unrealistic for velocity; however, it is rarely a problem
+in practice. What is important is that there is a generous coverage of the
+plausible values. The following figure shows the prior for the standard
+deviation of a component:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-prior-sigma-1.svg" alt="" /></p>
+
+<p>The bulk is below the standard deviation of the data; however, this is by
+choice: we expect more than one cluster of galaxies with similar velocities.</p>
+
+<p>As mentioned earlier, we intend to include \(\lambda\) in the inference. First,
+we put the following prior:</p>
+
+\[\lambda \sim \text{Gamma}(\alpha_0, \beta_0). \tag{9}\]
+
+<p>Note this is the rate parameterization of the Gamma family. Conditionally, this
+is a conjugate prior with the following update rule for the two parameters:</p>
+
+\[\begin{align}
+\alpha_0 &amp; := \alpha_0 + m - 1 \quad \text{and} \\
+\beta_0 &amp; := \beta_0 - \sum_{i = 1}^{m - 1} \ln(1 - q_i)
+\end{align}\]
+
+<p>where \(\{ q_i \}\) come from the stick-breaking construction. This is a fourth
+step in the Gibbs sampler. We set \(\alpha_0\) and \(\beta_0\) to 2 and 0.1,
+respectively, which entails the following prior assumption about \(\lambda\):</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-prior-lambda-1.svg" alt="" /></p>
+
+<p>The parameter is allowed to vary freely from small to large values, as desired.</p>
+
+<p>Having chosen all priors and their hyperparameters, we are ready to investigate
+the behavior of the entire model; see Equations (6), (7), and (9). In what
+follows, we shall limit the number of mixture components to 25; that is, \(m =
+25\). Furthermore, we shall perform 2000 Gibbs iterations and discard the first
+half as a warm-up period. As before, we start without conditioning on the data
+to observe draws from the prior itself. The following figure shows two sample
+draws:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg" alt="" /></p>
+
+<p>It can be seen that clusters of galaxies can appear anywhere in the region of
+interest and can be of various sizes. We conclude that the prior is adequate.
+When taking the observed velocities into account, we obtain a full posterior
+distribution in the form of 1000 draws. The following shows two random draws:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg" alt="" /></p>
+
+<p>Indeed, mixture components have started to appear in the regions where there are
+observations.</p>
+
+<p>Before we proceed to the final summary of results, it is prudent to inspect
+sample chains for a few parameters in order to ensure there are not problems
+with convergence to the stationary distribution. The following shows the number
+of occupied components among the 25 permitted:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-k-1.svg" alt="" /></p>
+
+<p>The chain fluctuates around a fixed level without any prominent pattern, as it
+should. One can plot the actual marginal posterior distribution for the number
+of components; however, it is already clear that the distribution of the number
+of clusters of galaxies is mostly between 5 and 10 with a median of 7.</p>
+
+<p>As for the concentration parameter, \(\lambda\), the chain is as follows:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg" alt="" /></p>
+
+<p>The behavior is uneventful, which is a good sign.</p>
+
+<p>Let us now take a look at the posterior distributions of the first seven
+components highlighted earlier (note the different scales on the vertical axes):</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg" alt="" /></p>
+
+<p>The components clearly change roles, which can be seen by the multimodal nature
+of the distributions. Component 1 is most often at 10 (times \(10^6\) m/s);
+however, it also peaks between 24 and 25 and even above 30. Components 2 and 3
+are the most certain ones, which is due to a relatively large number of samples
+present in the corresponding region. They seem to exchanges roles and capture
+velocities of around 20 and 23. Components 4 and 5, on the other hand, appear to
+play the same role. Unlike Component 1, they are most likely to be found at
+around 33. Components 6 and 7 are similar too. They seem to be responsible for
+the small formation to the left and right next to the bulk in the middle (at
+16); recall the histogram of the data. The small formation on the other side of
+the bulk at around 26 is captured as well, which is mostly done by Component 6.</p>
+
+<p>Lastly, we summarize the inference using the following figure where the median
+distribution and a 95% uncertainty band—composed of distributions at the 0.025
+and 0.975 quantiles—are plotted:</p>
+
+<p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg" alt="" /></p>
+
+<p>In this view, only five components are visible to the naked eye. The median
+curve matches well the findings in <a href="https://doi.org/10.2307/2289993">Roeder (1990)</a>. Judging by the width of the
+uncertainty band, there is a lot of plausible alternatives, and it is important
+to communicate this uncertainty to those who base decisions on the inference.
+The ability to quantify uncertainty with such ease is a prominent advantage of
+Bayesian inference.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, the family of Dirichlet processes has been presented in the
+context of Bayesian inference. More specifically, it has been shown how a
+Dirichlet process can be utilized as a prior for an unknown discrete
+distribution and as a prior for mixing distributions from a given family. In
+both cases, it has been illustrated how to perform inference via a finite
+approximation and the stick-breaking construction.</p>
+
+<p>Clearly, the overall procedure is more complicated than counting observations
+falling in a number of fixed bins, which is what a histogram does, or placing
+kernels all over the place, which is what a kernel density estimator does.
+However, “anything in life worth having is worth working for.” The advantages of
+the Bayesian approach include the ability to incorporate prior knowledge, which
+is crucial in situations with little data, and the ability to propagate and
+quantify uncertainty, which is a must.</p>
+
+<blockquote>
+  <p>Recall that the source code of this <a href="https://github.com/IvanUkhov/blog/blob/master/_posts/2021-01-25-dirichlet-process.Rmd">notebook</a> along with auxiliary <a href="https://github.com/IvanUkhov/blog/tree/master/_scripts/2021-01-25-dirichlet-process">scripts</a>
+that were used for performing the calculations presented above can be found on
+GitHub. Any feedback is welcome!</p>
+</blockquote>
+
+<h1 id="acknowledgments">Acknowledgments</h1>
+
+<p>I would like to thank <a href="https://www.mattiasvillani.com/">Mattias Villani</a> for the insightful and informative
+graduate course in Bayesian statistics titled “<a href="https://github.com/mattiasvillani/AdvBayesLearnCourse">Advanced Bayesian
+learning</a>,” which was the inspiration behind writing this
+article, and for his guidance regarding the implementation.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li>Andrew Gelman et al., <em><a href="http://www.stat.columbia.edu/~gelman/book/">Bayesian Data Analysis</a></em>, Chapman and
+Hall/CRC, 2014.</li>
+  <li>Kathryn Roeder, “<a href="https://doi.org/10.2307/2289993">Density estimation with confidence sets exemplified by
+superclusters and voids in galaxies</a>,” Journal of the American
+Statistical Association, 1990.</li>
+  <li>Rick Durrett, <em><a href="https://services.math.duke.edu/~rtd/PTE/pte.html">Probability: Theory and Examples</a></em>, Cambridge
+University Press, 2010.</li>
+</ul>
+
+
+  </div><div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html';
+      this.page.identifier = 'https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html';
+    };
+
+    (function() {
+      var d = document, s = d.createElement('script');
+
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2021/01/25/dirichlet-process.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script>
+  </body>
+</html>

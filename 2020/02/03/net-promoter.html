@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Bayesian inference of the net promoter score via multilevel regression with poststratification | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Bayesian inference of the net promoter score via multilevel regression with poststratification" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Customer surveys are naturally prone to biases. One prominent example is participation bias, which arises when individuals decide not to respond to the survey, and this pattern is not random. For instance, new customers might reply less eagerly than those who are senior. This renders the obtained responses unrepresentative of the target population. In this article, we tackle participation bias for the case of the net promoter survey by means of multilevel regression and poststratification." />
+<meta property="og:description" content="Customer surveys are naturally prone to biases. One prominent example is participation bias, which arises when individuals decide not to respond to the survey, and this pattern is not random. For instance, new customers might reply less eagerly than those who are senior. This renders the obtained responses unrepresentative of the target population. In this article, we tackle participation bias for the case of the net promoter survey by means of multilevel regression and poststratification." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2020/02/03/net-promoter.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2020/02/03/net-promoter.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-02-03T07:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Bayesian inference of the net promoter score via multilevel regression with poststratification" />
+<script type="application/ld+json">
+{"datePublished":"2020-02-03T07:00:00+00:00","headline":"Bayesian inference of the net promoter score via multilevel regression with poststratification","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2020/02/03/net-promoter.html"},"url":"https://blog.ivanukhov.com/2020/02/03/net-promoter.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"Customer surveys are naturally prone to biases. One prominent example is participation bias, which arises when individuals decide not to respond to the survey, and this pattern is not random. For instance, new customers might reply less eagerly than those who are senior. This renders the obtained responses unrepresentative of the target population. In this article, we tackle participation bias for the case of the net promoter survey by means of multilevel regression and poststratification.","@type":"BlogPosting","dateModified":"2020-02-03T07:00:00+00:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Bayesian statistics, R, Stan, brms, data science, multilevel modeling, net promoter score, poststratification"><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Bayesian inference of the net promoter score via multilevel regression with poststratification</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-02-03T07:00:00+00:00" itemprop="datePublished">February 3, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Customer surveys are naturally prone to biases. One prominent example is
+participation bias, which arises when individuals decide not to respond to the
+survey, and this pattern is not random. For instance, new customers might reply
+less eagerly than those who are senior. This renders the obtained responses
+unrepresentative of the target population. In this article, we tackle
+participation bias for the case of the net promoter survey by means of
+multilevel regression and poststratification.</p>
+
+<p>More specifically, the discussion here is a sequel to “<a href="/2019/08/19/net-promoter.html">A Bayesian approach to
+the inference of the net promoter score</a>,” where we built a
+hierarchical model for inferring the net promoter score for an arbitrary
+segmentation of a customer base. The reader is encouraged to skim over that
+article to recall the mechanics of the score and the structure of the model that
+was constructed. In that article, there was an assumption made that the sample
+was representative of the population, which, as mentioned earlier, is often not
+the case. In what follows, we mitigate this problem using a technique called
+poststratification. The technique works by matching proportions observed in the
+sample with those observed in the population with respect to several dimensions,
+such as age, country, and gender. However, in order to be able to poststratify,
+the model has to have access to all these dimensions at once, which the model
+built earlier is not suited for. To enable this, we switch gears to multilevel
+multinomial regression.</p>
+
+<h1 id="problem">Problem</h1>
+
+<p>Suppose the survey is to measure the net promoter score for a population that
+consists of \(N\) customers. The score is to be reported with respect to
+individual values of \(M\) grouping variables where variable \(i\) has \(m_i\)
+possible values, for \(i = 1, \dots, M\). For instance, it might be important to
+know the score for different age groups, in which case the variable would be the
+customer’s age with values such as 18–25, 26–35, and so on. This implies that,
+in total, \(\sum_i m_i\) scores have to be estimated.</p>
+
+<p>Depending on the size of the business, one might or might not try to reach out
+to all customers, except for those who have opted out of communications.
+Regardless of the decision, the resulting sample size, which is denoted by
+\(n\), is likely to be substantially smaller than \(N\), as the response rate is
+typically low. Therefore, there is uncertainty about the opinion of those who
+abstained or were not targeted.</p>
+
+<p>More importantly, a random sample is desired; however, certain subpopulations of
+customers might end up being significantly overrepresented due to participation
+bias, driving the score astray. Let us quantify this concern. We begin by taking
+the Cartesian product of the aforementioned \(M\) variables. This results in \(K
+= \prod_i m_i\) distinct combinations of the variables’ values, which are
+referred to as cells in what follows. For each cell, the number of detractors,
+neutrals, and promoters observed in the sample are computed and denoted by
+\(d_i\), \(u_i\), and \(p_i\), respectively. The number of respondents in call
+\(i\) is then</p>
+
+\[n_i = d_i + u_i + p_i \tag{1}\]
+
+<p>for \(i = 1, \dots, K\). For convenience, all counts are arranged in the
+following matrix:</p>
+
+\[y = \left(
+\begin{matrix}
+y_1 \\
+\vdots \\
+y_i \\
+\vdots \\
+y_K
+\end{matrix}
+\right)
+= \left(
+\begin{matrix}
+d_1 &amp; u_1 &amp; p_1 \\
+\vdots &amp; \vdots &amp; \vdots \\
+d_i &amp; u_i &amp; p_i \\
+\vdots &amp; \vdots &amp; \vdots \\
+d_K &amp; u_K &amp; p_K
+\end{matrix}
+\right). \tag{2}\]
+
+<p>Given \(y\), the observed net promoter score for value \(j\) of variable \(i\)
+can be evaluated as follows:</p>
+
+\[s^i_j = 100 \times \frac{\sum_{k \in I^i_j}(p_k - d_k)}{\sum_{k \in I^i_j} n_k} \tag{3}\]
+
+<p>where \(I^i_j\) is an index set traversing cells with variable \(i\) set to
+value \(j\), which has the effect of marginalizing out other variables
+conditioned on the chosen value of variable \(i\), that is, on value \(j\).</p>
+
+<p>We can now compare \(n_i\), computed according to Equation (1), with its
+counterpart in the population (the total number of customers who belong to cell
+\(i\)), which is denoted by \(N_i\), taking into consideration the sample size
+\(n\) and the population size \(N\). Problems occur when the ratios within one
+or more of the following tuples largely disagree:</p>
+
+\[\left(\frac{n_i}{n}, \frac{N_i}{N}\right) \tag{4}\]
+
+<p>for \(i = 1, \dots, K\). When this happens, the scores given by Equation (3) or
+any analyses oblivious of this disagreement cannot be trusted, since they
+misrepresent the population. (It should be noted, however, that equality within
+each tuple does not guarantee the absence of participation bias, since there
+might be other, potentially unobserved, dimensions along which there are
+deviations.)</p>
+
+<p>The survey has been conducted, and there are deviations. What do we do with all
+these responses that have come in? Should we discard and run a new survey,
+hoping that, this time, it would be different?</p>
+
+<h1 id="solution">Solution</h1>
+
+<p>The fact that the sample covers only a fraction of the population is, of course,
+no news, and the solution is standard: one has to infer the net promoter score
+for the population given the sample and domain knowledge. This is what was done
+in the <a href="/2019/08/19/net-promoter.html">previous article</a> for one grouping variable. However, due to
+participation bias, additional measures are needed as follows.</p>
+
+<p>Taking inspiration from political science, we proceed in two steps.</p>
+
+<ol>
+  <li>
+    <p>Using an adequate model, \(K = \prod_i m_i\) net promoter scores are
+inferred—one for each cell, that is, for each combination of the values of
+the grouping variables.</p>
+  </li>
+  <li>
+    <p>The \(\prod_i m_i\) “cell-scores” are combined to produce \(\sum_i m_i\)
+“value-scores”—one for each value of each variable. This is done in such a
+way that the contribution of each cell to the score is equal to the relative
+size of that cell in the population given by Equation (4).</p>
+  </li>
+</ol>
+
+<p>The two steps are discussed in the following two subsections.</p>
+
+<h2 id="modeling">Modeling</h2>
+
+<p>Step 1 can, in principle, be undertaken by any model of choice. A prominent
+candidate is multilevel multinomial regression, which is what we shall explore.
+<em>Multilevel</em> refers to having a hierarchical structure where parameters on a
+higher level give birth to parameters on a lower level, which, in particular,
+enables information exchange through a common ancestor. <em>Multinomial</em> refers to
+the distribution used for modeling the response variable. The family of
+multinomial distributions is appropriate, since we work with counts of events
+falling into one of several categories: detractors, neutrals, and promoters; see
+Equation (2). The response for each cell is then as follows:</p>
+
+\[y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i)\]
+
+<p>where \(n_i\) is given by Equation (1), and</p>
+
+\[\theta_i = \left\langle\theta^d_i, \theta^u_i, \theta^p_i\right\rangle\]
+
+<p>is a simplex (sums up to one) of probabilities of the three categories.</p>
+
+<p>Multinomial regression belongs to the class of generalized linear models. This
+means that the inference takes place in a linear domain, and that \(\theta_i\)
+is obtained by applying a deterministic transformation to the corresponding
+linear model or models; the inverse of this transformation is known as the link
+function. In the case of multinomial regression, the aforementioned
+transformation is the softmax function, which is a generalization of the
+logistic function allowing more than two categories:</p>
+
+\[\theta_i = \text{Softmax}\left(\mu_i\right)\]
+
+<p>where</p>
+
+\[\mu_i = \left(0, \mu^u_i, \mu^p_i\right)\]
+
+<p>is the average log-odds of the three categories with respect to a reference
+category, which, by conventions, is taken to be the first one, that is,
+detractors. The first entry is zero, since \(\ln(1) = 0\). Therefore, there are
+only two linear models: one is for neutrals (\(\mu^u_i\)), and one is for
+promoters (\(\mu^p_i\)).</p>
+
+<p>Now, there are many alternatives when it comes to the two linear parts. In this
+article, we use the following architecture. Both the model for neutrals and the
+one for promoters have the same structure, and for brevity, only the former is
+described. For the log-odds of neutrals, the model is</p>
+
+\[\mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]}\]
+
+<p>where</p>
+
+\[\delta^{uj} = \left(\delta^{uj}_1, \dots, \delta^{uj}_{m_j}\right)\]
+
+<p>is a vector of deviations from intercept \(b^u\) specific to grouping variable
+\(j\) (one entry for each value of the variable), and \(I_j[i]\) yields the
+index of the value that cell \(i\) has, for \(i = 1, \dots, K\) and \(j = 1,
+\dots, M\).</p>
+
+<p>Let us now turn to the multilevel aspect. For each grouping variable, the
+corresponding values, represented by the elements of \(\delta^{uj}\), are
+allowed to be different but assumed to have something in common and thus
+originate from a common distribution. To this end, they are assigned
+distributions with a shared parameter as follows:</p>
+
+\[\delta^{uj}_i | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right)\]
+
+<p>for \(i = 1, \dots, m_j\). The mean is zero, since \(\delta^{uj}_i\) represents
+a deviation.</p>
+
+<p>Lastly, we have to decide on prior distributions of the intercept, \(b^u\), and
+the standard deviations, \(\sigma^{uj}\) for \(j = 1, \dots, M\). The intercept
+is given the following prior:</p>
+
+\[b^u \sim \text{Student’s t}(5, 0, 1).\]
+
+<p>The mean is zero in order to center at even odds. Regarding the standard
+deviations, they are given the following prior:</p>
+
+\[\sigma^{uj} \sim \text{Half-Student’s t}(5, 0, 1).\]
+
+<p>In order to understand the implications of these prior choices, let us take a
+look at the prior distribution assuming two grouping variables:</p>
+
+<p><img src="/assets/images/2020-02-03-net-promoter/prior-distribution-1.svg" alt="" /></p>
+
+<p>The left and right dashed lines demarcate tail regions that, for practical
+purposes, can be thought of as “never” and “always,” respectively. For instance,
+log-odds of five or higher are so extreme that detractors are rendered nearly
+non-existent when compared to neutrals. These regions are arguably unrealistic.
+The prior does not exclude these possibilities; however, it does not favor them
+either. The vast majority of the probability mass is still in the middle around
+zero.</p>
+
+<p>The overall model is then as follow:</p>
+
+\[\begin{align}
+&amp; y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i),
+\text{ for } i = 1, \dots, K; \\
+&amp; \theta_i = \text{Softmax}\left(\mu_i\right),
+\text{ for } i = 1, \dots, K; \\
+&amp; \mu_i = (0, \mu^u_i, \mu^p_i),
+\text{ for } i = 1, \dots, K; \\
+&amp; \mu^u_i = b^u + \sum_{j = 1}^M \delta^{uj}_{I_j[i]},
+\text{ for } i = 1, \dots, K; \\
+&amp; \mu^p_i = b^p + \sum_{j = 1}^M \delta^{pj}_{I_j[i]},
+\text{ for } i = 1, \dots, K; \\
+&amp; b^u \sim \text{Student’s t}(5, 0, 1); \\
+&amp; b^p \sim \text{Student’s t}(5, 0, 1); \\
+&amp; \delta^{uj}_k | \sigma^{uj} \sim \text{Gaussian}\left(0, \sigma^{uj}\right),
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5a} \\
+&amp; \delta^{pj}_k | \sigma^{pj} \sim \text{Gaussian}\left(0, \sigma^{pj}\right),
+\text{ for } j = 1, \dots, M \text{ and } k = 1, \dots, m_j; \tag{5b} \\
+&amp; \sigma^{uj} \sim \text{Half-Student’s t}(5, 0, 1),
+\text{ for } j = 1, \dots, M; \text{ and} \\
+&amp; \sigma^{pj} \sim \text{Half-Student’s t}(5, 0, 1),
+\text{ for } j = 1, \dots, M.
+\end{align}\]
+
+<p>The model has \(2 \times (1 + \sum_i m_i + M)\) parameters in total. The
+structure that can be seen in Equations (5a) and (5b) is what makes the model
+multilevel. This is an important feature, since it allows for information
+sharing between the individual values of the grouping variables. In particular,
+this has a regularizing effect on the estimates, which is also known as
+shrinkage resulting from partial pooling.</p>
+
+<p>Having defined the model, the posterior distribution can now be obtained by
+means of Markov chain Monte Carlo sampling. This procedure is standard and can
+be performed using, for instance, Stan or a higher-level package, such as
+<a href="https://github.com/paul-buerkner/brms"><code class="language-plaintext highlighter-rouge">brms</code></a>, which is what is exemplified in the Implementation section. The result
+is a collection of draws of the parameters from the posterior distribution. For
+each draw of the parameters, a draw of the net promoter score can be computed
+using the following formula:</p>
+
+\[s_i = 100 \times (\theta^p_i - \theta^d_i) \tag{6}\]
+
+<p>for \(i = 1, \dots, K\). This means that we have obtained a (joint) posterior
+distribution of the net promoter score over the \(K\) cells. It is now time to
+combine the scores for the cells on the level of the values of the \(M\)
+grouping variables, which results in \(\sum_i m_i\) scores in total.</p>
+
+<h2 id="poststratification">Poststratification</h2>
+
+<p>Step 2 is poststratification, whose purpose is to correct for potential
+deviations of the sample from the population; recall the discussion around
+Equation (4). The foundation laid in the previous subsection makes the work here
+straightforward. The idea is as follows. Each draw from the posterior
+distribution consists of \(K\) values for the net promoter score, one for each
+cell. All one has to do in order to correct for a mismatch in proportions is to
+take a weighted average of these scores where the weights are the counts
+observed in the population:</p>
+
+\[s^i_j = \frac{\sum_{k \in I^i_j} N_k \, s_k}{\sum_{k \in I^i_j} N_k}\]
+
+<p>where \(I^i_j\) is as in Equation (3), for \(i = 1, \dots, M\) and \(j = 1,
+\dots, m_i\). The above gives a poststratified draw from the posterior
+distribution of the net promoter score for variable \(i\) and value \(j\). In
+practice, depending on the tool used, one might perform the poststratification
+procedure differently, such as predicting counts of detractors, neutrals, and
+promoters in the cells given their in-population sizes and then aggregating
+those counts and following the definition of the net promoter score.</p>
+
+<h1 id="implementation">Implementation</h1>
+
+<p>In what follows, we consider a contrived example with the sole purpose of
+illustrating how the presented workflow can be implemented in practice. To this
+end, we generate some data with two grouping variables, age and seniority, and
+then perform inference using <a href="https://github.com/paul-buerkner/brms"><code class="language-plaintext highlighter-rouge">brms</code></a>, which leverages Stan under the hood. For
+a convenient manipulation of posterior draws, <a href="https://github.com/mjskay/tidybayes"><code class="language-plaintext highlighter-rouge">tidybayes</code></a> is used as well.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">library</span><span class="p">(</span><span class="n">brms</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">tidybayes</span><span class="p">)</span><span class="w">
+</span><span class="n">library</span><span class="p">(</span><span class="n">tidyverse</span><span class="p">)</span><span class="w">
+
+</span><span class="n">set.seed</span><span class="p">(</span><span class="m">42</span><span class="p">)</span><span class="w">
+</span><span class="n">options</span><span class="p">(</span><span class="n">mc.cores</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">parallel</span><span class="o">::</span><span class="n">detectCores</span><span class="p">())</span><span class="w">
+
+</span><span class="c1"># Load data</span><span class="w">
+</span><span class="n">data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">load_data</span><span class="p">()</span><span class="w">
+</span><span class="c1"># =&gt; list(</span><span class="w">
+</span><span class="c1"># =&gt;   population = tibble(age, seniority, cell_size),</span><span class="w">
+</span><span class="c1"># =&gt;   sample = tibble(age, seniority, cell_size,</span><span class="w">
+</span><span class="c1"># =&gt;                   cell_counts = (detractors, neutrals, promoters))</span><span class="w">
+</span><span class="c1"># =&gt; )</span><span class="w">
+
+</span><span class="c1"># Modeling</span><span class="w">
+</span><span class="n">priors</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="w">
+  </span><span class="n">prior</span><span class="p">(</span><span class="s1">'student_t(5, 0, 1)'</span><span class="p">,</span><span class="w"> </span><span class="n">class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Intercept'</span><span class="p">,</span><span class="w"> </span><span class="n">dpar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'muneutral'</span><span class="p">),</span><span class="w">
+  </span><span class="n">prior</span><span class="p">(</span><span class="s1">'student_t(5, 0, 1)'</span><span class="p">,</span><span class="w"> </span><span class="n">class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'Intercept'</span><span class="p">,</span><span class="w"> </span><span class="n">dpar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mupromoter'</span><span class="p">),</span><span class="w">
+  </span><span class="n">prior</span><span class="p">(</span><span class="s1">'student_t(5, 0, 1)'</span><span class="p">,</span><span class="w"> </span><span class="n">class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'sd'</span><span class="p">,</span><span class="w"> </span><span class="n">dpar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'muneutral'</span><span class="p">),</span><span class="w">
+  </span><span class="n">prior</span><span class="p">(</span><span class="s1">'student_t(5, 0, 1)'</span><span class="p">,</span><span class="w"> </span><span class="n">class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'sd'</span><span class="p">,</span><span class="w"> </span><span class="n">dpar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'mupromoter'</span><span class="p">)</span><span class="w">
+</span><span class="p">)</span><span class="w">
+</span><span class="n">formula</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brmsformula</span><span class="p">(</span><span class="w">
+  </span><span class="n">cell_counts</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">trials</span><span class="p">(</span><span class="n">cell_size</span><span class="p">)</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">age</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">(</span><span class="m">1</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">seniority</span><span class="p">))</span><span class="w">
+</span><span class="n">model</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">brm</span><span class="p">(</span><span class="n">formula</span><span class="p">,</span><span class="w"> </span><span class="n">data</span><span class="o">$</span><span class="n">sample</span><span class="p">,</span><span class="w"> </span><span class="n">multinomial</span><span class="p">(),</span><span class="w"> </span><span class="n">priors</span><span class="p">,</span><span class="w">
+             </span><span class="n">control</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">adapt_delta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">0.99</span><span class="p">),</span><span class="w"> </span><span class="n">seed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">42</span><span class="p">)</span><span class="w">
+
+</span><span class="c1"># Poststratification</span><span class="w">
+</span><span class="n">prediction</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">data</span><span class="o">$</span><span class="n">population</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">add_predicted_draws</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">spread</span><span class="p">(</span><span class="n">.category</span><span class="p">,</span><span class="w"> </span><span class="n">.prediction</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">group_by</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">.draw</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">summarize</span><span class="p">(</span><span class="n">score</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">100</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">promoter</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">detractor</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">cell_size</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+  </span><span class="n">mean_hdi</span><span class="p">()</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The final aggregation is given for age; it is similar for seniority. It can be
+seen in the above listing that modern tools allow for rather complex ideas to be
+expressed and explored in a very laconic way.</p>
+
+<p>The curious reader is encouraged to run the above code. The appendix contains a
+function for generating synthetic data. It should be noted, however, that <code class="language-plaintext highlighter-rouge">brms</code>
+and <code class="language-plaintext highlighter-rouge">tidybayes</code> should be of versions greater than 2.11.1 and 2.0.1,
+respectively, which, at the time of writing, are available for installation only
+on GitHub. The appendix contains instructions for updating the packages.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, we have discussed a multilevel multinomial model for inferring
+the net promoter score with respect to several grouping variables in accordance
+with the business needs. It has been argued that poststratification is an
+essential stage of the inference process, since it mitigates the deleterious
+consequences of participation bias on the subsequent decision-making.</p>
+
+<p>There are still some aspects that could be improved. For instance, there is a
+natural ordering to the three categories of customers, detractors, neutrals, and
+promoters; however, it is currently ignored. Furthermore, there is some
+information thrown away when customer-level scores, which range from zero to
+ten, are aggregated on the category level. Lastly, the net promoter survey often
+happens in periodic waves, which calls for a single model capturing and learning
+from changes over time.</p>
+
+<h1 id="acknowledgments">Acknowledgments</h1>
+
+<p>I would like to thank <a href="http://www.stat.columbia.edu/~gelman/">Andrew Gelman</a> for the guidance on multilevel modeling
+and <a href="https://paul-buerkner.github.io/">Paul-Christian Bürkner</a> for the help with understanding the <code class="language-plaintext highlighter-rouge">brms</code> package.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li>Andrew Gelman et al., “<a href="http://www.stat.columbia.edu/~gelman/research/unpublished/MRT(1).pdf">Using multilevel regression and poststratification to
+estimate dynamic public opinion</a>,” 2018.</li>
+  <li>Andrew Gelman and Jennifer Hill, <em><a href="https://doi.org/10.1017/CBO9780511790942">Data Analysis Using Regression and
+Multilevel/Hierarchical Models</a></em>, Cambridge University Press, 2006.</li>
+  <li>Andrew Gelman and Thomas Little, “<a href="http://www.stat.columbia.edu/~gelman/research/published/poststrat3.pdf">Poststratification into many categories
+using hierarchical logistic regression</a>,” Survey Methodology, 1997.</li>
+  <li>Paul-Christian Bürkner, “<a href="http://dx.doi.org/10.18637/jss.v080.i01">brms: An R package for Bayesian multilevel models
+using Stan</a>,” Journal of Statistical Software, 2017.</li>
+</ul>
+
+<h1 id="appendix">Appendix</h1>
+
+<p>The following listing defines a function that makes the illustrative example
+given in the Implementation section self-sufficient. By default, the population
+contains one million customers, and the sample contains one percent. There are
+two grouping variables: age with six values and seniority with seven values.</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">load_data</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">N</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1000000</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">10000</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">softmax</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="k">function</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="nf">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="nf">exp</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Age</span><span class="w">
+  </span><span class="n">age_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'18–25'</span><span class="p">,</span><span class="w"> </span><span class="s1">'26–35'</span><span class="p">,</span><span class="w"> </span><span class="s1">'36–45'</span><span class="p">,</span><span class="w"> </span><span class="s1">'46–55'</span><span class="p">,</span><span class="w"> </span><span class="s1">'56–65'</span><span class="p">,</span><span class="w"> </span><span class="s1">'66+'</span><span class="p">)</span><span class="w">
+  </span><span class="n">age_probabilities</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">softmax</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Seniority</span><span class="w">
+  </span><span class="n">seniority_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'6M'</span><span class="p">,</span><span class="w"> </span><span class="s1">'1Y'</span><span class="p">,</span><span class="w"> </span><span class="s1">'2Y'</span><span class="p">,</span><span class="w"> </span><span class="s1">'3Y'</span><span class="p">,</span><span class="w"> </span><span class="s1">'4Y'</span><span class="p">,</span><span class="w"> </span><span class="s1">'5Y'</span><span class="p">,</span><span class="w"> </span><span class="s1">'6Y+'</span><span class="p">)</span><span class="w">
+  </span><span class="n">seniority_probabilities</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">softmax</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Score</span><span class="w">
+  </span><span class="n">score_values</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">seq</span><span class="p">(</span><span class="m">0</span><span class="p">,</span><span class="w"> </span><span class="m">10</span><span class="p">)</span><span class="w">
+  </span><span class="n">score_probabilities</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">softmax</span><span class="p">(</span><span class="nf">c</span><span class="p">(</span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">2</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="m">4</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Generate a population</span><span class="w">
+  </span><span class="n">population</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">tibble</span><span class="p">(</span><span class="n">age</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sample</span><span class="p">(</span><span class="n">age_values</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w">
+                                    </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">age_probabilities</span><span class="p">,</span><span class="w">
+                                    </span><span class="n">replace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">),</span><span class="w">
+                       </span><span class="n">seniority</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sample</span><span class="p">(</span><span class="n">seniority_values</span><span class="p">,</span><span class="w"> </span><span class="n">N</span><span class="p">,</span><span class="w">
+                                          </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">seniority_probabilities</span><span class="p">,</span><span class="w">
+                                          </span><span class="n">replace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Take a sample from the population</span><span class="w">
+  </span><span class="n">sample</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">population</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">sample_n</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">mutate</span><span class="p">(</span><span class="n">score</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sample</span><span class="p">(</span><span class="n">score_values</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w">
+                          </span><span class="n">prob</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">score_probabilities</span><span class="p">,</span><span class="w">
+                          </span><span class="n">replace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">mutate</span><span class="p">(</span><span class="n">category</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">case_when</span><span class="p">(</span><span class="n">score</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">7</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="s1">'detractor'</span><span class="p">,</span><span class="w">
+                                </span><span class="n">score</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="s1">'promoter'</span><span class="p">,</span><span class="w">
+                                </span><span class="kc">TRUE</span><span class="w"> </span><span class="o">~</span><span class="w"> </span><span class="s1">'neutral'</span><span class="p">))</span><span class="w">
+
+  </span><span class="c1"># Summarize the population</span><span class="w">
+  </span><span class="n">population</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">population</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">group_by</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">seniority</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">count</span><span class="p">(</span><span class="n">name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'cell_size'</span><span class="p">)</span><span class="w">
+
+  </span><span class="c1"># Summarize the sample</span><span class="w">
+  </span><span class="n">sample</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">group_by</span><span class="p">(</span><span class="n">age</span><span class="p">,</span><span class="w"> </span><span class="n">seniority</span><span class="p">)</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">summarize</span><span class="p">(</span><span class="n">detractors</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">category</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'detractor'</span><span class="p">),</span><span class="w">
+              </span><span class="n">neutrals</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">category</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'neutral'</span><span class="p">),</span><span class="w">
+              </span><span class="n">promoters</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">category</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">'promoter'</span><span class="p">))</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w">
+    </span><span class="n">mutate</span><span class="p">(</span><span class="n">cell_size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">detractors</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">neutrals</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">promoters</span><span class="p">)</span><span class="w">
+
+  </span><span class="c1"># Bind counts of neutrals, detractors, and promoters (needed for brms)</span><span class="w">
+  </span><span class="n">sample</span><span class="o">$</span><span class="n">cell_counts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">with</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span><span class="w"> </span><span class="n">cbind</span><span class="p">(</span><span class="n">detractors</span><span class="p">,</span><span class="w"> </span><span class="n">neutrals</span><span class="p">,</span><span class="w"> </span><span class="n">promoters</span><span class="p">))</span><span class="w">
+  </span><span class="n">colnames</span><span class="p">(</span><span class="n">sample</span><span class="o">$</span><span class="n">cell_counts</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s1">'detractor'</span><span class="p">,</span><span class="w"> </span><span class="s1">'neutral'</span><span class="p">,</span><span class="w"> </span><span class="s1">'promoter'</span><span class="p">)</span><span class="w">
+
+  </span><span class="c1"># Remove unused columns</span><span class="w">
+  </span><span class="n">sample</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">%&gt;%</span><span class="w"> </span><span class="n">select</span><span class="p">(</span><span class="o">-</span><span class="n">detractors</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">neutrals</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="n">promoters</span><span class="p">)</span><span class="w">
+
+  </span><span class="nf">list</span><span class="p">(</span><span class="n">population</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">population</span><span class="p">,</span><span class="w"> </span><span class="n">sample</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sample</span><span class="p">)</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>Lastly, the following snippet shows how to update <code class="language-plaintext highlighter-rouge">brms</code> and <code class="language-plaintext highlighter-rouge">tidybayes</code> from
+GitHub:</p>
+
+<div class="language-r highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">packageVersion</span><span class="p">(</span><span class="s1">'brms'</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="s1">'2.11.2'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">remotes</span><span class="o">::</span><span class="n">install_github</span><span class="p">(</span><span class="s1">'paul-buerkner/brms'</span><span class="p">,</span><span class="w"> </span><span class="n">upgrade</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'never'</span><span class="p">)</span><span class="w">
+</span><span class="p">}</span><span class="w">
+
+</span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">packageVersion</span><span class="p">(</span><span class="s1">'tidybayes'</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="s1">'2.0.1.9000'</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+  </span><span class="n">remotes</span><span class="o">::</span><span class="n">install_github</span><span class="p">(</span><span class="s1">'mjskay/tidybayes'</span><span class="p">,</span><span class="w"> </span><span class="n">upgrade</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'never'</span><span class="p">)</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+
+  </div><div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2020/02/03/net-promoter.html';
+      this.page.identifier = 'https://blog.ivanukhov.com/2020/02/03/net-promoter.html';
+    };
+
+    (function() {
+      var d = document, s = d.createElement('script');
+
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2020/02/03/net-promoter.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script>
+  </body>
+</html>

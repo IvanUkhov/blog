@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Heteroscedastic Gaussian process regression | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Heteroscedastic Gaussian process regression" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Gaussian process regression is a nonparametric Bayesian technique for modeling relationships between variables of interest. The vast flexibility and rigor mathematical foundation of this approach make it the default choice in many problems involving small- to medium-sized data sets. In this article, we illustrate how Gaussian process regression can be utilized in practice. To make the case more compelling, we consider a setting where linear regression would be inadequate. The focus will be not on getting the job done as fast as possible but on learning the technique and understanding the choices being made." />
+<meta property="og:description" content="Gaussian process regression is a nonparametric Bayesian technique for modeling relationships between variables of interest. The vast flexibility and rigor mathematical foundation of this approach make it the default choice in many problems involving small- to medium-sized data sets. In this article, we illustrate how Gaussian process regression can be utilized in practice. To make the case more compelling, we consider a setting where linear regression would be inadequate. The focus will be not on getting the job done as fast as possible but on learning the technique and understanding the choices being made." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2020/06/22/gaussian-process.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2020/06/22/gaussian-process.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2020-06-22T06:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Heteroscedastic Gaussian process regression" />
+<script type="application/ld+json">
+{"datePublished":"2020-06-22T06:00:00+00:00","headline":"Heteroscedastic Gaussian process regression","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2020/06/22/gaussian-process.html"},"url":"https://blog.ivanukhov.com/2020/06/22/gaussian-process.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"Gaussian process regression is a nonparametric Bayesian technique for modeling relationships between variables of interest. The vast flexibility and rigor mathematical foundation of this approach make it the default choice in many problems involving small- to medium-sized data sets. In this article, we illustrate how Gaussian process regression can be utilized in practice. To make the case more compelling, we consider a setting where linear regression would be inadequate. The focus will be not on getting the job done as fast as possible but on learning the technique and understanding the choices being made.","@type":"BlogPosting","dateModified":"2020-06-22T06:00:00+00:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Bayesian statistics, Gaussian process, R, Stan, data science, heteroscedasticity, regression"><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Heteroscedastic Gaussian process regression</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2020-06-22T06:00:00+00:00" itemprop="datePublished">June 22, 2020
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Gaussian process regression is a nonparametric Bayesian technique for modeling
+relationships between variables of interest. The vast flexibility and rigor
+mathematical foundation of this approach make it the default choice in many
+problems involving small- to medium-sized data sets. In this article, we
+illustrate how Gaussian process regression can be utilized in practice. To make
+the case more compelling, we consider a setting where linear regression would be
+inadequate. The focus will be <em>not</em> on getting the job done as fast as possible
+but on learning the technique and understanding the choices being made.</p>
+
+<h1 id="data">Data</h1>
+
+<p>Consider the following example taken from <a href="http://www.stat.tamu.edu/~carroll/semiregbook"><em>Semiparametric
+Regression</em></a> by Ruppert <em>et al.</em>:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/data-1.svg" alt="" /></p>
+
+<p>The figure shows 221 observations collected in a <a href="https://en.wikipedia.org/wiki/Lidar">light detection and
+ranging</a> experiment. Each observation can be interpreted as the sum of
+the true underlying response at the corresponding distance and random noise. It
+can be clearly seen that the variance of the noise varies with the distance: the
+spread is substantially larger toward the right-hand side. This phenomenon is
+known as heteroscedasticity. Homoscedasticity (the absence of
+heteroscedasticity) is one of the key assumptions of linear regression. Applying
+linear regression to the above problem would yield suboptimal results. The
+estimates of the regression coefficients would still be unbiased; however, the
+standard errors of the coefficients would be incorrect and hence misleading. A
+different modeling technique is needed in this case.</p>
+
+<p>The above data set will be our running example. For formally and slightly more
+generally, we assume that there is a data set of \(m\) observations:</p>
+
+\[\left\{
+  (\mathbf{x}_i, y_i): \,
+  \mathbf{x}_i \in \mathbb{R}^d; \,
+  y_i \in \mathbb{R}; \,
+  i = 1, \dots, m
+\right\}\]
+
+<p>where the independent variable, \(\mathbf{x}\), is \(d\)-dimensional, and the
+dependent variable, \(y\), is scalar. In the running example, \(d\) is 1, and
+\(m\) is 221. It is time for modeling.</p>
+
+<h1 id="model">Model</h1>
+
+<p>To begin with, consider the following model with additive noise:</p>
+
+\[y_i = f(\mathbf{x}_i) + \epsilon_i, \text{ for } i = 1, \dots, m. \tag{1}\]
+
+<p>In the above, \(f: \mathbb{R}^d \to \mathbb{R}\) represents the true but unknown
+underlying function, and \(\epsilon_i\) represents the perturbation of the
+\(i\)th observation by random noise. In the classical linear-regression setting,
+the unknown function is modeled as a linear combination of (arbitrary
+transformations of) the \(d\) covariates. Instead of assuming any particular
+functional form, we put a Gaussian process prior on the function:</p>
+
+\[f(\mathbf{x}) \sim \text{Gaussian Process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right).\]
+
+<p>The above notation means that, before observing any data, the function is a draw
+from a Gaussian process with zero mean and a covariance function \(k\). The
+covariance function dictates the degree of correlation between two arbitrary
+locations \(\mathbf{x}\) and \(\mathbf{x}'\) in \(\mathbb{R}^d\). For instance,
+a frequent choice for \(k\) is the squared-exponential covariance function:</p>
+
+\[k(\mathbf{x}, \mathbf{x}')
+= \sigma_\text{process}^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x}'\|_2^2}{2 \, \ell_\text{process}^2} \right)\]
+
+<p>where \(\|\cdot\|_2\) stands for the Euclidean norm, \(\sigma_\text{process}^2\)
+is the variance (to see this, substitute \(\mathbf{x}\) for \(\mathbf{x}'\)),
+and \(\ell_\text{process}\) is known as the length scale. While the variance
+parameter is intuitive, the length-scale one requires an illustration. The
+parameter controls the speed with which the correlation fades with the distance.
+The following figure shows 10 random draws for \(\ell_\text{process} = 0.1\):</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/prior-process-short-1.svg" alt="" /></p>
+
+<p>With \(\ell_\text{process} = 0.5\), the behavior changes to the following:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/prior-process-long-1.svg" alt="" /></p>
+
+<p>It can be seen that it takes a greater distance for a function with a larger
+length scale (<em>top</em>) to change to the same extent compared to a function with a
+smaller length scale (<em>bottom</em>).</p>
+
+<p>Let us now return to Equation (1) and discuss the error terms, \(\epsilon_i\).
+In linear regression, they are modeled as independent identically distributed
+Gaussian random variables:</p>
+
+\[\epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
+\text{ for } i = 1, \dots, m. \tag{2}\]
+
+<p>This is also the approach one can take with Gaussian process regression;
+however, one does not have to. There are reasons to believe the problem at hand
+is heteroscedastic, and it should be reflected in the model. To this end, the
+magnitude of the noise is allowed to vary with the covariates:</p>
+
+\[\epsilon_i | \mathbf{x}_i \sim \text{Gaussian}\left(0, \sigma^2_{\text{noise}, i}\right),
+\text{ for } i = 1, \dots, m. \tag{3}\]
+
+<p>The error terms are still independent (given the covariates) but not identically
+distributed. At this point, one has to make a choice about the dependence of
+\(\sigma_{\text{noise}, i}\) on \(\mathbf{x}_i\). This dependence could be
+modeled with another Gaussian process with an appropriate link function to
+ensure \(\sigma_{\text{noise}, i}\) is nonnegative. Another reasonable choice is
+a generalized linear model, which is what we shall use:</p>
+
+\[\ln \sigma^2_{\text{noise}, i} = \alpha_\text{noise} + \boldsymbol{\beta}^\intercal_\text{noise} \, \mathbf{x}_i,
+\text{ for } i = 1, \dots, m, \tag{4}\]
+
+<p>where \(\alpha\) is the intercept of the regression line, and
+\(\boldsymbol{\beta} \in \mathbb{R}^d\) contains the slopes.</p>
+
+<p>Thus far, a model for the unknown function \(f\) and a model for the noise have
+been prescribed. In total, there are \(d + 3\) parameters:
+\(\sigma_\text{process}\), \(\ell_\text{process}\), \(\alpha_\text{noise}\), and
+\(\beta_{\text{noise}, i}\) for \(i = 1, \dots, d\). The first two are
+positive, and the rest are arbitrary. The final piece is prior distributions for
+these parameters.</p>
+
+<p>The variance of the coveriance function, \(\sigma^2_\text{process}\),
+corresponds to the amount of variance in the data that is explained by the
+Gaussian process. It poses no particular problem and can be tackled with a
+half-Gaussian or a half-Student’s t distribution:</p>
+
+\[\sigma_\text{process} \sim \text{Half-Gaussian}\left( 0, 1 \right).\]
+
+<p>The notation means that the standard Gaussian distribution is truncated at zero
+and renormalized. The nontrivial mass around zero implied by the prior is
+considered to be beneficial in this case.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote">1</a></sup></p>
+
+<p>A prior for the length scale of the covariance function,
+\(\ell_\text{process}\), should be chosen with care. Small values—especially,
+those below the resolution of the data—give the Gaussian process extreme
+flexibility and easily leads to overfitting. Moreover, there are numerical
+ramifications of the length scale approaching zero as well: the quality of
+Hamiltonian Monte Carlo sampling degrades.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote">2</a></sup> The bottom line is that a prior
+penalizing values close to zero is needed. A reasonable choice is an inverse
+gamma distribution:</p>
+
+\[\ell_\text{process} \sim \text{Inverse Gamma}\left( 1, 1 \right).\]
+
+<p>To understand the implications, let us perform a prior predictive check for this
+component in isolation:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/prior-process-length-scale-1.svg" alt="" /></p>
+
+<p>It can be seen that the density is very low in the region close to zero, while
+being rather permissive to the right of that region, especially considering the
+scale of the distance in the data; recall the very first figure. Consequently,
+the choice is adequate.</p>
+
+<p>The choice of priors for the parameters of the noise is complicated by the
+nonlinear link function; see Equation (4). What is important to realize is that
+small amounts of noise correspond to negative values in the linear space, which
+is probably what one should be expecting given the scale of the response.
+Therefore, the priors should allow for large negative values. Let us make an
+educated assumption and perform a prior predictive check to understand the
+consequences. Consider the following:</p>
+
+\[\begin{align}
+\alpha_\text{noise} &amp; \sim \text{Gaussian}\left( -1, 1 \right) \text{ and} \\
+\beta_{\text{noise}, i} &amp; \sim \text{Gaussian}\left( 0, 1 \right),
+\text{ for } i = 1, \dots, d.\\
+\end{align}\]
+
+<p>The density of \(\sigma_\text{noise}\) without considering the regression slopes
+is depicted below (note the logarithmic scale on the horizontal axis):</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/prior-noise-sigma-1.svg" alt="" /></p>
+
+<p>The variability in the intercept, \(\alpha_\text{noise}\), allows the standard
+deviation, \(\sigma_\text{noise}\), to comfortably vary from small to large
+values, keeping in mind the scale of the response. Here are two draws from the
+prior distribution of the noise, including Equations (3) and (4):</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg" alt="" /></p>
+
+<p>The large ones are perhaps unrealistic and could be addressed by further
+shifting the distribution of the intercept. However, they should not cause
+problems for the inference.</p>
+
+<p>Putting everything together, the final model is as follows:</p>
+
+\[\begin{align}
+y_i
+&amp; = f(\mathbf{x}_i) + \epsilon_i,
+\text{ for } i = 1, \dots, m; \\
+
+f(\mathbf{x})
+&amp; \sim \text{Gaussian Process}\left( 0, k(\mathbf{x}, \mathbf{x}') \right); \\
+
+k(\mathbf{x}, \mathbf{x}')
+&amp; = \sigma_\text{process}^2 \exp\left( -\frac{\|\mathbf{x} - \mathbf{x}'\|_2^2}{2 \, \ell_\text{process}^2} \right); \\
+
+\epsilon_i | \mathbf{x}_i
+&amp; \sim \text{Gaussian}\left( 0, \sigma^2_{\text{noise}, i} \right),
+\text{ for } i = 1, \dots, m; \\
+
+\ln \sigma^2_{\text{noise}, i}
+&amp; = \alpha_\text{noise} + \boldsymbol{\beta}_\text{noise}^\intercal \, \mathbf{x}_i,
+\text{ for } i = 1, \dots, m; \\
+
+\sigma_\text{process}
+&amp; \sim \text{Half-Gaussian}\left( 0, 1 \right); \\
+
+\ell_\text{process}
+&amp; \sim \text{Inverse Gamma}\left( 1, 1 \right); \\
+
+\alpha_\text{noise}
+&amp; \sim \text{Gaussian}\left( -1, 1 \right); \text{ and} \\
+
+\beta_{\text{noise}, i}
+&amp; \sim \text{Gaussian}\left( 0, 1 \right),
+\text{ for } i = 1, \dots, d.\\
+\end{align}\]
+
+<p>This concludes the modeling part. The remaining two steps are to infer the
+parameters and to make predictions using the posterior predictive distribution.</p>
+
+<h1 id="inference">Inference</h1>
+
+<p>The model is analytically intractable; one has to resort to sampling or
+variational methods for inferring the parameters. We shall use Hamiltonian
+Markov chain Monte Carlo sampling via <a href="https://mc-stan.org/">Stan</a>. The model can be seen in the
+following listing, where the notation closely follows the one used throughout
+the article:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="p">{</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span> <span class="o">=</span> <span class="mi">1</span><span class="o">&gt;</span> <span class="n">d</span><span class="p">;</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span> <span class="o">=</span> <span class="mi">1</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="n">x</span><span class="p">[</span><span class="n">m</span><span class="p">];</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">y</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">data</span> <span class="p">{</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">mu</span> <span class="o">=</span> <span class="n">rep_vector</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">m</span><span class="p">);</span>
+  <span class="n">matrix</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">d</span><span class="p">]</span> <span class="n">X</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">i</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="err">'</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">real</span><span class="o">&lt;</span><span class="n">lower</span> <span class="o">=</span> <span class="mi">0</span><span class="o">&gt;</span> <span class="n">sigma_process</span><span class="p">;</span>
+  <span class="n">real</span><span class="o">&lt;</span><span class="n">lower</span> <span class="o">=</span> <span class="mi">0</span><span class="o">&gt;</span> <span class="n">ell_process</span><span class="p">;</span>
+  <span class="n">real</span> <span class="n">alpha_noise</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">d</span><span class="p">]</span> <span class="n">beta_noise</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">model</span> <span class="p">{</span>
+  <span class="n">matrix</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="n">K</span> <span class="o">=</span> <span class="n">cov_exp_quad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">sigma_process</span><span class="p">,</span> <span class="n">ell_process</span><span class="p">);</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">sigma_noise_squared</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">alpha_noise</span> <span class="o">+</span> <span class="n">X</span> <span class="o">*</span> <span class="n">beta_noise</span><span class="p">);</span>
+  <span class="n">matrix</span><span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span> <span class="n">L</span> <span class="o">=</span> <span class="n">cholesky_decompose</span><span class="p">(</span><span class="n">add_diag</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">sigma_noise_squared</span><span class="p">));</span>
+
+  <span class="n">y</span> <span class="o">~</span> <span class="n">multi_normal_cholesky</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">L</span><span class="p">);</span>
+  <span class="n">sigma_process</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">ell_process</span> <span class="o">~</span> <span class="n">inv_gamma</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">alpha_noise</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">beta_noise</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In the <code class="language-plaintext highlighter-rouge">parameters</code> block, one can find the \(d + 3\) parameters identified
+earlier. In regards to the <code class="language-plaintext highlighter-rouge">model</code> block, it is worth noting that there is no
+any Gaussian process distribution in Stan. Instead, a multivariate Gaussian
+distribution is utilized to model \(f\) at \(\mathbf{X} = (\mathbf{x}_i)_{i =
+1}^m \in \mathbb{R}^{m \times d}\) and eventually \(\mathbf{y} = (y_i)_{i =
+1}^m\), which is for a good reason. Even though a Gaussian process is an
+infinite-dimensional object, in practice, one always works with finite amounts
+of data. For instance, in the running example, there are only 221 data points.
+By definition, a Gaussian process is a stochastic process with the condition
+that any finite collection of points from this process has a multivariate
+Gaussian distribution. This fact combined with the conditional independence of
+the process and the noise given the covariates yields the following and explains
+the usage of a multivariate Gaussian distribution:</p>
+
+\[\mathbf{y} | \mathbf{X}, \sigma_\text{process}, \ell_\text{process}, \alpha_\text{noise}, \boldsymbol{\beta}_\text{noise}
+\sim \text{Multivariate Gaussian}\left( \mathbf{0}, \mathbf{K} + \mathbf{D} \right)\]
+
+<p>where \(\mathbf{K} \in \mathbb{R}^{m \times m}\) is a covariance matrix computed
+by evaluating the covariance function \(k\) at all pairs of locations in the
+observed data, and \(\mathbf{D} = \text{diag}(\sigma^2_{\text{noise}, i})_{i =
+1}^m \in \mathbb{R}^{m \times m}\) is a diagonal matrix of the variances of the
+noise at the corresponding locations.</p>
+
+<p>After running the inference, the following posterior distributions are obtained:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/posterior-parameters-1.svg" alt="" /></p>
+
+<p>The intervals are at the bottom of the densities are 66% and 95% equal-tailed
+probability intervals, and the dots indicate the medians. Let us also take a
+look at the 95% probability interval for the noise with respect to the distance:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/posterior-predictive-noise-1.svg" alt="" /></p>
+
+<p>As expected, the variance of the noise increases with the distance.</p>
+
+<h1 id="prediction">Prediction</h1>
+
+<p>Suppose there are \(n\) locations \(\mathbf{X}_\text{new} =
+(\mathbf{x}_{\text{new}, i})_{i = 1}^n \in \mathbb{R}^{n \times d}\) where one
+wishes to make predictions. Let \(\mathbf{f}_\text{new} \in \mathbb{R}^n\) be
+the values of \(f\) at those locations. Assuming all the data and parameters
+given, the joint distribution of \(\mathbf{y}\) and \(\mathbf{f}_\text{new}\) is
+as follows:</p>
+
+\[\left[
+  \begin{matrix}
+    \mathbf{y} \\
+    \mathbf{f}_\text{new}
+  \end{matrix}
+\right]
+\sim \text{Multivariate Gaussian}\left(
+  \mathbf{0},
+  \left[
+    \begin{matrix}
+      \mathbf{K} + \mathbf{D} &amp; k(\mathbf{X}, \mathbf{X}_\text{new}) \\
+      k(\mathbf{X}_\text{new}, \mathbf{X}) &amp; k(\mathbf{X}_\text{new}, \mathbf{X}_\text{new})
+    \end{matrix}
+  \right]
+\right)\]
+
+<p>where, with a slight abuse of notation, \(k(\cdot, \cdot)\) stands for a
+covariance matrix computed by evaluating the covariance function \(k\) at the
+specified locations, which is analogous to \(\mathbf{K}\). It is well known (see
+<a href="http://www.gaussianprocess.org/gpml">Rasmussen et al. 2006</a>, for instance) that the marginal
+distribution of \(\mathbf{f}_\text{new}\) is a multivariate Gaussian with the
+following mean vector and covariance matrix, respectively:</p>
+
+\[\begin{align}
+E(\mathbf{f}_\text{new})
+&amp; = k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} \, \mathbf{y} \quad \text{and} \\
+\text{cov}(\mathbf{f}_\text{new})
+&amp; = k(\mathbf{X}_\text{new}, \mathbf{X}_\text{new})
+- k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} k(\mathbf{X}, \mathbf{X}_\text{new}).
+\end{align}\]
+
+<p>The final component is the noise, as per Equation (1). The noise does not change
+the mean of the multivariate Gaussian distribution but does magnify the
+variance:</p>
+
+\[\begin{align}
+E(\mathbf{y}_\text{new})
+&amp; = k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} \, \mathbf{y} \quad \text{and} \\
+\text{cov}(\mathbf{y}_\text{new})
+&amp; = k(\mathbf{X}_\text{new}, \mathbf{X}_\text{new})
+- k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} k(\mathbf{X}, \mathbf{X}_\text{new})
++ \text{diag}(\sigma^2_\text{noise}(\mathbf{X}_\text{new}))
+\end{align}\]
+
+<p>where \(\text{diag}(\sigma^2_\text{noise}(\cdot))\) stands for a diagonal matrix
+composed of the noise variance evaluated at the specified locations, which is
+analogous to \(\mathbf{D}\).</p>
+
+<p>Given a set of draws from the joint posterior distribution of the parameters and
+the last two expressions, it is now straightforward to draw samples from the
+posterior predictive distribution of the response: for each draw of the
+parameters, one has to evaluate the mean vector and the covariance matrix and
+sample the corresponding multivariate Gaussian distribution. The result is given
+in the following figure:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/posterior-predictive-heteroscedastic-1.svg" alt="" /></p>
+
+<p>The graph shows the mean value of the posterior predictive distribution given by
+the black line along with a 95% equal-tailed probability band about the mean. It
+can be seen that the uncertainty in the predictions is adequately captured along
+the entire support. Naturally, the full predictive posterior distribution is
+available at any location of interest.</p>
+
+<p>Before we conclude, let us illustrate what would happen if the data were modeled
+as having homogeneous noise. To this end, the variance of the noise is assumed
+to be independent of the covariates, as in Equation (2). After repeating the
+inference and prediction processes, the following is obtained:</p>
+
+<p><img src="/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg" alt="" /></p>
+
+<p>The inference is inadequate, which can be seen by the probability band: the
+variance is largely overestimated on the left-hand side and underestimated on
+the right-hand side. This justifies well the choice of heteroscedastic
+regression presented earlier.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, it has been illustrated how a functional relationship can be
+modeled using a Gaussian process as a prior. Particular attention has been
+dedicated to adequately capturing error terms in the presence of
+heteroscedasticity. In addition, a practical implementation has been discussed,
+and the experimental results have demonstrated the appropriateness of this
+approach.</p>
+
+<p>For the curious reader, the source code of this <a href="https://github.com/IvanUkhov/blog/blob/master/_posts/2020-06-22-gaussian-process.Rmd">notebook</a> along with a number
+of auxiliary <a href="https://github.com/IvanUkhov/blog/tree/master/_scripts/2020-06-22-gaussian-process">scripts</a>, such as the definition of the model in Stan, can be
+found on GitHub.</p>
+
+<h1 id="acknowledgments">Acknowledgments</h1>
+
+<p>I would like to thank <a href="https://www.mattiasvillani.com/">Mattias Villani</a> for the insightful and informative
+graduate course in statistics titled “<a href="https://github.com/mattiasvillani/AdvBayesLearnCourse">Advanced Bayesian learning</a>,” which was the inspiration behind writing this article.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li>Carl Rasmussen <em>et al.</em>, <a href="http://www.gaussianprocess.org/gpml"><em>Gaussian Processes for Machine
+Learning</em></a>, the MIT Press, 2006.</li>
+  <li>David Ruppert <em>et al.</em>, <a href="http://www.stat.tamu.edu/~carroll/semiregbook"><em>Semiparametric Regression</em></a>, Cambridge
+University Press, 2003.</li>
+</ul>
+
+<h1 id="footnotes">Footnotes</h1>
+
+<div class="footnotes" role="doc-endnotes">
+  <ol>
+    <li id="fn:1" role="doc-endnote">
+      <p>“<a href="https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-marginal-standard-deviation">Priors for marginal standard deviation</a>,”
+  Stan User’s Guide, 2020. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+    <li id="fn:2" role="doc-endnote">
+      <p>“<a href="https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-length-scale">Priors for length-scale</a>,” Stan User’s Guide,
+  2020. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
+    </li>
+  </ol>
+</div>
+
+  </div><div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2020/06/22/gaussian-process.html';
+      this.page.identifier = 'https://blog.ivanukhov.com/2020/06/22/gaussian-process.html';
+    };
+
+    (function() {
+      var d = document, s = d.createElement('script');
+
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2020/06/22/gaussian-process.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script><script type="text/javascript">
+      function stan() {
+        var keywords = ['data', 'model', 'parameters', 'transformed'];
+        var types = ['matrix', 'real', 'simplex', 'vector'];
+        document
+          .querySelectorAll('.language-c .n')
+          .forEach(function(element) {
+            if (keywords.indexOf(element.innerText) != -1) {
+              element.style.cssText = 'font-weight: 600';
+            }
+            if (types.indexOf(element.innerText) != -1) {
+              element.className += ' kt';
+            }
+          });
+      };
+      window.addEventListener('load', stan);
+    </script>
+  </body>
+</html>

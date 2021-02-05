@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Good news, everyone! | On to data science</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Good news, everyone!" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="On to data science" />
+<meta property="og:description" content="On to data science" />
+<link rel="canonical" href="https://blog.ivanukhov.com/" />
+<meta property="og:url" content="https://blog.ivanukhov.com/" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Good news, everyone!" />
+<script type="application/ld+json">
+{"headline":"Good news, everyone!","url":"https://blog.ivanukhov.com/","name":"Good news, everyone!","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"On to data science","@type":"WebSite","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="home"><p>“Good news, everyone!” is a collection of articles about solving problems that
+data scientists might encounter in practice or invent to sharpen their skills in
+leisure time.</p>
+<h2 class="post-list-heading">Articles</h2>
+  <ul class="post-list"><li><span class="post-meta">January 25, 2021</span>
+      <h3>
+        <a class="post-link" href="/2021/01/25/dirichlet-process.html">
+          Breaking sticks, or estimation of probability distributions using the Dirichlet process
+        </a>
+      </h3><p>Recall the last time you wanted to understand the distribution of given data.
+One alternative was to plot a histogram. However, it resulted in frustration due
+to the choice of the number of bins to use, which led to drastically different
+outcomes. Another alternative was kernel density estimation. Despite having a
+similar choice to make, it has the advantage of producing smooth estimates,
+which are more realistic for continuous quantities with regularities. However,
+kernel density estimation was unsatisfactory too: it did not aid in
+understanding the underlying structure of the data and, moreover, provided no
+means of quantifying the uncertainty associated with the results. In this
+article, we discuss a Bayesian approach to the estimation of data-generating
+distributions that addresses the aforementioned concerns.</p>
+</li><li><span class="post-meta">June 22, 2020</span>
+      <h3>
+        <a class="post-link" href="/2020/06/22/gaussian-process.html">
+          Heteroscedastic Gaussian process regression
+        </a>
+      </h3><p>Gaussian process regression is a nonparametric Bayesian technique for modeling
+relationships between variables of interest. The vast flexibility and rigor
+mathematical foundation of this approach make it the default choice in many
+problems involving small- to medium-sized data sets. In this article, we
+illustrate how Gaussian process regression can be utilized in practice. To make
+the case more compelling, we consider a setting where linear regression would be
+inadequate. The focus will be <em>not</em> on getting the job done as fast as possible
+but on learning the technique and understanding the choices being made.</p>
+</li><li><span class="post-meta">April 10, 2020</span>
+      <h3>
+        <a class="post-link" href="/2020/04/10/comparison.html">
+          What is the easiest way to compare two data sets?
+        </a>
+      </h3><p>One has probably come across this problem numerous times. There are two versions
+of a tabular data set with a lot of columns of different types, and one wants to
+quickly identify any differences between the two. For example, the pipeline
+providing data to a predictive model might have been updated, and the goal is to
+understand if there have been any side effects of this update for the training
+data.</p>
+</li><li><span class="post-meta">February 3, 2020</span>
+      <h3>
+        <a class="post-link" href="/2020/02/03/net-promoter.html">
+          Bayesian inference of the net promoter score via multilevel regression with poststratification
+        </a>
+      </h3><p>Customer surveys are naturally prone to biases. One prominent example is
+participation bias, which arises when individuals decide not to respond to the
+survey, and this pattern is not random. For instance, new customers might reply
+less eagerly than those who are senior. This renders the obtained responses
+unrepresentative of the target population. In this article, we tackle
+participation bias for the case of the net promoter survey by means of
+multilevel regression and poststratification.</p>
+</li><li><span class="post-meta">November 8, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/11/08/sequential-data.html">
+          Ingestion of sequential data from BigQuery into TensorFlow
+        </a>
+      </h3><p>How hard can it be to ingest sequential data into a <a href="https://www.tensorflow.org">TensorFlow</a> model? As
+always, the answer is, “It depends.” Where are the sequences in question stored?
+Can they fit in main memory? Are they of the same length? In what follows, we
+shall build a flexible and scalable workflow for feeding sequential observations
+into a TensorFlow graph starting from <a href="https://cloud.google.com/bigquery/">BigQuery</a> as the data warehouse.</p>
+
+</li><li><span class="post-meta">September 25, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/09/25/bootstrap.html">
+          Sample size determination using historical data and simulation
+        </a>
+      </h3><p>In order to test a hypothesis, one has to design and execute an adequate
+experiment. Typically, it is neither feasible nor desirable to involve the whole
+population. Instead, a relatively small subset of the population is studied, and
+given the outcome for this small sample, relevant conclusions are drawn with
+respect to the population. An important question to answer is then, What is the
+minimal sample size needed for the experiment to succeed? In what follows, we
+answer this question using solely historical data and computer simulation,
+without invoking any classical statistical procedures.</p>
+</li><li><span class="post-meta">August 19, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/08/19/net-promoter.html">
+          A Bayesian approach to the inference of the net promoter score
+        </a>
+      </h3><p>The net promoter score is a widely adopted metric for gauging customers’
+satisfaction with a product. The popularity of the score is arguably attributed
+to the simplicity of measurement and the intuitiveness of interpretation.
+Moreover, it is claimed to be correlated with revenue growth, which, ignoring
+causality, makes it even more appealing. In this article, we leverage Bayesian
+statistics in order to infer the net promoter score for an arbitrary
+segmentation of a customer base. The outcome of the inference is a distribution
+over all possible values of the score weighted by probabilities, which provides
+exhaustive information for the subsequent decision-making.</p>
+</li><li><span class="post-meta">July 24, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/07/24/notebook.html">
+          Interactive notebooks in tightly sealed disposable containers
+        </a>
+      </h3><p>It is truly amazing how interactive notebooks—where a narrative in a spoken
+language is entwined with executable chunks of code in a programming
+language—have revolutionized the way we work with data and document our thought
+processes and findings for others and, equally importantly, for our future
+selves. They are ubiquitous and taken for granted. It is hard to imagine where
+data enthusiasts would be without them. Most likely, we would be spending too
+much time staring at a terminal window, anxiously re-running scripts from start
+to finish, printing variables, and saving lots of files with tables and graphs
+on disk for further inspection. Interactive notebooks are an essential tool in
+the data scientist’s toolbox, and in this article, we are going to make them
+readily available for our use with our favorite packages installed and
+preferences set up, no matter where we find ourselves working and regardless of
+the mess we might have left behind during the previous session.</p>
+</li><li><span class="post-meta">July 8, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/07/08/conversion.html">
+          On the expected utility in conversion rate optimization
+        </a>
+      </h3><p>It can be not only extremely useful but also deeply satisfying to occasionally
+dust off one’s math skills. In this article, we approach the classical problem
+of conversion rate optimization—which is frequently faced by companies operating
+online—and derive the expected utility of switching from variant A to variant B
+under some modeling assumptions. This information can subsequently be utilized
+in order to support the corresponding decision-making process.</p>
+</li><li><span class="post-meta">July 1, 2019</span>
+      <h3>
+        <a class="post-link" href="/2019/07/01/orchestration.html">
+          A poor man’s orchestration of predictive models, or do it yourself
+        </a>
+      </h3><p>As a data scientist focusing on developing data products, you naturally want
+your work to reach its target audience. Suppose, however, that your company does
+not have a dedicated engineering team for productizing data-science code. One
+solution is to seek help in other teams, which are surely busy with their own
+endeavors, and spend months waiting. Alternatively, you could take the
+initiative and do it yourself. In this article, we take the initiative and
+schedule the training and application phases of a predictive model using Apache
+<a href="https://airflow.apache.org/">Airflow</a>, Google <a href="https://cloud.google.com/compute/">Compute Engine</a>, and <a href="https://www.docker.com/">Docker</a>.</p>
+
+</li></ul>
+  <p class="rss-subscribe"><a href="/feed.xml">Subscribe to updates</a></p></div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script>
+  </body>
+</html>

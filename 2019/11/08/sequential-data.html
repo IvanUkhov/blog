@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.7.1 -->
+<title>Ingestion of sequential data from BigQuery into TensorFlow | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.2.0" />
+<meta property="og:title" content="Ingestion of sequential data from BigQuery into TensorFlow" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse." />
+<meta property="og:description" content="How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2019/11/08/sequential-data.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2019/11/08/sequential-data.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2019-11-08T07:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Ingestion of sequential data from BigQuery into TensorFlow" />
+<script type="application/ld+json">
+{"datePublished":"2019-11-08T07:00:00+00:00","headline":"Ingestion of sequential data from BigQuery into TensorFlow","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html"},"url":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse.","@type":"BlogPosting","dateModified":"2019-11-08T07:00:00+00:00","@context":"https://schema.org"}</script>
+<!-- End Jekyll SEO tag -->
+<meta content="assets/favicon.png" property="og:image">
+  <link rel="stylesheet" href="/assets/main.css">
+  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Apache Beam, BigQuery, Cloud Dataflow, Cloud Storage, Google Cloud Platform, Keras, TensorFlow, data science, machine learning"><script>
+if(!(window.doNotTrack === "1" || navigator.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1")) {
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-47932672-9', 'auto');
+  ga('send', 'pageview');
+}
+</script>
+  
+
+</head>
+<body><header class="site-header" role="banner">
+
+  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon">
+            <svg viewBox="0 0 18 15" width="18px" height="15px">
+              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
+            </svg>
+          </span>
+        </label>
+
+        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
+      </nav></div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Ingestion of sequential data from BigQuery into TensorFlow</h1>
+    <p class="post-meta">
+      <time class="dt-published" datetime="2019-11-08T07:00:00+00:00" itemprop="datePublished">November 8, 2019
+      </time></p>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>How hard can it be to ingest sequential data into a <a href="https://www.tensorflow.org">TensorFlow</a> model? As
+always, the answer is, “It depends.” Where are the sequences in question stored?
+Can they fit in main memory? Are they of the same length? In what follows, we
+shall build a flexible and scalable workflow for feeding sequential observations
+into a TensorFlow graph starting from <a href="https://cloud.google.com/bigquery/">BigQuery</a> as the data warehouse.</p>
+
+<p>To make the discussion tangible, consider the following problem. Suppose the
+goal is to predict the peak temperature at an arbitrary weather station present
+in the <a href="https://www.ncdc.noaa.gov/data-access/land-based-station-data/land-based-datasets/global-historical-climatology-network-ghcn">Global Historical Climatology Network</a> for each day between June 1 and
+August 31. More concretely, given observations from June 1 up to an arbitrary
+day before August 31, the objective is to complete the sequence until August 31.
+For instance, if we find ourselves in Stockholm on June 12, we ask for the
+maximum temperatures from June 12 to August 31 given the temperature values
+between June 1 to June 11 at a weather station in Stockholm.</p>
+
+<p>To set the expectations right, in this article, we are not going to build a
+predictive model but to cater for its development by making the data from the
+aforementioned database readily available in a TensorFlow graph. The final chain
+of states and operations is as follows:</p>
+
+<ol>
+  <li>
+    <p>Historical temperature measurements from the Global Historical Climatology
+Network are stored in a <a href="https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d">public data set</a> in BigQuery. Each row
+corresponds to a weather station and a date. There are missing observations
+due to such reasons as measurements not passing quality checks.</p>
+  </li>
+  <li>
+    <p>Relevant measurements are grouped in BigQuery by the weather station and
+year. Therefore, each row corresponds to a weather station and a year,
+implying that all information about a particular example (a specific weather
+station on a specific year) is gathered in one place.</p>
+  </li>
+  <li>
+    <p>The sequences are read, analyzed, and transformed by <a href="https://cloud.google.com/dataflow/">Cloud Dataflow</a>.</p>
+
+    <ul>
+      <li>
+        <p>The data are split into a training, a validation, and a testing set of
+examples.</p>
+      </li>
+      <li>
+        <p>The training set is used to compute statistics needed for transforming the
+measurements to a form suitable for the subsequent modeling.
+Standardization is used as an example.</p>
+      </li>
+      <li>
+        <p>The training and validation sets are transformed using the statistics
+computed with respect to the training set in order to avoid performing
+these computations during the training-with-validation phase. The
+corresponding transform is available for the testing phase.</p>
+      </li>
+    </ul>
+  </li>
+  <li>
+    <p>The processed training and validation examples and the raw testing examples
+are written by Dataflow to <a href="https://cloud.google.com/storage/">Cloud Storage</a> in the <a href="https://www.tensorflow.org/tutorials/load_data/tfrecord">TFRecord</a> format, which is
+a format native to TensorFlow.</p>
+  </li>
+  <li>
+    <p>The files containing TFRecords are read by the <a href="https://www.tensorflow.org/guide/data"><code class="language-plaintext highlighter-rouge">tf.data</code></a> API of TensorFlow
+and eventually transformed into a data set of appropriately padded batches of
+examples.</p>
+  </li>
+</ol>
+
+<p>The above workflow is not as simple as reading data from a Pandas DataFrame
+comfortably resting in main memory; however, it is much more scalable. This
+pipeline can handle arbitrary amounts of data. Moreover, it operates on
+complete examples, not on individual measurements.</p>
+
+<p>In the rest of the article, the aforementioned steps will be described in more
+detail. The corresponding source code can be found in the following repository
+on GitHub:</p>
+
+<ul>
+  <li><a href="https://github.com/chain-rule/example-weather-forecast">example-weather-forecast</a>.</li>
+</ul>
+
+<h1 id="data">Data</h1>
+
+<p>It all starts with data. The data come from the Global Historical Climatology
+Network, which is <a href="https://console.cloud.google.com/marketplace/details/noaa-public/ghcn-d">available in BigQuery</a> for public use. Steps 1 and 2
+in the list above are covered by the <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/data.sql">following query</a>:</p>
+
+<div class="language-sql highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">WITH</span>
+<span class="c1">-- Select relevant measurements</span>
+<span class="n">data_1</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span>
+    <span class="n">id</span><span class="p">,</span>
+    <span class="nb">date</span><span class="p">,</span>
+    <span class="c1">-- Find the date of the previous observation</span>
+    <span class="n">LAG</span><span class="p">(</span><span class="nb">date</span><span class="p">)</span> <span class="n">OVER</span> <span class="p">(</span><span class="n">station_year</span><span class="p">)</span> <span class="k">AS</span> <span class="n">date_last</span><span class="p">,</span>
+    <span class="n">latitude</span><span class="p">,</span>
+    <span class="n">longitude</span><span class="p">,</span>
+    <span class="c1">-- Convert to degrees Celsius</span>
+    <span class="n">value</span> <span class="o">/</span> <span class="mi">10</span> <span class="k">AS</span> <span class="n">temperature</span>
+  <span class="k">FROM</span>
+    <span class="nv">`bigquery-public-data.ghcn_d.ghcnd_201*`</span>
+  <span class="k">INNER</span> <span class="k">JOIN</span>
+    <span class="nv">`bigquery-public-data.ghcn_d.ghcnd_stations`</span> <span class="k">USING</span> <span class="p">(</span><span class="n">id</span><span class="p">)</span>
+  <span class="k">WHERE</span>
+    <span class="c1">-- Take years from 2010 to 2019</span>
+    <span class="k">CAST</span><span class="p">(</span><span class="n">_TABLE_SUFFIX</span> <span class="k">AS</span> <span class="n">INT64</span><span class="p">)</span> <span class="k">BETWEEN</span> <span class="mi">0</span> <span class="k">AND</span> <span class="mi">9</span>
+    <span class="c1">-- Take months from June to August</span>
+    <span class="k">AND</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="k">MONTH</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span> <span class="k">BETWEEN</span> <span class="mi">6</span> <span class="k">AND</span> <span class="mi">8</span>
+    <span class="c1">-- Take the maximum temperature</span>
+    <span class="k">AND</span> <span class="n">element</span> <span class="o">=</span> <span class="s1">'TMAX'</span>
+    <span class="c1">-- Take observations passed spatio-temporal quality-control checks</span>
+    <span class="k">AND</span> <span class="n">qflag</span> <span class="k">IS</span> <span class="k">NULL</span>
+  <span class="n">WINDOW</span>
+    <span class="n">station_year</span> <span class="k">AS</span> <span class="p">(</span>
+      <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">id</span><span class="p">,</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="nb">YEAR</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span>
+      <span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span>
+    <span class="p">)</span>
+<span class="p">),</span>
+<span class="c1">-- Group into examples (a specific station and a specific year)</span>
+<span class="n">data_2</span> <span class="k">AS</span> <span class="p">(</span>
+  <span class="k">SELECT</span>
+    <span class="n">id</span><span class="p">,</span>
+    <span class="k">MIN</span><span class="p">(</span><span class="nb">date</span><span class="p">)</span> <span class="k">AS</span> <span class="nb">date</span><span class="p">,</span>
+    <span class="n">latitude</span><span class="p">,</span>
+    <span class="n">longitude</span><span class="p">,</span>
+    <span class="c1">-- Compute gaps between observations</span>
+    <span class="n">ARRAY_AGG</span><span class="p">(</span>
+      <span class="n">DATE_DIFF</span><span class="p">(</span><span class="nb">date</span><span class="p">,</span> <span class="n">IFNULL</span><span class="p">(</span><span class="n">date_last</span><span class="p">,</span> <span class="nb">date</span><span class="p">),</span> <span class="k">DAY</span><span class="p">)</span>
+      <span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span>
+    <span class="p">)</span> <span class="k">AS</span> <span class="n">duration</span><span class="p">,</span>
+    <span class="n">ARRAY_AGG</span><span class="p">(</span><span class="n">temperature</span> <span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span><span class="p">)</span> <span class="k">AS</span> <span class="n">temperature</span>
+  <span class="k">FROM</span>
+    <span class="n">data_1</span>
+  <span class="k">GROUP</span> <span class="k">BY</span>
+    <span class="n">id</span><span class="p">,</span> <span class="n">latitude</span><span class="p">,</span> <span class="n">longitude</span><span class="p">,</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="nb">YEAR</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="c1">-- Partition into training, validation, and testing sets</span>
+<span class="k">SELECT</span>
+  <span class="o">*</span><span class="p">,</span>
+  <span class="k">CASE</span>
+    <span class="k">WHEN</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="nb">YEAR</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2019</span> <span class="k">THEN</span> <span class="s1">'analysis,training'</span>
+    <span class="k">WHEN</span> <span class="k">MOD</span><span class="p">(</span><span class="k">ABS</span><span class="p">(</span><span class="n">FARM_FINGERPRINT</span><span class="p">(</span><span class="n">id</span><span class="p">)),</span> <span class="mi">100</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">50</span> <span class="k">THEN</span> <span class="s1">'validation'</span>
+    <span class="k">ELSE</span> <span class="s1">'testing'</span>
+  <span class="k">END</span> <span class="k">AS</span> <span class="k">mode</span>
+<span class="k">FROM</span>
+  <span class="n">data_2</span>
+</code></pre></div></div>
+
+<p>The query fetches peak temperatures, denoted by <code class="language-plaintext highlighter-rouge">temperature</code>, for all available
+weather stations between June and August in 2010–2019. The crucial part is the
+usage of <code class="language-plaintext highlighter-rouge">ARRAY_AGG</code>, which is what makes it possible to gather all relevant
+data about a specific station and a specific year in the same row. The number of
+days since the previous measurement, which is denoted by <code class="language-plaintext highlighter-rouge">duration</code>, is also
+computed. Ideally, <code class="language-plaintext highlighter-rouge">duration</code> should always be one (except for the first day,
+which has no predecessor); however, this is not the case, which makes the
+resulting time series vary in length.</p>
+
+<p>In addition, in order to illustrate the generality of this approach, two
+contextual (that is, non-sequential) explanatory variables are added: <code class="language-plaintext highlighter-rouge">latitude</code>
+and <code class="language-plaintext highlighter-rouge">longitude</code>. They are scalars stored side by side with <code class="language-plaintext highlighter-rouge">duration</code> and
+<code class="language-plaintext highlighter-rouge">temperature</code>, which are arrays.</p>
+
+<p>Another important moment in the final <code class="language-plaintext highlighter-rouge">SELECT</code> statement, which defines a column
+called <code class="language-plaintext highlighter-rouge">mode</code>. This column indicates what each example is used for, allowing one
+to use the same query for different purposes and to avoid inconsistencies due to
+multiple queries. In this case, observations prior to 2019 are reserved for
+training, while the rest is split pseudo-randomly and reproducibly into two
+approximately equal parts: one is for validation, and one is for testing. This
+last operation is explained in detail in “<a href="https://www.oreilly.com/learning/repeatable-sampling-of-data-sets-in-bigquery-for-machine-learning">Repeatable sampling of data sets in
+BigQuery for machine learning</a>” by Lak Lakshmanan.</p>
+
+<h1 id="preprocessing">Preprocessing</h1>
+
+<p>In this section, we cover Steps 4 and 5 in the list given at the beginning. This
+job is done by <a href="https://www.tensorflow.org/tfx">TensorFlow Extended</a>, which is a library for building
+machine-learning pipelines. Internally, it relies on <a href="https://beam.apache.org/">Apache Beam</a> as a language
+for defining pipelines. Once an adequate pipeline is created, it can be executed
+using an executor, and the executor that we shall use is <a href="https://cloud.google.com/dataflow/">Cloud Dataflow</a>.</p>
+
+<p>Before we proceed to the pipeline itself, the construction process is
+orchestrated by a <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/preprocessing.json">configuration file</a>, which will
+be referred to as <code class="language-plaintext highlighter-rouge">config</code> in the pipeline code (to be discussed shortly):</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"configs/training/data.sql"</span><span class="p">,</span><span class="w">
+    </span><span class="nl">"schema"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"float32"</span><span class="p">,</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"z"</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"float32"</span><span class="p">,</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"z"</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"duration"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"float32"</span><span class="p">],</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"z"</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"float32"</span><span class="p">],</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"z"</span><span class="w"> </span><span class="p">}</span><span class="w">
+    </span><span class="p">]</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="nl">"modes"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+    </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis"</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"training"</span><span class="p">,</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis"</span><span class="p">,</span><span class="w"> </span><span class="nl">"shuffle"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"validation"</span><span class="p">,</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis"</span><span class="w"> </span><span class="p">},</span><span class="w">
+    </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"testing"</span><span class="p">,</span><span class="w"> </span><span class="nl">"transform"</span><span class="p">:</span><span class="w"> </span><span class="s2">"identity"</span><span class="w"> </span><span class="p">}</span><span class="w">
+  </span><span class="p">]</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>It is worth noting that this way of working with a separate configuration file
+is not something standard that comes with TensorFlow or Beam. It is a
+convenience that we build for ourselves in order to keep the main logic reusable
+and extendable without touching the code.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">data</code> block describes where the data can be found and provides a schema for
+the columns that are used. (Recall the SQL query given earlier and note that
+<code class="language-plaintext highlighter-rouge">id</code>, <code class="language-plaintext highlighter-rouge">date</code>, and <code class="language-plaintext highlighter-rouge">partition</code> are omitted.) For instance, <code class="language-plaintext highlighter-rouge">latitude</code> is a scale
+of type <code class="language-plaintext highlighter-rouge">FLOAT32</code>, while <code class="language-plaintext highlighter-rouge">temperature</code> is a sequence of type <code class="language-plaintext highlighter-rouge">FLOAT32</code>. Both are
+standardized to have a zero mean and a unit standard deviation, which is
+indicated by <code class="language-plaintext highlighter-rouge">"transform": "z"</code> and is typically needed for training neural
+networks.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">modes</code> block defines four passes over the data, corresponding to four
+operating modes. In each mode, a specific subset of examples is considered,
+which is given by the <code class="language-plaintext highlighter-rouge">mode</code> column returned by the query. There are two types
+of modes: analysis and transform; recall Step 3. Whenever the <code class="language-plaintext highlighter-rouge">transform</code> key is
+present, it is a transform mode; otherwise, it is an analysis mode. In this
+example, there are one analysis and three transform modes.</p>
+
+<p>Below is an excerpt from a <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/pipeline.py">Python class</a> responsible for building
+the pipeline:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># config = ...
+# schema = ...
+</span>
+<span class="c1"># Read the SQL code
+</span><span class="n">query</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">'data'</span><span class="p">][</span><span class="s">'path'</span><span class="p">]).</span><span class="n">read</span><span class="p">()</span>
+<span class="c1"># Create a BigQuery source
+</span><span class="n">source</span> <span class="o">=</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">BigQuerySource</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">use_standard_sql</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="c1"># Create metadata needed later
+</span><span class="n">spec</span> <span class="o">=</span> <span class="n">schema</span><span class="p">.</span><span class="n">to_feature_spec</span><span class="p">()</span>
+<span class="n">meta</span> <span class="o">=</span> <span class="n">dataset_metadata</span><span class="p">.</span><span class="n">DatasetMetadata</span><span class="p">(</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">dataset_schema</span><span class="p">.</span><span class="n">from_feature_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+<span class="c1"># Read data from BigQuery
+</span><span class="n">data</span> <span class="o">=</span> <span class="n">pipeline</span> \
+    <span class="o">|</span> <span class="s">'read'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">Read</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+<span class="c1"># Loop over modes whose purpose is analysis
+</span><span class="n">transform_functions</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'modes'</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="s">'transform'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+        <span class="k">continue</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="s">'name'</span><span class="p">]</span>
+    <span class="c1"># Select examples that belong to the current mode
+</span>    <span class="n">data_</span> <span class="o">=</span> <span class="n">data</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-filter'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Filter</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
+    <span class="c1"># Analyze the examples
+</span>    <span class="n">transform_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-analyze'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="n">AnalyzeDataset</span><span class="p">(</span><span class="n">_analyze</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'transform'</span><span class="p">)</span>
+    <span class="c1"># Store the transform function
+</span>    <span class="n">transform_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-write-transform'</span> <span class="o">&gt;&gt;</span> <span class="n">transform_fn_io</span><span class="p">.</span><span class="n">WriteTransformFn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="c1"># Loop over modes whose purpose is transformation
+</span><span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'modes'</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="s">'transform'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+        <span class="k">continue</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="s">'name'</span><span class="p">]</span>
+    <span class="c1"># Select examples that belong to the current mode
+</span>    <span class="n">data_</span> <span class="o">=</span> <span class="n">data</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-filter'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Filter</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
+    <span class="c1"># Shuffle examples if needed
+</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'shuffle'</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+        <span class="n">data_</span> <span class="o">=</span> <span class="n">data_</span> \
+            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-shuffle'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">transforms</span><span class="p">.</span><span class="n">Reshuffle</span><span class="p">()</span>
+    <span class="c1"># Transform the examples using an appropriate transform function
+</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'identity'</span><span class="p">:</span>
+        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="n">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data_</span><span class="p">,</span> <span class="n">meta_</span> <span class="o">=</span> <span class="p">((</span><span class="n">data_</span><span class="p">,</span> <span class="n">meta</span><span class="p">),</span> <span class="n">transform_functions</span><span class="p">[</span><span class="n">mode</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]])</span> \
+            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-transform'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="n">TransformDataset</span><span class="p">()</span>
+        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="n">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta_</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="n">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'examples'</span><span class="p">,</span> <span class="s">'part'</span><span class="p">)</span>
+    <span class="c1"># Store the transformed examples as TFRecords
+</span>    <span class="n">data_</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-encode'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Map</span><span class="p">(</span><span class="n">coder</span><span class="p">.</span><span class="n">encode</span><span class="p">)</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-write-examples'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">tfrecordio</span><span class="p">.</span><span class="n">WriteToTFRecord</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>At the very beginning, a BigQuery source is created, which is then branched out
+according to the operating modes found in the configuration file. Specifically,
+the first for-loop corresponds to the analysis modes, and the second for-loop
+goes over the transform modes. The former ends with <code class="language-plaintext highlighter-rouge">WriteTransformFn</code>, which
+saves the resulting transform, and the latter ends with <code class="language-plaintext highlighter-rouge">WriteToTFRecord</code>, which
+writes the resulting examples as TFRecords.</p>
+
+<p>The distinction between the contextual and sequential features is given by the
+<a href="https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/schema.py"><code class="language-plaintext highlighter-rouge">schema</code></a> object created based on the <code class="language-plaintext highlighter-rouge">schema</code> block in the
+configuration file. The call <code class="language-plaintext highlighter-rouge">schema.to_feature_spec()</code> shown above alternates
+between <a href="https://www.tensorflow.org/api_docs/python/tf/io/FixedLenFeature"><code class="language-plaintext highlighter-rouge">tf.io.FixedLenFeature</code></a> and <a href="https://www.tensorflow.org/api_docs/python/tf/io/VarLenFeature"><code class="language-plaintext highlighter-rouge">tf.io.VarLenFeature</code></a> and produces a
+feature specification that is understood by TensorFlow and TensorFlow Extended.</p>
+
+<p>The <a href="https://github.com/chain-rule/example-weather-forecast">repository</a> provides a wrapper for executing the
+pipeline on Cloud Dataflow. The following figure shows the flow of the data with
+respect to the four operating modes:</p>
+
+<p><img src="/assets/images/2019-11-08-sequential-data/dataflow.svg" alt="" /></p>
+
+<p>The outcome is a hierarchy of files on Cloud Storage:</p>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.
+└── data/
+    └── training/
+        └── 2019-11-01-12-00-00/
+            ├── analysis/
+            │   └── transform/
+            │       ├── transform_fn/...
+            │       └── transform_metadata/...
+            ├── testing/
+            │   └── examples/
+            │       ├── part-000000-of-00004
+            │       ├── ...
+            │       └── part-000003-of-00004
+            ├── training/
+            │   └── examples/
+            │       ├── part-000000-of-00006
+            │       ├── ...
+            │       └── part-000005-of-00006
+            └── validation/
+                └── examples/
+                    ├── part-000000-of-00004
+                    ├── ...
+                    └── part-000003-of-00004
+</code></pre></div></div>
+
+<p>Here, <code class="language-plaintext highlighter-rouge">data/training</code> contains all data needed for the training phase, which
+collectively refers to training entwined with validation and followed by
+testing. Moving forward, this hierarchy is meant to accommodate the application
+phase as well by populating a <code class="language-plaintext highlighter-rouge">data/application</code> entry next to the
+<code class="language-plaintext highlighter-rouge">data/training</code> one. It can also accommodate trained models and the results of
+applying these models by having a <code class="language-plaintext highlighter-rouge">model</code> entry with a structure similar to the
+one of the <code class="language-plaintext highlighter-rouge">data</code> entry.</p>
+
+<p>In the listing above, the files whose name starts with <code class="language-plaintext highlighter-rouge">part-</code> are the ones
+containing TFRecords. It can be seen that, for each mode, the corresponding
+examples have been split into multiple files, which is done for more efficient
+access during the usage stage discussed in the next section.</p>
+
+<h1 id="execution">Execution</h1>
+
+<p>At this point, the data have made it all the way to the execution phase,
+referring to training, validation, and testing; however, the data are yet to be
+injected into a TensorFlow graph, which is the topic of this section. As before,
+relevant parameters are kept in a <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/configs/training/execution.json">separate configuration file</a>:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"data"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="nl">"schema"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"latitude"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"float32"</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"longitude"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"float32"</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"duration"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"float32"</span><span class="p">]</span><span class="w"> </span><span class="p">},</span><span class="w">
+      </span><span class="p">{</span><span class="w"> </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"temperature"</span><span class="p">,</span><span class="w"> </span><span class="nl">"kind"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"float32"</span><span class="p">]</span><span class="w"> </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="nl">"modes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+      </span><span class="nl">"training"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"spec"</span><span class="p">:</span><span class="w"> </span><span class="s2">"transformed"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"shuffle_macro"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"interleave"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"cycle_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"shuffle_micro"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">512</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"map"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"batch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"batch_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"prefetch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"repeat"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"validation"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"spec"</span><span class="p">:</span><span class="w"> </span><span class="s2">"transformed"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"shuffle_macro"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"interleave"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"cycle_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"map"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"batch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"batch_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"prefetch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"repeat"</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span><span class="w">
+      </span><span class="p">},</span><span class="w">
+      </span><span class="nl">"testing"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nl">"spec"</span><span class="p">:</span><span class="w"> </span><span class="s2">"original"</span><span class="p">,</span><span class="w">
+        </span><span class="nl">"interleave"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"cycle_length"</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"map"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"num_parallel_calls"</span><span class="p">:</span><span class="w"> </span><span class="mi">-1</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"batch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"batch_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w"> </span><span class="p">},</span><span class="w">
+        </span><span class="nl">"prefetch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nl">"buffer_size"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">}</span><span class="w">
+      </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>It can be seen that the file contains only one block: <code class="language-plaintext highlighter-rouge">data</code>. This is sufficient
+for the purposes of this article; however, it is also meant to cover the
+construction of the model in mind, including its hyperparameters, and the
+execution process, including the optimizer and evaluation metrics.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">data</code> block is similar to the one we saw before. In this case, <code class="language-plaintext highlighter-rouge">modes</code>
+describes various calls to the <a href="https://www.tensorflow.org/guide/data"><code class="language-plaintext highlighter-rouge">tf.data</code></a> API related to shuffling, batching,
+and so on. Those who are familiar with the API will probably immediately
+recognize them. It is now instructive to go straight to the Python code.</p>
+
+<p>Below is an excerpt from a <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/data.py">Python class</a> responsible for building the
+pipeline on the TensorFlow side:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># config = ...
+</span>
+<span class="c1"># List all files matching a given pattern
+</span><span class="n">pattern</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'examples'</span><span class="p">,</span> <span class="s">'part-*'</span><span class="p">]</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Dataset</span><span class="p">.</span><span class="n">list_files</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">pattern</span><span class="p">))</span>
+<span class="c1"># Shuffle the files if needed
+</span><span class="k">if</span> <span class="s">'shuffle_macro'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'shuffle_macro'</span><span class="p">])</span>
+<span class="c1"># Convert the files into datasets of examples stored as TFRecords and
+# amalgamate these datasets into one dataset of examples
+</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span> \
+    <span class="p">.</span><span class="n">interleave</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">TFRecordDataset</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'interleave'</span><span class="p">])</span>
+<span class="c1"># Shuffle the examples if needed
+</span><span class="k">if</span> <span class="s">'shuffle_micro'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'shuffle_micro'</span><span class="p">])</span>
+<span class="c1"># Preprocess the examples with respect to a given spec, pad the examples
+# and form batches of different sizes, and postprocess the batches
+</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span> \
+    <span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">_preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'map'</span><span class="p">])</span> \
+    <span class="p">.</span><span class="n">padded_batch</span><span class="p">(</span><span class="n">padded_shapes</span><span class="o">=</span><span class="n">_shape</span><span class="p">(),</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'batch'</span><span class="p">])</span> \
+    <span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">_postprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'map'</span><span class="p">])</span>
+<span class="c1"># Prefetch the batches if needed
+</span><span class="k">if</span> <span class="s">'prefetch'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">prefetch</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'prefetch'</span><span class="p">])</span>
+<span class="c1"># Repeat the data once the source is exhausted if needed
+</span><span class="k">if</span> <span class="s">'repeat'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">repeat</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'repeat'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>The pipeline is self-explanatory. It is simply a chain of operations stacked on
+top of each other. It is, however, worth taking a closer look at the
+preprocessing and postprocessing mappings, which can be seen before and after
+the padding step, respectively:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="n">proto</span><span class="p">):</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">transforms</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]]</span> \
+        <span class="p">.</span><span class="n">transformed_feature_spec</span><span class="p">()</span>
+    <span class="n">example</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">parse_single_example</span><span class="p">(</span><span class="n">proto</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">contextual_names</span><span class="p">},</span>
+        <span class="p">{</span>
+            <span class="c1"># Convert the sequential columns from sparse to dense
+</span>            <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="n">to_dense</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequential_names</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_postprocess</span><span class="p">(</span><span class="n">contextual</span><span class="p">,</span> <span class="n">sequential</span><span class="p">):</span>
+    <span class="n">sequential</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="c1"># Convert the sequential columns from dense to sparse
+</span>        <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="n">to_sparse</span><span class="p">(</span><span class="n">sequential</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequential_names</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">contextual</span><span class="p">,</span> <span class="o">**</span><span class="n">sequential</span><span class="p">}</span>
+</code></pre></div></div>
+
+<p>Currently, <code class="language-plaintext highlighter-rouge">tf.data</code> does not support padding sparse tensors, which is the
+representation used for sequential features in TensorFlow. In the running
+example about forecasting weather, such features are <code class="language-plaintext highlighter-rouge">duration</code> and
+<code class="language-plaintext highlighter-rouge">temperature</code>. This is the reason such features are converted to their dense
+counterparts in <code class="language-plaintext highlighter-rouge">_preprocess</code>. However, the final representation has to be
+sparse still. Therefore, the sequential features are converted back to the
+sparse format in <code class="language-plaintext highlighter-rouge">_postprocess</code>. Hopefully, this back-and-forth conversion will
+be rendered obsolete in future versions.</p>
+
+<p>Having executed the above steps, we have an instance of <a href="https://www.tensorflow.org/api_docs/python/tf/data/Dataset"><code class="language-plaintext highlighter-rouge">tf.data.Dataset</code></a>,
+which is the ultimate goal, as it is the standard way of ingesting data into a
+TensorFlow graph. At this point, one might create a Keras model leveraging
+<a href="https://www.tensorflow.org/api_docs/python/tf/keras/layers/DenseFeatures"><code class="language-plaintext highlighter-rouge">tf.keras.layers.DenseFeatures</code></a> and <a href="https://www.tensorflow.org/api_docs/python/tf/keras/experimental/SequenceFeatures"><code class="language-plaintext highlighter-rouge">tf.keras.experimental.SequenceFeatures</code></a>
+for constructing the input layer and then pass the data set to the <code class="language-plaintext highlighter-rouge">fit</code>
+function of the model. A <a href="https://github.com/chain-rule/example-weather-forecast/blob/master/forecast/model.py">skeleton</a> for this part can be found in the
+repository.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, we have discussed a scalable approach to the ingestion of
+sequential observations from BigQuery into a TensorFlow graph. The key tools
+that have been used to this end are TensorFlow Extended in combination with
+Cloud Dataflow and the <code class="language-plaintext highlighter-rouge">tf.data</code> API of TensorFlow.</p>
+
+<p>In addition, the provided code has been written to be general and easily
+customizable. It has been achieved by separating the configuration part from the
+implementation one.</p>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li>Lak Lakshmanan, “<a href="https://www.oreilly.com/learning/repeatable-sampling-of-data-sets-in-bigquery-for-machine-learning">Repeatable sampling of data sets in BigQuery for machine
+learning</a>,” 2016.</li>
+</ul>
+
+
+  </div><div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2019/11/08/sequential-data.html';
+      this.page.identifier = 'https://blog.ivanukhov.com/2019/11/08/sequential-data.html';
+    };
+
+    (function() {
+      var d = document, s = d.createElement('script');
+
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2019/11/08/sequential-data.html" hidden></a>
+</article>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+
+    <h2 class="footer-heading">Good news, everyone!</h2>
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col footer-col-1">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+      </div>
+
+      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
+</div>
+
+      <div class="footer-col footer-col-3">
+        <p>On to data science</p>
+      </div>
+    </div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+      function anchor() {
+        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+        }
+      }
+      function theme() {
+        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+      }
+      window.addEventListener('load', anchor);
+      window.addEventListener('load', theme);
+    </script>
+  </body>
+</html>
