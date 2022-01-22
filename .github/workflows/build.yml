@@ -1,0 +1,26 @@
+name: build
+
+on: push
+
+jobs:
+  main:
+    name: Main
+    runs-on: macos-10.15
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v2
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 2.3.4
+          bundler-cache: true
+
+      - name: Build the site
+        run: make build
+
+      - name: Deploy the site
+        uses: JamesIves/github-pages-deploy-action@4.2.2
+        with:
+          branch: gh-pages
+          folder: _site

@@ -1,4 +1,4 @@
 # Blog [![Build][build-img]][build-url]
 
-[build-img]: https://travis-ci.org/IvanUkhov/blog.svg?branch=master
-[build-url]: https://travis-ci.org/IvanUkhov/blog
+[build-img]: https://github.com/IvanUkhov/blog/workflows/build/badge.svg
+[build-url]: https://github.com/IvanUkhov/blog/actions/workflows/build.yml
