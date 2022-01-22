@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Ingestion of sequential data from BigQuery into TensorFlow" />
 <script type="application/ld+json">
-{"datePublished":"2019-11-08T07:00:00+00:00","headline":"Ingestion of sequential data from BigQuery into TensorFlow","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html"},"url":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html","author":{"@type":"Person","name":"Ivan Ukhov"},"description":"How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse.","@type":"BlogPosting","dateModified":"2019-11-08T07:00:00+00:00","@context":"https://schema.org"}</script>
+{"url":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html","headline":"Ingestion of sequential data from BigQuery into TensorFlow","dateModified":"2019-11-08T07:00:00+00:00","datePublished":"2019-11-08T07:00:00+00:00","description":"How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse.","author":{"@type":"Person","name":"Ivan Ukhov"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html"},"@type":"BlogPosting","@context":"https://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <meta content="assets/favicon.png" property="og:image">
   <link rel="stylesheet" href="/assets/main.css">
@@ -173,9 +173,9 @@ in the list above are covered by the <a href="https://github.com/chain-rule/exam
     <span class="k">AND</span> <span class="n">element</span> <span class="o">=</span> <span class="s1">'TMAX'</span>
     <span class="c1">-- Take observations passed spatio-temporal quality-control checks</span>
     <span class="k">AND</span> <span class="n">qflag</span> <span class="k">IS</span> <span class="k">NULL</span>
-  <span class="n">WINDOW</span>
+  <span class="k">WINDOW</span>
     <span class="n">station_year</span> <span class="k">AS</span> <span class="p">(</span>
-      <span class="n">PARTITION</span> <span class="k">BY</span> <span class="n">id</span><span class="p">,</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="nb">YEAR</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span>
+      <span class="k">PARTITION</span> <span class="k">BY</span> <span class="n">id</span><span class="p">,</span> <span class="k">EXTRACT</span><span class="p">(</span><span class="nb">YEAR</span> <span class="k">FROM</span> <span class="nb">date</span><span class="p">)</span>
       <span class="k">ORDER</span> <span class="k">BY</span> <span class="nb">date</span>
     <span class="p">)</span>
 <span class="p">),</span>

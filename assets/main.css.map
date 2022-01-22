@@ -3,10 +3,10 @@
 	"file": "main.css",
 	"sources": [
 		"main.scss",
-		"../../../.rvm/gems/ruby-2.6.3/gems/minima-2.5.1/_sass/minima.scss",
-		"../../../.rvm/gems/ruby-2.6.3/gems/minima-2.5.1/_sass/minima/_base.scss",
-		"../../../.rvm/gems/ruby-2.6.3/gems/minima-2.5.1/_sass/minima/_layout.scss",
-		"../../../.rvm/gems/ruby-2.6.3/gems/minima-2.5.1/_sass/minima/_syntax-highlighting.scss"
+		"vendor/bundle/ruby/2.6.0/gems/minima-2.5.1/_sass/minima.scss",
+		"vendor/bundle/ruby/2.6.0/gems/minima-2.5.1/_sass/minima/_base.scss",
+		"vendor/bundle/ruby/2.6.0/gems/minima-2.5.1/_sass/minima/_layout.scss",
+		"vendor/bundle/ruby/2.6.0/gems/minima-2.5.1/_sass/minima/_syntax-highlighting.scss"
 	],
 	"sourcesContent": [
 		"@import 'minima';\n\n@import url('https://use.typekit.net/lrc5xlz.css');\n\n$colors: #00b3e7, #0cc7d3, #00cfb6, #ff6442, #8781d3, /* #fcf05f, */ #687f91;\n\nbody {\n  font-family: roboto, sans-serif;\n  font-weight: 400;\n  font-style: normal;\n}\n\nh1, h2 {\n  &[id] > a {\n    display: none;\n  }\n  &[id]:hover > a {\n    display: inline;\n  }\n}\n\nblockquote {\n  margin: 1em 0;\n  font-size: 1em;\n  font-style: normal;\n  letter-spacing: inherit;\n}\n\n.site-title {\n  letter-spacing: unset;\n}\n\n.site-header {\n  border: none;\n}\n\n.highlight code, p code.highlighter-rouge {\n  font-family: input-mono-narrow, monospace;\n  font-weight: 400;\n  font-style: normal;\n}\n\n.highlighter-rouge .highlight, code, pre {\n  background: #fafafa;\n}\n\n.highlighter-rouge .highlight .err {\n  color: inherit;\n  background: inherit;\n}\n\n.home p:nth-child(1) {\n  text-indent: -0.3em;\n}\n\n.post p, .post-list p {\n  text-align: justify;\n  -webkit-hyphens: auto;\n  -ms-hyphens: auto;\n  hyphens: auto;\n}\n\n.post-list h3 {\n  margin: 0.5em 0;\n  line-height: 1.5em;\n}\n\n.post-title {\n  font-size: 2.5em;\n  letter-spacing: normal;\n  line-height: 1.1em;\n}\n\n.post-content h1 {\n  font-size: 2em;\n}\n\n.post-content h2 {\n  font-size: 1.5em;\n}\n\n.post-content img {\n  padding: 1em 0 1em 0;\n}\n\na, a:visited {\n  color: inherit;\n}\n\n@for $i from 1 through length($colors) {\n  .theme-#{$i} {\n    ::selection {\n      background-color: lighten(nth($colors, $i), 30%);\n    }\n\n    ::-moz-selection {\n      background-color: lighten(nth($colors, $i), 30%);\n    }\n\n    .page-content {\n      a, a:visited {\n        color: nth($colors, $i);\n      }\n    }\n\n    .site-header {\n      background-color: lighten(nth($colors, $i), 30%);\n    }\n  }\n}\n",
