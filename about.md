@@ -15,7 +15,8 @@ Linköping University in 2017. My [research] was mainly focused on uncertainty
 quantification in the context of electronic systems, which one can read more
 about in my doctoral [dissertation][thesis]. Since early 2018, I have been
 working as a data scientist and a machine learning engineer at tech companies
-based in Stockholm. For more information, please refer to my [résumé][resume].
+based in Stockholm. For more information about my education and career, please
+refer to my [résumé][resume].
 
 Please feel free to reach out. Thank you!
 
