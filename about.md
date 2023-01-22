@@ -24,4 +24,4 @@ Sincerely yours,<br/>Ivan
 
 [research]: https://research.ivanukhov.com/
 [resume]: https://github.com/IvanUkhov/resume/blob/gh-pages/resume.pdf
-[thesis]: https://github.com/IvanUkhov/thesis/blob/gh-pages/thesis.pdf
+[thesis]: https://github.com/quantum-philosophy/thesis
