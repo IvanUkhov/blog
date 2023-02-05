@@ -8,8 +8,8 @@ github_username: IvanUkhov
 linkedin_username: IvanUkhov
 twitter_username: IvanUkhov
 
-google_analytics: UA-47932672-9
-disqus: {shortname: good-news-everyone}
+disqus:
+  shortname: good-news-everyone
 
 exclude:
   - '*.Rmd'
