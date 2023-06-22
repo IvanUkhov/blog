@@ -3,12 +3,12 @@
 
 @import 'minima';
 
-@import url('https://use.typekit.net/lrc5xlz.css');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 $colors: #00b3e7, #0cc7d3, #00cfb6, #ff6442, #8781d3, /* #fcf05f, */ #687f91;
 
 body {
-  font-family: roboto, sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-weight: 400;
   font-style: normal;
 }
@@ -38,7 +38,7 @@ blockquote {
 }
 
 .highlight code, p code.highlighter-rouge {
-  font-family: input-mono-narrow, monospace;
+  font-family: 'Roboto Mono', monospace;
   font-weight: 400;
   font-style: normal;
 }
