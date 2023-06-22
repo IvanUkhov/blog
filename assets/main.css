@@ -1,5 +1,5 @@
 /** Reset some basic elements */
-@import url("https://use.typekit.net/lrc5xlz.css");
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 body, h1, h2, h3, h4, h5, h6, p, blockquote, pre, hr, dl, dd, ol, ul, figure { margin: 0; padding: 0; }
 
 /** Basic styling */
@@ -275,7 +275,7 @@ table td { border: 1px solid #e8e8e8; }
 
 .highlight .il { color: #099; }
 
-body { font-family: roboto, sans-serif; font-weight: 400; font-style: normal; }
+body { font-family: 'Roboto', sans-serif; font-weight: 400; font-style: normal; }
 
 h1[id] > a, h2[id] > a { display: none; }
 
@@ -287,7 +287,7 @@ blockquote { margin: 1em 0; font-size: 1em; font-style: normal; letter-spacing: 
 
 .site-header { border: none; }
 
-.highlight code, p code.highlighter-rouge { font-family: input-mono-narrow, monospace; font-weight: 400; font-style: normal; }
+.highlight code, p code.highlighter-rouge { font-family: 'Roboto Mono', monospace; font-weight: 400; font-style: normal; }
 
 .highlighter-rouge .highlight, code, pre { background: #fafafa; }
 
