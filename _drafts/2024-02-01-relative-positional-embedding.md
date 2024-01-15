@@ -16,6 +16,25 @@ present an efficient way of calculation this embedding in decoder blocks, in
 which the self-attention is causal. In this article, the approach is generalized
 to any attention mechanism, should it be self or cross or full or causal.
 
+The classical attention is formalized as follows:
+
+$$
+A = \text{softmax}\left( \frac{QK^{T}}{\sqrt{d_h}} \right) V
+$$
+
+where $$K$$, $$V$$, and $$Q$$ are the keys, values, and queries, respectively,
+and $$d_h$$ is the dimensionality of attention heads. The relative attention, on
+the other hand, obtains one additional term in the numerator:
+
+$$
+A = \text{softmax}\left( \frac{QK^{T} + S_\text{rel}}{\sqrt{d_h}} \right) V.
+$$
+
+The illustration below, taken from Huang et al. (2018), compares the two
+techniques:
+
+![](/assets/images/2024-02-01-relative-position/huang.jpeg)
+
 # References
 
 * Huang et al., “[Music transformer: Generating music with long-term
