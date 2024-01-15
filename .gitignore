@@ -3,6 +3,8 @@
 .jekyll-cache
 .rstudio
 .sass-cache
+/.bundle
+/vendor
 Gemfile.lock
 _caches
 _site
