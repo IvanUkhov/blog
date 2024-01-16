@@ -36,7 +36,7 @@ _output_ sequence.
 The relative attention obtains one additional term in the numerator:
 
 $$
-A = \text{softmax}\left( \frac{QK^T + S}{\sqrt{d_h}} \right) V.
+A = \text{softmax}\left( \frac{QK^T + S}{\sqrt{d_h}} \right) V. \tag{1}
 $$
 
 In the above, $$S$$ is of shape $$n_s \times n_h \times n_{t_2} \times n_{t_1}$$
@@ -87,7 +87,8 @@ $$0$$ through $$n_{t_3} - 1$$ inclusively, while the last (position $$n_{t_3} -
 
 Similarly to Huang et al. (2018), we note that multiplying $$Q$$ by $$E$$
 results in a matrix that contains all the inner products necessary for
-assembling $$S$$ in the general case. For $$t_3 = 4$$, it is as follows:
+assembling $$S$$ in the general case. For $$t_3 = 4$$ and dropping the batch and
+head dimensions for clearer visualization, the product is as follows:
 
 $$
 QE = \left(
@@ -123,7 +124,7 @@ s_{0 + 3} & s_{1 + 2} & s_{2 + 1} & s_{3 + 0} \\
 \right)
 $$
 
-and transpose the result
+and then transpose the result
 
 $$
 S = \left(
@@ -135,6 +136,26 @@ s_{3 - 3} & s_{3 - 2} & s_{3 - 1} & s_{3 + 0} \\
 \end{matrix}
 \right).
 $$
+
+More generally, the algorithm can be summarized as follows:
+
+$$
+S = \text{transpose}\left(
+  \text{stack-diagonals}\left(
+    QE, \, 0, \, n_{t_3} - 1
+  \right)
+\right)
+$$
+
+where $$\text{stack-diagonals}$$ is a function taking a tensor and stacking its
+diagonals specified by a range with two offsets relative to the main diagonal
+from bottom up, and $$\text{transpose}$$ is a function taking a tensor and
+permuting its last two dimensions.
+
+The matrix can then be plugged into Equation (1) to complete the calculation. In
+case the queries are shorter than the keys and values, which is what happens in
+the prediction mode, $$S$$ will have the right amount for rows but the last
+columns will be excessive and hence have to be discarded.
 
 # References
 
