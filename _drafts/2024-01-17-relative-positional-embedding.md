@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Relative positional embedding for any attention mechanism
-date: 2024-02-01T08:00:00+01:00
+date: 2024-01-17T08:00:00+01:00
 math: true
 keywords:
   - large language models
@@ -53,7 +53,7 @@ The original and more memory efficient calculations of $$S$$ in the case of
 causal attention, are compared in the illustration below, which is taken from
 Huang et al. (2018).
 
-![](/assets/images/2024-02-01-relative-position/huang.jpeg)
+![](/assets/images/2024-01-17-relative-position/huang.jpeg)
 
 The matrix to the very right shows how $$S$$ is arranged. Since it is for causal
 attention, the upper triangle above the main diagonal (gray circles) is
