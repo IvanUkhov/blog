@@ -1,6 +1,207 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-16T21:30:51+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-16T21:32:09+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
-</subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Breaking sticks, or estimation of probability distributions using the Dirichlet process</title><link href="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html" rel="alternate" type="text/html" title="Breaking sticks, or estimation of probability distributions using the Dirichlet process" /><published>2021-01-25T06:00:00+00:00</published><updated>2021-01-25T06:00:00+00:00</updated><id>https://blog.ivanukhov.com/2021/01/25/dirichlet-process</id><content type="html" xml:base="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html"><![CDATA[<p>Recall the last time you wanted to understand the distribution of given data.
+</subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Relative positional embedding for any attention mechanism</title><link href="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html" rel="alternate" type="text/html" title="Relative positional embedding for any attention mechanism" /><published>2024-01-17T07:00:00+00:00</published><updated>2024-01-17T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"><![CDATA[<p>In <a href="https://arxiv.org/abs/1803.02155">Shaw et al. (2018)</a>, the authors introduce relative positional embedding for
+self-attention in transformer models, and in <a href="https://arxiv.org/abs/1809.04281">Huang et al. (2018)</a>, the authors
+present a memory efficient approach to calculating this embedding in decoder
+blocks, in which the self-attention is causal. In this article, the approach is
+generalized to any attention mechanism, should it be self or cross or full or
+causal.</p>
+
+<h1 id="background">Background</h1>
+
+<p>The classical attention is formalized as follows:</p>
+
+\[A = \text{softmax}\left( \frac{QK^{T}}{\sqrt{n_d}} \right) V\]
+
+<p>where \(K\), \(V\), and \(Q\) are the keys, values, and queries, respectively.
+The keys and values are of shape \(n_s \times n_h \times n_{t_1} \times n_d\)
+where \(n_s\) is the batch size (<em>s</em> for space), \(n_h\) is the number of
+attention heads, \(n_{t_1}\) is the window size (<em>t</em> for time) of the <em>input</em>
+sequence, and \(n_d\) is the head size. The queries are of shape \(n_s \times
+n_h \times n_{t_2} \times n_d\) where \(n_{t_2}\) is the window size of the
+<em>output</em> sequence.</p>
+
+<p>The relative attention obtains one additional term in the numerator:</p>
+
+\[A = \text{softmax}\left( \frac{QK^T + S}{\sqrt{n_d}} \right) V. \tag{1}\]
+
+<p>In the above, \(S\) is of shape \(n_s \times n_h \times n_{t_2} \times n_{t_1}\)
+and calculated based on \(Q\) and a matrix \(E\) of shape \(n_d \times n_{t_3}\)
+containing relative positional embeddings. The typical context is causal
+self-attention, in which \(n_{t_3}\) is thought of as the maximum allowed
+relative distance between the keys and queries and set to \(n_{t_1}\), with the
+interpretation that the embeddings are running from position \(-n_{t_1} + 1\)
+(the farthest past) up to \(0\) (the present moment). Then \(S\) is a specific
+arrangement of the inner products between the queries in \(Q\) and the
+embeddings in \(E\) so as to respect the arrangement in \(QK^T\).</p>
+
+<p>The original and more memory efficient calculations of \(S\) in the case of
+causal attention, are compared in the illustration below, which is taken from
+Huang et al. (2018).</p>
+
+<p><img src="/assets/images/2024-01-17-relative-position/huang.jpeg" alt="" /></p>
+
+<p>The matrix to the very right shows how \(S\) is arranged. Since it is for causal
+attention, the upper triangle above the main diagonal (gray circles) is
+irrelevant and can contain arbitrary values, which it does in the algorithm
+proposed in Huang et al. (2018). The main diagonal (green circles) contains the
+inner products of the queries and the embedding corresponding to position \(0\).
+The first subdiagonal (pink circles) contains the inner products of the queries
+except for the first one as it has no past, and the embedding corresponding to
+position \(-1\). And it continues in this way down to \(-n_{t_1} + 1\), in which
+case it is only the last query that is involved, since it comes last in the
+sequence and has the longest past.</p>
+
+<p>The memory efficient calculation given in Huang et al. (2018) is limited to
+self-attention with causal connectivity, which is what is found in decoder
+blocks. It is not suitable for other attention patterns. Therefore, it cannot be
+used in, for instance, encoder blocks and decoder blocks with cross-attention,
+which usually have non-causal attention. In what follow, the limitation is
+lifted.</p>
+
+<h1 id="algorithm">Algorithm</h1>
+
+<p>Let us extend \(E\) to be of shape \(n_d \times (2 n_{t_3} - 1)\) so that it has
+an embedding for any relative position not only in the past but also in the
+future, with \(n_{t_3}\) being the maximum relative distance as before. Let us
+also interpret \(E\)’s columns as running from position \(n_{t_3} - 1\)
+(farthest into the future) to position \(-n_{t_3} + 1\) (farthest into the
+past). For instance, when the output sequence is of length \(t_3\) (the longest
+possible), the first query (position 0) will be “interested” only in columns
+\(0\) through \(n_{t_3} - 1\) inclusively, while the last (position \(n_{t_3} -
+1\)) only in columns \(n_{t_3} - 1\) through \(2 n_{t_3} - 2\) inclusively.</p>
+
+<p>Similarly to Huang et al. (2018), we note that multiplying \(Q\) by \(E\)
+results in a matrix that contains all the inner products necessary for
+assembling \(S\) in the general case. For \(t_3 = 4\) and dropping the batch and
+head dimensions for clearer visualization, the product is as follows:</p>
+
+\[QE = \left(
+\begin{matrix}
+s_{0 + 3} &amp; s_{0 + 2} &amp; s_{0 + 1} &amp; s_{0 + 0} &amp; &amp; &amp; \\
+&amp; s_{1 + 2} &amp; s_{1 + 1} &amp; s_{1 + 0} &amp; s_{1 - 1} &amp; &amp; \\
+&amp; &amp; s_{2 + 1} &amp; s_{2 + 0} &amp; s_{2 - 1} &amp; s_{2 - 2} &amp; \\
+&amp; &amp; &amp; s_{3 + 0} &amp; s_{3 - 1} &amp; s_{3 - 2} &amp; s_{3 - 3} \\
+\end{matrix}
+\right)\]
+
+<p>where \(s_{i + t}\) denotes query \(i\) embedded to look at relative time \(t\),
+that is, the inner product between the query at position \(i\) and the embedding
+corresponding to a relative attention shift of \(t\), whose embedding is stored
+in column \(n_{t_3} - 1 - t\) of \(E\). For instance, for \(s_{2 - 1}\) with
+\(t_3 = 4\) still, the inner product is between row \(2\) of \(Q\) and column
+\(4 - 1 - (-1) = 4\) of \(E\).</p>
+
+<p>The target arrangement is then simply the one where we stack the
+“interesting” diagonals of \(QE\) on top of each other from diagonal \(0\) (the
+main diagonal) at the bottom and diagonal \(t_3 - 1\) (the rightmost relevant
+superdiagonal) at the top</p>
+
+\[\bar{S} = \left(
+\begin{matrix}
+s_{0 + 0} &amp; s_{1 - 1} &amp; s_{2 - 2} &amp; s_{3 - 3} \\
+s_{0 + 1} &amp; s_{1 + 0} &amp; s_{2 - 1} &amp; s_{3 - 2} \\
+s_{0 + 2} &amp; s_{1 + 1} &amp; s_{2 + 0} &amp; s_{3 - 1} \\
+s_{0 + 3} &amp; s_{1 + 2} &amp; s_{2 + 1} &amp; s_{3 + 0} \\
+\end{matrix}
+\right)\]
+
+<p>and then transpose the result</p>
+
+\[S = \left(
+\begin{matrix}
+s_{0 + 0} &amp; s_{0 + 1} &amp; s_{0 + 2} &amp; s_{0 + 3} \\
+s_{1 - 1} &amp; s_{1 + 0} &amp; s_{1 + 1} &amp; s_{1 + 2} \\
+s_{2 - 2} &amp; s_{2 - 1} &amp; s_{2 + 0} &amp; s_{2 + 1} \\
+s_{3 - 3} &amp; s_{3 - 2} &amp; s_{3 - 1} &amp; s_{3 + 0} \\
+\end{matrix}
+\right).\]
+
+<p>More generally, the algorithm can be summarized as follows:</p>
+
+\[S = \text{transpose}\left(
+  \text{diagonal}\left(
+    QE, \, \text{lower}=0, \, \text{upper}=n_{t_3} - 1
+  \right)
+\right)\]
+
+<p>where \(\text{diagonal}\) is a function taking a tensor and stacking its
+diagonals—specified by a range with two offsets relative to the main
+diagonal—from bottom up, and \(\text{transpose}\) is a function taking a tensor
+and transposing it. Both functions operators on the last two dimensions of the
+given tensor. This resulting matrix can then be plugged into Equation (1) to
+complete the calculation.</p>
+
+<p>In case the keys and values are shorter than the maximum allowed relative
+position, that is, \(t_1 &lt; t_3\), \(S\) should be truncated to shape
+\(n_s \times n_h \times n_{t_2} \times n_{t_1}\):</p>
+
+\[S = \text{truncate}\left(
+  \text{transpose}\left(
+    \text{diagonal}\left(
+      QE, \, \text{lower}=0, \, \text{upper}=n_{t_3} - 1
+    \right)
+  \right),
+  \text{keep} = n_{t_1}
+\right)\]
+
+<p>where \(\text{truncate}\) is a function taking a tensor and keeping only the
+specified number of first elements in the last dimension, discarding the rest.</p>
+
+<h1 id="implementation">Implementation</h1>
+
+<p>In TensorFlow, the algorithm can be implemented as an embedding layer as
+follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositionEmbedding</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">position_size</span> <span class="o">=</span> <span class="n">position_size</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">projection</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">add_weight</span><span class="p">(</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">head_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">position_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="s">"glorot_uniform"</span><span class="p">,</span>
+            <span class="n">trainable</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">projection</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">position_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">x</span>
+</code></pre></div></div>
+
+<p>The above layer can be invoked as part of an attention layer as illustrated
+below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Attention</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">position_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span> <span class="o">=</span> <span class="n">head_size</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span> <span class="o">=</span> <span class="n">PositionEmbedding</span><span class="p">(</span>
+            <span class="n">head_size</span><span class="o">=</span><span class="n">head_size</span><span class="p">,</span>
+            <span class="n">position_size</span><span class="o">=</span><span class="n">position_size</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">V</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">+</span> <span class="n">S</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:</span> <span class="n">K</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span><span class="o">**-</span><span class="mf">0.5</span>
+        <span class="c1"># TODO: Add masking.
+</span>        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># TODO: Add dropout.
+</span>        <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+        <span class="c1"># TODO: Add dropout.
+</span>        <span class="k">return</span> <span class="n">A</span>
+</code></pre></div></div>
+
+<h1 id="references">References</h1>
+
+<ul>
+  <li>Huang et al., “<a href="https://arxiv.org/abs/1809.04281">Music transformer: Generating music with long-term
+structure</a>,” Google Brain, 2018.</li>
+  <li>Shaw et al., “<a href="https://arxiv.org/abs/1803.02155">Self-attention with relative position representations</a>,” Google Brain, 2018.</li>
+</ul>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[In Shaw et al. (2018), the authors introduce relative positional embedding for self-attention in transformer models, and in Huang et al. (2018), the authors present a memory efficient approach to calculating this embedding in decoder blocks, in which the self-attention is causal. In this article, the approach is generalized to any attention mechanism, should it be self or cross or full or causal.]]></summary></entry><entry><title type="html">Breaking sticks, or estimation of probability distributions using the Dirichlet process</title><link href="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html" rel="alternate" type="text/html" title="Breaking sticks, or estimation of probability distributions using the Dirichlet process" /><published>2021-01-25T06:00:00+00:00</published><updated>2021-01-25T06:00:00+00:00</updated><id>https://blog.ivanukhov.com/2021/01/25/dirichlet-process</id><content type="html" xml:base="https://blog.ivanukhov.com/2021/01/25/dirichlet-process.html"><![CDATA[<p>Recall the last time you wanted to understand the distribution of given data.
 One alternative was to plot a histogram. However, it resulted in frustration due
 to the choice of the number of bins to use, which led to drastically different
 outcomes. Another alternative was kernel density estimation. Despite having a
@@ -3068,628 +3269,4 @@ testing</a>,” 2014.</li>
   <li>David Robinson, “<a href="http://varianceexplained.org/r/bayesian-ab-testing/">Is Bayesian A/B testing immune to peeking? Not
 exactly</a>,” 2015.</li>
   <li>Evan Miller, “<a href="http://www.evanmiller.org/bayesian-ab-testing.html">Formulas for Bayesian A/B testing</a>,” 2014.</li>
-</ul>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[It can be not only extremely useful but also deeply satisfying to occasionally dust off one’s math skills. In this article, we approach the classical problem of conversion rate optimization—which is frequently faced by companies operating online—and derive the expected utility of switching from variant A to variant B under some modeling assumptions. This information can subsequently be utilized in order to support the corresponding decision-making process.]]></summary></entry><entry><title type="html">A poor man’s orchestration of predictive models, or do it yourself</title><link href="https://blog.ivanukhov.com/2019/07/01/orchestration.html" rel="alternate" type="text/html" title="A poor man’s orchestration of predictive models, or do it yourself" /><published>2019-07-01T06:00:00+00:00</published><updated>2019-07-01T06:00:00+00:00</updated><id>https://blog.ivanukhov.com/2019/07/01/orchestration</id><content type="html" xml:base="https://blog.ivanukhov.com/2019/07/01/orchestration.html"><![CDATA[<p>As a data scientist focusing on developing data products, you naturally want
-your work to reach its target audience. Suppose, however, that your company does
-not have a dedicated engineering team for productizing data-science code. One
-solution is to seek help in other teams, which are surely busy with their own
-endeavors, and spend months waiting. Alternatively, you could take the
-initiative and do it yourself. In this article, we take the initiative and
-schedule the training and application phases of a predictive model using Apache
-<a href="https://airflow.apache.org/">Airflow</a>, Google <a href="https://cloud.google.com/compute/">Compute Engine</a>, and <a href="https://www.docker.com/">Docker</a>.</p>
-
-<p>Let us first set expectations for what is assumed to be given and what will be
-attained by the end of this article. It is assumed that a predictive model for
-supporting business decisions—such as a model for identifying potential churners
-or a model for estimating the lifetime value of customers—has already been
-developed. This means that a business problem has already been identified and
-translated into a concrete question, the data needed for answering the question
-have already been collected and transformed into a target variable and a set of
-explanatory variables, and a modeling technique has already been selected and
-calibrated in order to answer the question by predicting the target variable
-given the explanatory variables. For the sake of concreteness, the model is
-assumed to be written in Python. We also assume that the company at hand has
-chosen Google Cloud Platform as its primary platform, which makes a certain
-suite of tools readily available.</p>
-
-<p>Our goal is then to schedule the model to run in the cloud via Airflow, Compute
-Engine, and Docker so that it is periodically retrained (in order to take into
-account potential fluctuations in the data distribution) and periodically
-applied (in order to actually make predictions), delivering predictions to the
-data warehouse in the form of <a href="https://cloud.google.com/bigquery/">BigQuery</a> for further consumption by other
-parties.</p>
-
-<p>It is important to note that this article is not a tutorial on any of the
-aforementioned technologies. The reader is assumed to be familiar with Google
-Cloud Platform and to have an understanding of Airflow and Docker, as well as to
-be comfortable with finding out missing details on their own.</p>
-
-<p>Lastly, the following two repositories contain the code discussed below:</p>
-
-<ul>
-  <li><a href="https://github.com/chain-rule/example-prediction">example-prediction</a> and</li>
-  <li><a href="https://github.com/chain-rule/example-prediction-service">example-prediction-service</a>.</li>
-</ul>
-
-<h1 id="preparing-the-model">Preparing the model</h1>
-
-<p>The suggested structure of the repository hosting the model is as follows:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.
-├── configs/
-│   ├── application.json
-│   └── training.json
-├── prediction/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── model.py
-│   └── task.py
-├── README.md
-└── requirements.txt
-</code></pre></div></div>
-
-<p>Here <a href="https://github.com/chain-rule/example-prediction/tree/master/prediction"><code class="language-plaintext highlighter-rouge">prediction/</code></a> is a Python package, and it is likely to contain many more
-files than the ones listed. The <a href="https://github.com/chain-rule/example-prediction/blob/master/prediction/main.py"><code class="language-plaintext highlighter-rouge">main</code></a> file is the entry point for
-command-line invocation, the <a href="https://github.com/chain-rule/example-prediction/blob/master/prediction/task.py"><code class="language-plaintext highlighter-rouge">task</code></a> module defines the actions that the
-package is capable of performing, and the <a href="https://github.com/chain-rule/example-prediction/blob/master/prediction/model.py"><code class="language-plaintext highlighter-rouge">model</code></a> module defines the model.</p>
-
-<p>As alluded to above, the primary job of the <code class="language-plaintext highlighter-rouge">main</code> file is to parse command-line
-arguments, read a configuration file, potentially set up logging and alike, and
-delegate the rest to the <code class="language-plaintext highlighter-rouge">task</code> module. At a later stage, an invocation of an
-action might look as follows:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>python <span class="nt">-m</span> prediction.main <span class="nt">--action</span> training <span class="nt">--config</span> configs/training.json
-</code></pre></div></div>
-
-<p>Here we are passing two arguments: <code class="language-plaintext highlighter-rouge">--action</code> and <code class="language-plaintext highlighter-rouge">--config</code>. The former is to
-specify the desired action, and the latter is to supply additional configuration
-parameters, such as the location of the training data and the values of the
-model’s hyperparameters. Keeping all parameters in a separate file, as opposed
-to hard-coding them, makes the code reusable, and passing them all at once as a
-single file scales much better than passing each parameter as a separate
-argument.</p>
-
-<p>The <code class="language-plaintext highlighter-rouge">task</code> module is conceptually as follows (see the repository for the exact
-implementation):</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
-
-    <span class="k">def</span> <span class="nf">training</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Read the training data
-</span>        <span class="c1"># Train the model
-</span>        <span class="c1"># Save the trained model
-</span>
-    <span class="k">def</span> <span class="nf">application</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Read the application data
-</span>        <span class="c1"># Load the trained model
-</span>        <span class="c1"># Make predictions
-</span>        <span class="c1"># Save the predictions
-</span></code></pre></div></div>
-
-<p>In this example, there are two tasks: training and application. The training
-task is responsible for fetching the training data, training the model, and
-saving the result in a predefined location for future usage by the application
-task. The application task is responsible for fetching the application data
-(that is, the data the model is supposed to be applied to), loading the trained
-model produced by the training task, making predictions, and saving them in a
-predefined location to be picked up for the subsequent delivery to the data
-warehouse.</p>
-
-<p>Likewise, the <code class="language-plaintext highlighter-rouge">model</code> module can be simplified as follows:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
-
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="c1"># Estimate the model’s parameters
-</span>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="c1"># Make predictions using the estimated parameters
-</span></code></pre></div></div>
-
-<p>It can be seen that the structure presented above makes very few assumptions
-about the model, which makes it generally applicable. It can also be easily
-extended to accommodate other actions. For instance, one could have a separate
-action for testing the model on unseen data.</p>
-
-<p>Having structured the model as shown above, it can now be productized, which we
-discuss next.</p>
-
-<h1 id="wrapping-the-model-into-a-service">Wrapping the model into a service</h1>
-
-<p>Now it is time to turn the model into a service. In the scope of this article, a
-service is a self-sufficient piece of code that can be executed in the cloud
-upon request. To this end, another repository is created, adhering to the
-separation-of-concerns design principle. Specifically, by doing so, we avoid
-mixing the modeling code with the code specific to a particular environment
-where the model happens to be deployed. The suggested structure of the
-repository is as follows:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>.
-├── container/
-│   ├── Dockerfile
-│   ├── run.sh
-│   └── wait.sh
-├── service/
-│   ├── configs/
-│   │   ├── application.json
-│   │   └── training.json
-│   ├── source/                # the first repository as a submodule
-│   └── requirements.txt
-├── scheduler/
-│   ├── configs/
-│   │   ├── application.json
-│   │   └── training.json
-│   ├── application.py         # a symbolic link to graph.py
-│   ├── graph.py
-│   └── training.py            # a symbolic link to graph.py
-├── Makefile
-└── README.md
-</code></pre></div></div>
-
-<p>The <a href="https://github.com/chain-rule/example-prediction-service/tree/master/container"><code class="language-plaintext highlighter-rouge">container/</code></a> folder contains files for building a Docker image for the
-service. The <a href="https://github.com/chain-rule/example-prediction-service/tree/master/service"><code class="language-plaintext highlighter-rouge">service/</code></a> folder is the service itself, meaning that these files
-will be present in the container and eventually executed. Lastly, the
-<a href="https://github.com/chain-rule/example-prediction-service/tree/master/scheduler"><code class="language-plaintext highlighter-rouge">scheduler/</code></a> folder contains files for scheduling the service using Airflow.
-The last one will be covered in the next section; here we focus on the first
-two.</p>
-
-<p>Let us start with <code class="language-plaintext highlighter-rouge">service/</code>. The first repository (the one discussed in the
-previous section) is added to this second repository as a Git submodule living
-in <code class="language-plaintext highlighter-rouge">service/source/</code>. This means that the model will essentially be embedded in
-the service but will conveniently remain an independent entity. At all times,
-the service contains a reference to a particular state (a particular commit,
-potentially on a dedicated release branch) of the model, guaranteeing that the
-desired version of the model is in production. However, when invoking the model
-from the service, we might want to use a different set of configuration files
-than the ones present in the first repository. To this end, a service-specific
-version of the configuration files is created in <code class="language-plaintext highlighter-rouge">service/configs/</code>. We might
-also want to install additional Python dependencies; hence, there is a separate
-file with requirements.</p>
-
-<p>Now it is time to containerize the service code by building a Docker image. The
-relevant files are gathered in <code class="language-plaintext highlighter-rouge">container/</code>. The image is defined in
-<a href="https://github.com/chain-rule/example-prediction-service/tree/master/container/Dockerfile"><code class="language-plaintext highlighter-rouge">container/Dockerfile</code></a> and is as follows:</p>
-
-<div class="language-docker highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Use a minimal Python image</span>
-<span class="k">FROM</span><span class="s"> python:3.7-slim</span>
-
-<span class="c"># Install Google Cloud SDK as described in</span>
-<span class="c"># https://cloud.google.com/sdk/docs/quickstart-debian-ubuntu</span>
-
-<span class="c"># Copy the service directory to the image</span>
-<span class="k">COPY</span><span class="s"> service /service</span>
-<span class="c"># Copy the run script to the image</span>
-<span class="k">COPY</span><span class="s"> container/run.sh /run.sh</span>
-
-<span class="c"># Install Python dependencies specific to the predictive model</span>
-<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> <span class="nt">--requirement</span> /service/source/requirements.txt
-<span class="c"># Install Python dependencies specific to the service</span>
-<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> <span class="nt">--requirement</span> /service/requirements.txt
-
-<span class="c"># Set the working directory to be the service directory</span>
-<span class="k">WORKDIR</span><span class="s"> /service</span>
-
-<span class="c"># Set the entry point to be the run script</span>
-<span class="k">ENTRYPOINT</span><span class="s"> /run.sh</span>
-</code></pre></div></div>
-
-<p>As mentioned earlier, <code class="language-plaintext highlighter-rouge">service/</code> gets copied as is (including <code class="language-plaintext highlighter-rouge">service/source</code>
-with the model), and it will be the working directory inside the container. We
-also copy <a href="https://github.com/chain-rule/example-prediction-service/tree/master/container/run.sh"><code class="language-plaintext highlighter-rouge">container/run.sh</code></a>, which becomes the entry point of the container;
-this script is executed whenever a container is launched. Let us take a look at
-the content of the script (as before, some parts omitted for clarity):</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
-
-<span class="k">function </span>process_training<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Invoke training</span>
-  python <span class="nt">-m</span> prediction.main <span class="se">\</span>
-    <span class="nt">--action</span> <span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span> <span class="se">\</span>
-    <span class="nt">--config</span> configs/<span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span>.json
-  <span class="c"># Set the output location in Cloud Storage</span>
-  <span class="nb">local </span><span class="nv">output</span><span class="o">=</span>gs://<span class="k">${</span><span class="nv">NAME</span><span class="k">}</span>/<span class="k">${</span><span class="nv">VERSION</span><span class="k">}</span>/<span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span>/<span class="k">${</span><span class="nv">timestamp</span><span class="k">}</span>
-  <span class="c"># Copy the trained model from the output directory to Cloud Storage</span>
-  save output <span class="k">${</span><span class="nv">output</span><span class="k">}</span>
-<span class="o">}</span>
-
-<span class="k">function </span>process_application<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Find the latest trained model in Cloud Storage</span>
-  <span class="c"># Copy the trained model from Cloud Storage to the output directory</span>
-  load <span class="k">${</span><span class="nv">input</span><span class="k">}</span> output
-  <span class="c"># Invoke application</span>
-  python <span class="nt">-m</span> prediction.main <span class="se">\</span>
-    <span class="nt">--action</span> <span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span> <span class="se">\</span>
-    <span class="nt">--config</span> configs/<span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span>.json
-  <span class="c"># Set the output location in Cloud Storage</span>
-  <span class="nb">local </span><span class="nv">output</span><span class="o">=</span>gs://<span class="k">${</span><span class="nv">NAME</span><span class="k">}</span>/<span class="k">${</span><span class="nv">VERSION</span><span class="k">}</span>/<span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span>/<span class="k">${</span><span class="nv">timestamp</span><span class="k">}</span>
-  <span class="c"># Copy the predictions from the output directory to Cloud Storage</span>
-  save output <span class="k">${</span><span class="nv">output</span><span class="k">}</span>
-  <span class="c"># Set the input file in Cloud Storage</span>
-  <span class="c"># Set the output data set and table in BigQuery</span>
-  <span class="c"># Ingest the predictions from Cloud Storage into BigQuery</span>
-  ingest <span class="k">${</span><span class="nv">input</span><span class="k">}</span> <span class="k">${</span><span class="nv">output</span><span class="k">}</span> player_id:STRING,label:BOOL
-<span class="o">}</span>
-
-<span class="k">function </span>delete<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Delete a Compute Engine instance called "${NAME}-${VERSION}-${ACTION}"</span>
-<span class="o">}</span>
-
-<span class="k">function </span>ingest<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Ingest a file from Cloud Storage into a table in BigQuery</span>
-<span class="o">}</span>
-
-<span class="k">function </span>load<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Sync the content of a location in Cloud Storage with a local directory</span>
-<span class="o">}</span>
-
-<span class="k">function </span>save<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Sync the content of a local directory with a location in Cloud Storage</span>
-<span class="o">}</span>
-
-<span class="k">function </span>send<span class="o">()</span> <span class="o">{</span>
-  <span class="c"># Write into a Stackdriver log called "${NAME}-${VERSION}-${ACTION}"</span>
-<span class="o">}</span>
-
-<span class="c"># Invoke the delete function when the script exits regardless of the reason</span>
-<span class="nb">trap </span>delete EXIT
-
-<span class="c"># Report a successful start to Stackdriver</span>
-send <span class="s1">'Running the action...'</span>
-<span class="c"># Invoke the function specified by the ACTION environment variable</span>
-process_<span class="k">${</span><span class="nv">ACTION</span><span class="k">}</span>
-<span class="c"># Report a successful completion to Stackdriver</span>
-send <span class="s1">'Well done.'</span>
-</code></pre></div></div>
-
-<p>The script expects a number of environment variables to be set upon each
-container launch, which will be discussed shortly. The primary ones are <code class="language-plaintext highlighter-rouge">NAME</code>,
-<code class="language-plaintext highlighter-rouge">VERSION</code>, and <code class="language-plaintext highlighter-rouge">ACTION</code>, indicating the name of the service, version of the
-service, and action to be executed by the service, respectively.</p>
-
-<p>As we shall see below, the above script interacts with several different
-products on Google Cloud Platform. It might then be surprising that there is
-only a handful of variables passed to the script. The explanation is that the
-convention-over-configuration design paradigm is followed to a great extent
-here, meaning that other necessary variables can be derived (save sensible
-default values) from the ones given, since there are certain naming conventions
-used throughout the project.</p>
-
-<p>The <code class="language-plaintext highlighter-rouge">process_training</code> and <code class="language-plaintext highlighter-rouge">process_application</code> are responsible for training
-and application, respectively. It can be seen that they leverage the
-command-line interface by invoking the <code class="language-plaintext highlighter-rouge">main</code> file, which was discussed in the
-previous section. Since containers are stateless, all artifacts are stored in an
-external storage, which is a bucket in <a href="https://cloud.google.com/storage/">Cloud Storage</a> in our case, and this job
-is delegated to the <code class="language-plaintext highlighter-rouge">load</code> and <code class="language-plaintext highlighter-rouge">save</code> functions used in both <code class="language-plaintext highlighter-rouge">process_training</code>
-and <code class="language-plaintext highlighter-rouge">process_application</code>. In addition, the result of the application action
-(that is, the predictions) is ingested into a table in BigQuery using <a href="https://cloud.google.com/sdk/">Cloud
-SDK</a>, which can be seen in the <code class="language-plaintext highlighter-rouge">ingest</code> function in <a href="https://github.com/chain-rule/example-prediction-service/tree/master/container/run.sh"><code class="language-plaintext highlighter-rouge">container/run.sh</code></a>.</p>
-
-<p>The container communicates with the outside world using <a href="https://cloud.google.com/stackdriver/">Stackdriver</a> via the
-<code class="language-plaintext highlighter-rouge">send</code> function, which writes messages to a log dedicated to the current service
-run. The most important message is the one indicating a successful completion,
-which is sent at the very end; we use “Well done” for this purpose. This is the
-message that will be looked for in order to determine the overall outcome of a
-service run.</p>
-
-<p>Note also that, upon successful or unsuccessful completion, the container
-deletes its hosting virtual machine, which is achieved by setting a handler
-(<code class="language-plaintext highlighter-rouge">delete</code>) for the <code class="language-plaintext highlighter-rouge">EXIT</code> event.</p>
-
-<p>Lastly, let us discuss the commands used for building the image and launching
-the actions. This entails a few lengthy invocations of Cloud SDK, which can be
-neatly organized in a <a href="https://github.com/chain-rule/example-prediction-service/tree/master/Makefile"><code class="language-plaintext highlighter-rouge">Makefile</code></a>:</p>
-
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># The name of the service
-</span><span class="nv">name</span> <span class="o">?=</span> example-prediction-service
-<span class="c"># The version of the service
-</span><span class="nv">version</span> <span class="o">?=</span> 2019-00-00
-
-<span class="c"># The name of the project on Google Cloud Platform
-</span><span class="nv">project</span> <span class="o">?=</span> example-cloud-project
-<span class="c"># The zone for operations in Compute Engine
-</span><span class="nv">zone</span> <span class="o">?=</span> europe-west1-b
-<span class="c"># The address of Container Registry
-</span><span class="nv">registry</span> <span class="o">?=</span> eu.gcr.io
-
-<span class="c"># The name of the Docker image
-</span><span class="nv">image</span> <span class="o">:=</span> <span class="nv">${name}</span>
-<span class="c"># The name of the instance excluding the action
-</span><span class="nv">instance</span> <span class="o">:=</span> <span class="nv">${name}</span>-<span class="nv">${version}</span>
-
-<span class="nl">build</span><span class="o">:</span>
-	docker rmi <span class="nv">${image}</span> 2&gt; /dev/null <span class="o">||</span> <span class="nb">true</span>
-	docker build <span class="nt">--file</span> container/Dockerfile <span class="nt">--tag</span> <span class="nv">${image}</span> .
-	docker tag <span class="nv">${image}</span> <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span>
-	docker push <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span>
-
-<span class="nl">training-start</span><span class="o">:</span>
-	gcloud compute instances create-with-container <span class="nv">${instance}</span><span class="nt">-training</span> <span class="se">\</span>
-		<span class="nt">--container-image</span> <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span> <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">NAME</span><span class="o">=</span><span class="nv">${name}</span> <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">VERSION</span><span class="o">=</span><span class="nv">${version}</span> <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">ACTION</span><span class="o">=</span>training <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">ZONE</span><span class="o">=</span><span class="nv">${zone}</span> <span class="se">\</span>
-		<span class="nt">--container-restart-policy</span> never <span class="se">\</span>
-		<span class="nt">--no-restart-on-failure</span> <span class="se">\</span>
-		<span class="nt">--machine-type</span> n1-standard-1 <span class="se">\</span>
-		<span class="nt">--scopes</span> default,bigquery,compute-rw,storage-rw
-		<span class="p">-</span><span class="nt">-zone</span> <span class="nv">${zone}</span>
-
-<span class="nl">training-wait</span><span class="o">:</span>
-	container/wait.sh instance <span class="nv">${instance}</span><span class="nt">-training</span> <span class="nv">${zone}</span>
-
-<span class="nl">training-check</span><span class="o">:</span>
-	container/wait.sh success <span class="nv">${instance}</span><span class="nt">-training</span>
-
-<span class="c"># Similar for application
-</span></code></pre></div></div>
-
-<p>Here we define one command for building images, namely <code class="language-plaintext highlighter-rouge">build</code>, and three
-commands per action, namely <code class="language-plaintext highlighter-rouge">start</code>, <code class="language-plaintext highlighter-rouge">wait</code>, and <code class="language-plaintext highlighter-rouge">check</code>. In this section, we
-discuss <code class="language-plaintext highlighter-rouge">build</code> and <code class="language-plaintext highlighter-rouge">start</code> and leave the last two for the next section, as they
-are needed specifically for scheduling.</p>
-
-<p>The <code class="language-plaintext highlighter-rouge">build</code> command is invoked as follows:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
-</code></pre></div></div>
-
-<p>It has to be used each time a new version of the service is to be deployed. The
-command creates a local Docker image according to the recipe in
-<code class="language-plaintext highlighter-rouge">container/Dockerfile</code> and uploads it to <a href="https://cloud.google.com/container-registry/">Container Registry</a>, which is Google’s
-storage for Docker images. For the last operation to succeed, your local Docker
-has to be configured appropriately, which boils down to the following lines:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>gcloud auth login <span class="c"># General authentication for Cloud SDK</span>
-gcloud auth configure-docker
-</code></pre></div></div>
-
-<p>Once <code class="language-plaintext highlighter-rouge">build</code> has finished successfully, one should be able to see the newly
-created image in <a href="https://console.cloud.google.com">Cloud Console</a> by navigating to Container Registry in the menu
-to the left. All future versions of the service will be neatly grouped in a
-separate folder in the registry.</p>
-
-<p>Given that the image is in the cloud, we can start to create virtual machines
-running containers with this particular image, which is what the <code class="language-plaintext highlighter-rouge">start</code> command
-is for:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make training-start <span class="c"># Similar for application</span>
-</code></pre></div></div>
-
-<p>Internally, it relies on <code class="language-plaintext highlighter-rouge">gcloud compute instances create-with-container</code>, which
-can be seen in <code class="language-plaintext highlighter-rouge">Makefile</code> listed above. There are a few aspects to note about
-this command. Apart from selecting the right image and version
-(<code class="language-plaintext highlighter-rouge">--container-image</code>), one has to make sure to set the environment variables
-mentioned earlier, as they control what the container will be doing once
-launched. This is achieved by passing a number of <code class="language-plaintext highlighter-rouge">--container-env</code> options to
-<code class="language-plaintext highlighter-rouge">create-with-container</code>. Here one can also easily scale up and down the host
-virtual machine via the <code class="language-plaintext highlighter-rouge">--machine-type</code> option. Lastly, it is important to set
-the <code class="language-plaintext highlighter-rouge">--scopes</code> option correctly in order to empower the container to work with
-BigQuery, Compute Engine, and Cloud Storage.</p>
-
-<p>At this point, we have a few handy commands for working with the service. It is
-time for scheduling.</p>
-
-<h1 id="scheduling-the-service">Scheduling the service</h1>
-
-<p>The goal now is to make both training and application be executed periodically,
-promptly delivering predictions to the data warehouse. Technically, one could
-just keep invoking <code class="language-plaintext highlighter-rouge">make training-start</code> and <code class="language-plaintext highlighter-rouge">make application-start</code> on their
-local machine, but of course, this is neither convenient nor reliable. Instead,
-we would like to have an autonomous scheduler running in the cloud that would,
-apart from its primary task of dispatching jobs, manage temporal dependencies
-between jobs, keep record of all past and upcoming jobs, and preferably provide
-a web-based dashboard for monitoring. One such tool is Airflow, and it is the
-one used in this article.</p>
-
-<p>In Airflow, the work to be performed is expressed as a directed acyclic graph
-defined using Python. Our job is to create two such graphs. One is for training,
-and one is for application, each with its own periodicity. At this point, it
-might seem that each graph should contain only one node calling the <code class="language-plaintext highlighter-rouge">start</code>
-command, which was introduced earlier. However, a more comprehensive solution is
-to not only start the service but also wait for its termination and check that
-it successfully executed the corresponding logic. It will give us great
-visibility on the life cycle of the service in terms of various statistics (for
-instance, the duration and outcome of all runs) directly in Airflow.</p>
-
-<p>The above is the reason we have defined two additional commands in <code class="language-plaintext highlighter-rouge">Makefile</code>:
-<code class="language-plaintext highlighter-rouge">wait</code> and <code class="language-plaintext highlighter-rouge">check</code>. The <code class="language-plaintext highlighter-rouge">wait</code> command ensures that the virtual machine reached
-a terminal state (regardless of the outcome), and the <code class="language-plaintext highlighter-rouge">check</code> command ensures
-that the terminal state was the one expected. This functionality can be
-implemented in different ways. The approach that we use can be seen in
-<a href="https://github.com/chain-rule/example-prediction-service/tree/master/container/wait.sh"><code class="language-plaintext highlighter-rouge">container/wait.sh</code></a>, which is invoked by both operations from <code class="language-plaintext highlighter-rouge">Makefile</code>:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c">#!/bin/bash</span>
-
-<span class="k">function </span>process_instance<span class="o">()</span> <span class="o">{</span>
-  <span class="nb">echo</span> <span class="s1">'Waiting for the instance to finish...'</span>
-  <span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do</span>
-    <span class="c"># Try to read some information about the instance</span>
-    <span class="c"># Exit successfully when there is no such instance</span>
-    <span class="nb">wait
-  </span><span class="k">done</span>
-<span class="o">}</span>
-
-<span class="k">function </span>process_success<span class="o">()</span> <span class="o">{</span>
-  <span class="nb">echo</span> <span class="s1">'Waiting for the success to be reported...'</span>
-  <span class="k">while </span><span class="nb">true</span><span class="p">;</span> <span class="k">do</span>
-    <span class="c"># Check if the last entry in Stackdriver contains “Well done”</span>
-    <span class="c"># Exit successfully if the phrase is present</span>
-    <span class="nb">wait
-  </span><span class="k">done</span>
-<span class="o">}</span>
-
-<span class="k">function </span><span class="nb">wait</span><span class="o">()</span> <span class="o">{</span>
-  <span class="nb">echo</span> <span class="s1">'Waiting...'</span>
-  <span class="nb">sleep </span>10
-<span class="o">}</span>
-
-<span class="c"># Invoke the function specified by the first command-line argument and forward</span>
-<span class="c"># the rest of the arguments to this function</span>
-process_<span class="k">${</span><span class="nv">1</span><span class="k">}</span> <span class="k">${</span><span class="p">@</span>:2:10<span class="k">}</span>
-</code></pre></div></div>
-
-<p>The script has two main functions. The <code class="language-plaintext highlighter-rouge">process_instance</code> function waits for the
-virtual machine to finish, and it is currently based on trying to fetch some
-information about the machine in question using Cloud SDK. Whenever this
-fetching fails, it is an indication of the machine being shut down and
-destroyed, which is exactly what is needed in this case. The <code class="language-plaintext highlighter-rouge">process_success</code>
-function waits for the key phrase “Well done” to appear in Stackdriver. However,
-this message might never appear, and this is the reason <code class="language-plaintext highlighter-rouge">process_success</code> has a
-timeout, unlike <code class="language-plaintext highlighter-rouge">process_instance</code>.</p>
-
-<p>All right, there are now three commands to schedule in sequence: <code class="language-plaintext highlighter-rouge">start</code>,
-<code class="language-plaintext highlighter-rouge">wait</code>, and <code class="language-plaintext highlighter-rouge">check</code>. For instance, for training, the exact command sequence is
-the following:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make training-start
-make training-wait
-make training-check
-</code></pre></div></div>
-
-<p>We need to create two separate Python files defining two separate Airflow
-graphs; however, the graphs will be almost identical except for the triggering
-interval and the prefix of the <code class="language-plaintext highlighter-rouge">start</code>, <code class="language-plaintext highlighter-rouge">wait</code>, and <code class="language-plaintext highlighter-rouge">check</code> commands. It then
-makes sense to keep the varying parts in separate configuration files and use
-the exact same code for constructing the graphs, adhering to the
-do-not-repeat-yourself design principle. The <a href="https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/configs"><code class="language-plaintext highlighter-rouge">scheduler/configs/</code></a> folder
-contains the configuration files suggested, and <a href="https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/graph.py"><code class="language-plaintext highlighter-rouge">scheduler/graph.py</code></a> is the
-Python script creating a graph:</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.bash_operator</span> <span class="kn">import</span> <span class="n">BashOperator</span>
-
-
-<span class="k">def</span> <span class="nf">configure</span><span class="p">():</span>
-    <span class="c1"># Extract the directory containing the current file
-</span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
-    <span class="c1"># Extract the name of the current file without its extension
-</span>    <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">basename</span><span class="p">(</span><span class="n">__file__</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="c1"># Load the configuration file corresponding to the extracted name
-</span>    <span class="n">config</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">'configs'</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'.json'</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">).</span><span class="n">read</span><span class="p">())</span>
-    <span class="k">return</span> <span class="n">config</span>
-
-
-<span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
-
-    <span class="k">def</span> <span class="nf">_construct_graph</span><span class="p">(</span><span class="n">default_args</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
-        <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">.</span><span class="n">datetime</span><span class="p">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="s">'%Y-%m-%d'</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DAG</span><span class="p">(</span><span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_construct_task</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">BashOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">bash_command</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">graph</span><span class="p">)</span>
-
-    <span class="c1"># Construct an empty graph
-</span>    <span class="n">graph</span> <span class="o">=</span> <span class="n">_construct_graph</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'graph'</span><span class="p">])</span>
-    <span class="c1"># Construct the specified tasks
-</span>    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_task</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'tasks'</span><span class="p">]]</span>
-    <span class="n">tasks</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">task</span><span class="p">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">])</span>
-    <span class="c1"># Enforce the specified dependencies between the tasks
-</span>    <span class="k">for</span> <span class="n">child</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'dependencies'</span><span class="p">]:</span>
-        <span class="n">tasks</span><span class="p">[</span><span class="n">parent</span><span class="p">].</span><span class="n">set_downstream</span><span class="p">(</span><span class="n">tasks</span><span class="p">[</span><span class="n">child</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">graph</span>
-
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="c1"># Load an appropriate configuration file and construct a graph accordingly
-</span>    <span class="n">graph</span> <span class="o">=</span> <span class="n">construct</span><span class="p">(</span><span class="n">configure</span><span class="p">())</span>
-<span class="k">except</span> <span class="nb">FileNotFoundError</span><span class="p">:</span>
-    <span class="c1"># Exit without errors in case the current file has no configuration file
-</span>    <span class="k">pass</span>
-</code></pre></div></div>
-
-<p>The script receives no arguments and instead tries to find a suitable
-configuration file based on its own name, which can be seen in the <code class="language-plaintext highlighter-rouge">configure</code>
-function. Then <code class="language-plaintext highlighter-rouge">scheduler/training.py</code> and <code class="language-plaintext highlighter-rouge">scheduler/application.py</code> can simply
-be symbolic links to <code class="language-plaintext highlighter-rouge">scheduler/graph.py</code>, avoiding any code repetition. When
-they are read by Airflow, each one will have its own name, and it will load its
-own configuration if there is one in <code class="language-plaintext highlighter-rouge">scheduler/configs/</code>.</p>
-
-<p>For instance, for training, <a href="https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/configs/training.json"><code class="language-plaintext highlighter-rouge">scheduler/configs/training.json</code></a> is as follows:</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"graph"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-    </span><span class="nl">"dag_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"example-prediction-service-training"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"schedule_interval"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0 0 1 * *"</span><span class="p">,</span><span class="w">
-    </span><span class="nl">"start_date"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2019-07-01"</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="nl">"tasks"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"start"</span><span class="p">,</span><span class="w">
-      </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"make -C '${ROOT}/..' training-start"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"wait"</span><span class="p">,</span><span class="w">
-      </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"make -C '${ROOT}/..' training-wait"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="nl">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"check"</span><span class="p">,</span><span class="w">
-      </span><span class="nl">"code"</span><span class="p">:</span><span class="w"> </span><span class="s2">"make -C '${ROOT}/..' training-check"</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-  </span><span class="p">],</span><span class="w">
-  </span><span class="nl">"dependencies"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="p">[</span><span class="s2">"wait"</span><span class="p">,</span><span class="w"> </span><span class="s2">"start"</span><span class="p">],</span><span class="w">
-    </span><span class="p">[</span><span class="s2">"check"</span><span class="p">,</span><span class="w"> </span><span class="s2">"wait"</span><span class="p">]</span><span class="w">
-  </span><span class="p">]</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<p>Each configuration file contains three main sections: <code class="language-plaintext highlighter-rouge">graph</code>, <code class="language-plaintext highlighter-rouge">tasks</code>, and
-<code class="language-plaintext highlighter-rouge">dependencies</code>. The first section prescribes the desired start date,
-periodicity, and other parameters specific to the graph itself. In this example,
-the graph is triggered on the first day of every month at midnight (<code class="language-plaintext highlighter-rouge">0 0 1 *
-*</code>), which might be a reasonable frequency for retraining the model. The second
-section defines what commands should be executed. It can be seen that there is
-one task for each of the three actions. The <code class="language-plaintext highlighter-rouge">-C '${ROOT}/..'</code> part is needed in
-order to ensure that the right <code class="language-plaintext highlighter-rouge">Makefile</code> is used, which is taken care of in
-<code class="language-plaintext highlighter-rouge">scheduler/graph.py</code>. Lastly, the third section dictates the order of execution
-by enforcing dependencies. In this case, we are saying that <code class="language-plaintext highlighter-rouge">wait</code> depends on
-(should be executed after) <code class="language-plaintext highlighter-rouge">start</code>, and that <code class="language-plaintext highlighter-rouge">check</code> depends on <code class="language-plaintext highlighter-rouge">wait</code>, forming
-a chain of tasks.</p>
-
-<p>At this point, the graphs are considered to be complete. In order to make
-Airflow aware of them, the repository can be simply cloned into the <code class="language-plaintext highlighter-rouge">dags</code>
-directory of Airflow.</p>
-
-<p>Lastly, Airflow itself can live on a separate instance in Compute Engine.
-Alternatively, <a href="https://cloud.google.com/composer/">Cloud Composer</a> provided by Google Cloud Platform can be
-utilized for this purpose.</p>
-
-<h1 id="conclusion">Conclusion</h1>
-
-<p>Having reached this point, our predictive model is up and running in the cloud
-in an autonomous fashion, delivering predictions to the data warehouse to act
-upon. The data warehouse is certainly not the end of the journey, but we stop
-here and save the discussion for another time.</p>
-
-<p>Although the presented workflow gets the job done, it has its own limitations
-and weaknesses, which one has to be aware of. The most prominent one is the
-communication between a Docker container running inside a virtual machine and
-the scheduler, Airflow. Busy waiting for a virtual machine in Compute Engine to
-shut down and for Stackdriver to deliver a certain message is arguably not the
-most reliable solution. There is also a certain overhead associated with
-starting a virtual machine in Compute Engine, downloading an image from
-Container Registry, and launching a container. Furthermore, this approach is not
-suitable for online prediction, as the service does not expose any API for other
-services to integrate with—its job is making periodically batch predictions.</p>
-
-<p>If you have any suggestions regarding improving the workflow or simply would
-like to share your thoughts, please leave a comment below or send an e-mail.
-Feel also free to <a href="https://github.com/chain-rule/example-prediction-service/issues">create an issue</a> or <a href="https://github.com/chain-rule/example-prediction-service/pulls">open a pull request</a> on GitHub. Any
-feedback is very much appreciated!</p>
-
-<h1 id="follow-up">Follow-up</h1>
-
-<p>Since its publication, the workflow presented in this article has been
-significantly simplified. More specifically, on July 16, 2019, it became
-possible to execute arbitrary Docker images on Google <a href="https://cloud.google.com/ai-platform/">AI Platform</a>. The
-platform takes care of the whole life cycle of the container, obviating the need
-for any wait scripts and ad-hoc communication mechanisms via Stackdriver. Refer
-to “<a href="https://medium.com/google-cloud/how-to-run-serverless-batch-jobs-on-google-cloud-ca45a4e33cb1">How to run serverless batch jobs on Google Cloud</a>” by Lak
-Lakshmanan for further details.</p>
-
-<h1 id="references">References</h1>
-
-<ul>
-  <li>Lak Lakshmanan, “<a href="https://medium.com/google-cloud/how-to-run-serverless-batch-jobs-on-google-cloud-ca45a4e33cb1">How to run serverless batch jobs on Google Cloud</a>,” 2019.</li>
-</ul>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[As a data scientist focusing on developing data products, you naturally want your work to reach its target audience. Suppose, however, that your company does not have a dedicated engineering team for productizing data-science code. One solution is to seek help in other teams, which are surely busy with their own endeavors, and spend months waiting. Alternatively, you could take the initiative and do it yourself. In this article, we take the initiative and schedule the training and application phases of a predictive model using Apache Airflow, Google Compute Engine, and Docker.]]></summary></entry></feed>
+</ul>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[It can be not only extremely useful but also deeply satisfying to occasionally dust off one’s math skills. In this article, we approach the classical problem of conversion rate optimization—which is frequently faced by companies operating online—and derive the expected utility of switching from variant A to variant B under some modeling assumptions. This information can subsequently be utilized in order to support the corresponding decision-making process.]]></summary></entry></feed>
