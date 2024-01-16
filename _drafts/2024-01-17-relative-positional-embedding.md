@@ -22,25 +22,25 @@ causal.
 The classical attention is formalized as follows:
 
 $$
-A = \text{softmax}\left( \frac{QK^{T}}{\sqrt{d_h}} \right) V
+A = \text{softmax}\left( \frac{QK^{T}}{\sqrt{n_d}} \right) V
 $$
 
 where $$K$$, $$V$$, and $$Q$$ are the keys, values, and queries, respectively.
-The keys and values are of shape $$n_s \times n_h \times n_{t_1} \times d_h$$
+The keys and values are of shape $$n_s \times n_h \times n_{t_1} \times n_d$$
 where $$n_s$$ is the batch size (_s_ for space), $$n_h$$ is the number of
 attention heads, $$n_{t_1}$$ is the window size (_t_ for time) of the _input_
-sequence, and $$d_h$$ is the head size. The queries are of shape $$n_s \times
-n_h \times n_{t_2} \times d_h$$ where $$n_{t_2}$$ is the window size of the
+sequence, and $$n_d$$ is the head size. The queries are of shape $$n_s \times
+n_h \times n_{t_2} \times n_d$$ where $$n_{t_2}$$ is the window size of the
 _output_ sequence.
 
 The relative attention obtains one additional term in the numerator:
 
 $$
-A = \text{softmax}\left( \frac{QK^T + S}{\sqrt{d_h}} \right) V. \tag{1}
+A = \text{softmax}\left( \frac{QK^T + S}{\sqrt{n_d}} \right) V. \tag{1}
 $$
 
 In the above, $$S$$ is of shape $$n_s \times n_h \times n_{t_2} \times n_{t_1}$$
-and calculated based on $$Q$$ and a matrix $$E$$ of shape $$d_h \times n_{t_3}$$
+and calculated based on $$Q$$ and a matrix $$E$$ of shape $$n_d \times n_{t_3}$$
 containing relative positional embeddings. The typical context is causal
 self-attention, in which $$n_{t_3}$$ is thought of as the maximum allowed
 relative distance between the keys and queries and set to $$n_{t_1}$$, with the
@@ -75,7 +75,7 @@ lifted.
 
 # Algorithm
 
-Let us extend $$E$$ to be of shape $$d_h \times (2 n_{t_3} - 1)$$ so that it has
+Let us extend $$E$$ to be of shape $$n_d \times (2 n_{t_3} - 1)$$ so that it has
 an embedding for any relative position not only in the past but also in the
 future, with $$n_{t_3}$$ being the maximum relative distance as before. Let us
 also interpret $$E$$'s columns as running from position $$n_{t_3} - 1$$
@@ -171,6 +171,55 @@ $$
 
 where $$\text{truncate}$$ is a function taking a tensor and keeping only the
 specified number of first elements in the last dimension, discarding the rest.
+
+# Implementation
+
+In TensorFlow, the algorithm can be implemented as an embedding layer as
+follows:
+
+```python
+class PositionEmbedding(tf.keras.layers.Layer):
+    def __init__(self, position_size: int, head_size: int) -> None:
+        super().__init__()
+        self.position_size = position_size
+        self.projection = self.add_weight(
+            shape=(head_size, 2 * position_size - 1),
+            initializer="glorot_uniform",
+            trainable=True,
+        )
+
+    def call(self, Q: tf.Tensor) -> tf.Tensor:
+        x = tf.matmul(Q, self.projection)
+        x = tf.linalg.diag_part(x, k=(0, self.position_size - 1))
+        x = tf.transpose(x, perm=[0, 1, 3, 2])
+        return x
+```
+
+The above layer can be invoked as part of an attention layer as illustrated
+below:
+
+```python
+class Attention(tf.keras.layers.Layer):
+    def __init__(self, head_size: int, position_size: int) -> None:
+        super().__init__()
+        self.head_size = head_size
+        self.position_embedding = PositionEmbedding(
+            head_size=head_size,
+            position_size=position_size,
+        )
+
+    def call(self, K: tf.Tensor, V: tf.Tensor, Q: tf.Tensor) -> tf.Tensor:
+        S = self.position_embedding(Q)
+        W = tf.matmul(Q, K, transpose_b=True)
+        W = W + S[:, :, :, : K.shape[2]]
+        W = W * self.head_size**-0.5
+        # TODO: Add masking.
+        W = tf.nn.softmax(W, axis=-1)
+        # TODO: Add dropout.
+        A = tf.matmul(W, V)
+        # TODO: Add dropout.
+        return A
+```
 
 # References
 
