@@ -85,21 +85,21 @@ n_h \times n_{t_2} \times n_d\) where \(n_{t_2}\) is the window size of the
 <p>In the above, \(S\) is of shape \(n_s \times n_h \times n_{t_2} \times n_{t_1}\)
 and calculated based on \(Q\) and a matrix \(E\) of shape \(n_d \times n_{t_3}\)
 containing relative positional embeddings. The typical context is causal
-self-attention, in which \(n_{t_3}\) is thought of as the maximum allowed
-relative distance between the keys and queries and set to \(n_{t_1}\), with the
-interpretation that the embeddings are running from position \(-n_{t_1} + 1\)
-(the farthest past) up to \(0\) (the present moment). Then \(S\) is a specific
-arrangement of the inner products between the queries in \(Q\) and the
-embeddings in \(E\) so as to respect the arrangement in \(QK^T\).</p>
+self-attention, in which \(n_{t_3}\) is thought of as the maximum allowed length
+of the input sequence and set to \(n_{t_1}\), with the interpretation that the
+embeddings are running from position \(-n_{t_1} + 1\) (the most distant past) up
+to \(0\) (the present moment). Then \(S\) is a specific arrangement of the inner
+products between the queries in \(Q\) and the embeddings in \(E\) so as to
+respect the arrangement in \(QK^T\).</p>
 
 <p>The original and more memory efficient calculations of \(S\) in the case of
-causal attention, are compared in the illustration below, which is taken from
-Huang et al. (2018).</p>
+causal attention, are illustrated in the figure below, which is taken from Huang
+et al. (2018).</p>
 
 <p><img src="/assets/images/2024-01-17-relative-position/huang.jpeg" alt="" /></p>
 
-<p>The matrix to the very right shows how \(S\) is arranged. Since it is for causal
-attention, the upper triangle above the main diagonal (gray circles) is
+<p>The matrix to the very right shows how \(S\) is arranged. Since the use case is
+causal attention, the upper triangle above the main diagonal (gray circles) is
 irrelevant and can contain arbitrary values, which it does in the algorithm
 proposed in Huang et al. (2018). The main diagonal (green circles) contains the
 inner products of the queries and the embedding corresponding to position \(0\).
@@ -119,19 +119,21 @@ lifted.</p>
 <h1 id="algorithm">Algorithm</h1>
 
 <p>Let us extend \(E\) to be of shape \(n_d \times (2 n_{t_3} - 1)\) so that it has
-an embedding for any relative position not only in the past but also in the
-future, with \(n_{t_3}\) being the maximum relative distance as before. Let us
-also interpret \(E\)’s columns as running from position \(n_{t_3} - 1\)
-(farthest into the future) to position \(-n_{t_3} + 1\) (farthest into the
-past). For instance, when the output sequence is of length \(t_3\) (the longest
-possible), the first query (position 0) will be “interested” only in columns
-\(0\) through \(n_{t_3} - 1\) inclusively, while the last (position \(n_{t_3} -
-1\)) only in columns \(n_{t_3} - 1\) through \(2 n_{t_3} - 2\) inclusively.</p>
+an embedding for any relative position not only when looking back in the past
+but also forward into the future, with \(n_{t_3}\) being the maximum allowed
+length of the input sequence as before, that is, \(t_1 \leq t_3\). Let us also
+interpret \(E\)’s columns as running from position \(n_{t_3} - 1\) (the most
+distant future) to position \(-n_{t_3} + 1\) (the most distant past). For
+instance, when the output sequence is of length \(t_3\) (the longest possible),
+the first query (position 0) will be “interested” only in columns \(0\) through
+\(n_{t_3} - 1\) inclusively, while the last (position \(n_{t_3} - 1\)) only in
+columns \(n_{t_3} - 1\) through \(2 n_{t_3} - 2\) inclusively.</p>
 
 <p>Similarly to Huang et al. (2018), we note that multiplying \(Q\) by \(E\)
 results in a matrix that contains all the inner products necessary for
-assembling \(S\) in the general case. For \(t_3 = 4\) and dropping the batch and
-head dimensions for clearer visualization, the product is as follows:</p>
+assembling \(S\) in the general case. For instance, for \(t_3 = 4\) and dropping
+the batch and head dimensions for clearer visualization, the product is as
+follows:</p>
 
 \[QE = \left(
 \begin{matrix}
@@ -190,8 +192,8 @@ given tensor. This resulting matrix can then be plugged into Equation (1) to
 complete the calculation.</p>
 
 <p>In case the keys and values are shorter than the maximum allowed relative
-position, that is, \(t_1 &lt; t_3\), \(S\) should be truncated to shape
-\(n_s \times n_h \times n_{t_2} \times n_{t_1}\):</p>
+position, that is, \(t_1 &lt; t_3\), \(S\) should be truncated to its intended
+shape, \(n_s \times n_h \times n_{t_2} \times n_{t_1}\):</p>
 
 \[S = \text{truncate}\left(
   \text{transpose}\left(
@@ -203,52 +205,54 @@ position, that is, \(t_1 &lt; t_3\), \(S\) should be truncated to shape
 \right)\]
 
 <p>where \(\text{truncate}\) is a function taking a tensor and keeping only the
-specified number of first elements in the last dimension, discarding the rest.</p>
+specified number of its first elements in the last dimension, discarding the
+rest.</p>
 
 <h1 id="implementation">Implementation</h1>
 
 <p>In TensorFlow, the algorithm can be implemented as an embedding layer as
 follows:</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">PositionEmbedding</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">position_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RelativePositionEmbedding</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">position_size</span> <span class="o">=</span> <span class="n">position_size</span>
         <span class="bp">self</span><span class="p">.</span><span class="n">projection</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">add_weight</span><span class="p">(</span>
-            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">head_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">position_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">head_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sequence_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
             <span class="n">initializer</span><span class="o">=</span><span class="s">"glorot_uniform"</span><span class="p">,</span>
             <span class="n">trainable</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">=</span> <span class="n">sequence_length</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">projection</span><span class="p">)</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">position_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">x</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">projection</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">S</span>
 </code></pre></div></div>
 
 <p>The above layer can be invoked as part of an attention layer as illustrated
 below:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Attention</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">position_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span> <span class="o">=</span> <span class="n">head_size</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span> <span class="o">=</span> <span class="n">PositionEmbedding</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span> <span class="o">=</span> <span class="n">RelativePositionEmbedding</span><span class="p">(</span>
             <span class="n">head_size</span><span class="o">=</span><span class="n">head_size</span><span class="p">,</span>
-            <span class="n">position_size</span><span class="o">=</span><span class="n">position_size</span><span class="p">,</span>
+            <span class="n">sequence_length</span><span class="o">=</span><span class="n">sequence_length</span><span class="p">,</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">V</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+        <span class="c1"># TODO: Add permutation if needed.
+</span>        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">position_embedding</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">+</span> <span class="n">S</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:</span> <span class="n">K</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span><span class="o">**-</span><span class="mf">0.5</span>
-        <span class="c1"># TODO: Add masking.
+        <span class="c1"># TODO: Add masking if needed.
 </span>        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="c1"># TODO: Add dropout.
+        <span class="c1"># TODO: Add dropout if needed.
 </span>        <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
-        <span class="c1"># TODO: Add dropout.
+        <span class="c1"># TODO: Add dropout if needed.
 </span>        <span class="k">return</span> <span class="n">A</span>
 </code></pre></div></div>
 
