@@ -181,7 +181,7 @@ In TensorFlow, the algorithm can be implemented as an embedding layer as
 follows:
 
 ```python
-class RelativePositionEmbedding(tf.keras.layers.Layer):
+class RelativePositionalEmbedding(tf.keras.layers.Layer):
     def __init__(self, head_size: int, sequence_length: int) -> None:
         super().__init__()
         self.projection = self.add_weight(
@@ -206,14 +206,14 @@ class Attention(tf.keras.layers.Layer):
     def __init__(self, head_size: int, sequence_length: int) -> None:
         super().__init__()
         self.head_size = head_size
-        self.position_embedding = RelativePositionEmbedding(
+        self.positional_embedding = RelativePositionalEmbedding(
             head_size=head_size,
             sequence_length=sequence_length,
         )
 
     def call(self, K: tf.Tensor, V: tf.Tensor, Q: tf.Tensor) -> tf.Tensor:
         # TODO: Add permutation if needed.
-        S = self.position_embedding(Q)
+        S = self.positional_embedding(Q)
         W = tf.matmul(Q, K, transpose_b=True)
         W = W + S[:, :, :, : K.shape[2]]
         W = W * self.head_size**-0.5
