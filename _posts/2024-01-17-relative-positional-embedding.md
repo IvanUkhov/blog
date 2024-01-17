@@ -66,8 +66,10 @@ position $$-1$$. And it continues in this way down to $$-n_{t_1} + 1$$, in which
 case it is only the last query that is involved, since it comes last in the
 sequence and has the longest past.
 
-The memory efficient calculation given in Huang et al. (2018) is limited to
-self-attention with causal connectivity, which is what is found in decoder
+The calculation given in Huang et al. (2018) reduces the intermediate memory
+requirement from $$\mathcal{O}(n_h \, n_d \, n_t^2)$$ to $$\mathcal{O}(n_h \,
+n_d \, n_t)$$ where $$n_t$$ is a general sequence length. However, it is limited
+to self-attention with causal connectivity, which is what is found in decoder
 blocks. It is not suitable for other attention patterns. Therefore, it cannot be
 used in, for instance, encoder blocks and decoder blocks with cross-attention,
 which usually have non-causal attention. In what follow, the limitation is
@@ -174,6 +176,10 @@ $$
 where $$\text{truncate}$$ is a function taking a tensor and keeping only the
 specified number of its first elements in the last dimension, discarding the
 rest.
+
+It can be seen that the algorithm the same intermediate memory requirement than
+the one proposed in Huang at al. (2018), that is, $$\mathcal{O}(n_h \, n_d \,
+n_t)$$; however, its application score is larger.
 
 # Implementation
 
