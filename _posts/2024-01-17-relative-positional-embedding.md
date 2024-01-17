@@ -42,21 +42,21 @@ $$
 In the above, $$S$$ is of shape $$n_s \times n_h \times n_{t_2} \times n_{t_1}$$
 and calculated based on $$Q$$ and a matrix $$E$$ of shape $$n_d \times n_{t_3}$$
 containing relative positional embeddings. The typical context is causal
-self-attention, in which $$n_{t_3}$$ is thought of as the maximum allowed
-relative distance between the keys and queries and set to $$n_{t_1}$$, with the
-interpretation that the embeddings are running from position $$-n_{t_1} + 1$$
-(the farthest past) up to $$0$$ (the present moment). Then $$S$$ is a specific
-arrangement of the inner products between the queries in $$Q$$ and the
-embeddings in $$E$$ so as to respect the arrangement in $$QK^T$$.
+self-attention, in which $$n_{t_3}$$ is thought of as the maximum allowed length
+of the input sequence and set to $$n_{t_1}$$, with the interpretation that the
+embeddings are running from position $$-n_{t_1} + 1$$ (the most distant past) up
+to $$0$$ (the present moment). Then $$S$$ is a specific arrangement of the inner
+products between the queries in $$Q$$ and the embeddings in $$E$$ so as to
+respect the arrangement in $$QK^T$$.
 
 The original and more memory efficient calculations of $$S$$ in the case of
-causal attention, are compared in the illustration below, which is taken from
-Huang et al. (2018).
+causal attention, are illustrated in the figure below, which is taken from Huang
+et al. (2018).
 
 ![](/assets/images/2024-01-17-relative-position/huang.jpeg)
 
-The matrix to the very right shows how $$S$$ is arranged. Since it is for causal
-attention, the upper triangle above the main diagonal (gray circles) is
+The matrix to the very right shows how $$S$$ is arranged. Since the use case is
+causal attention, the upper triangle above the main diagonal (gray circles) is
 irrelevant and can contain arbitrary values, which it does in the algorithm
 proposed in Huang et al. (2018). The main diagonal (green circles) contains the
 inner products of the queries and the embedding corresponding to position $$0$$.
@@ -76,19 +76,21 @@ lifted.
 # Algorithm
 
 Let us extend $$E$$ to be of shape $$n_d \times (2 n_{t_3} - 1)$$ so that it has
-an embedding for any relative position not only in the past but also in the
-future, with $$n_{t_3}$$ being the maximum relative distance as before. Let us
-also interpret $$E$$'s columns as running from position $$n_{t_3} - 1$$
-(farthest into the future) to position $$-n_{t_3} + 1$$ (farthest into the
-past). For instance, when the output sequence is of length $$t_3$$ (the longest
-possible), the first query (position 0) will be “interested” only in columns
-$$0$$ through $$n_{t_3} - 1$$ inclusively, while the last (position $$n_{t_3} -
-1$$) only in columns $$n_{t_3} - 1$$ through $$2 n_{t_3} - 2$$ inclusively.
+an embedding for any relative position not only when looking back in the past
+but also forward into the future, with $$n_{t_3}$$ being the maximum allowed
+length of the input sequence as before, that is, $$t_1 \leq t_3$$. Let us also
+interpret $$E$$'s columns as running from position $$n_{t_3} - 1$$ (the most
+distant future) to position $$-n_{t_3} + 1$$ (the most distant past). For
+instance, when the output sequence is of length $$t_3$$ (the longest possible),
+the first query (position 0) will be “interested” only in columns $$0$$ through
+$$n_{t_3} - 1$$ inclusively, while the last (position $$n_{t_3} - 1$$) only in
+columns $$n_{t_3} - 1$$ through $$2 n_{t_3} - 2$$ inclusively.
 
 Similarly to Huang et al. (2018), we note that multiplying $$Q$$ by $$E$$
 results in a matrix that contains all the inner products necessary for
-assembling $$S$$ in the general case. For $$t_3 = 4$$ and dropping the batch and
-head dimensions for clearer visualization, the product is as follows:
+assembling $$S$$ in the general case. For instance, for $$t_3 = 4$$ and dropping
+the batch and head dimensions for clearer visualization, the product is as
+follows:
 
 $$
 QE = \left(
@@ -155,8 +157,8 @@ given tensor. This resulting matrix can then be plugged into Equation (1) to
 complete the calculation.
 
 In case the keys and values are shorter than the maximum allowed relative
-position, that is, $$t_1 < t_3$$, $$S$$ should be truncated to shape
-$$n_s \times n_h \times n_{t_2} \times n_{t_1}$$:
+position, that is, $$t_1 < t_3$$, $$S$$ should be truncated to its intended
+shape, $$n_s \times n_h \times n_{t_2} \times n_{t_1}$$:
 
 $$
 S = \text{truncate}\left(
@@ -170,7 +172,8 @@ S = \text{truncate}\left(
 $$
 
 where $$\text{truncate}$$ is a function taking a tensor and keeping only the
-specified number of first elements in the last dimension, discarding the rest.
+specified number of its first elements in the last dimension, discarding the
+rest.
 
 # Implementation
 
@@ -178,21 +181,21 @@ In TensorFlow, the algorithm can be implemented as an embedding layer as
 follows:
 
 ```python
-class PositionEmbedding(tf.keras.layers.Layer):
-    def __init__(self, position_size: int, head_size: int) -> None:
+class RelativePositionEmbedding(tf.keras.layers.Layer):
+    def __init__(self, head_size: int, sequence_length: int) -> None:
         super().__init__()
-        self.position_size = position_size
         self.projection = self.add_weight(
-            shape=(head_size, 2 * position_size - 1),
+            shape=(head_size, 2 * sequence_length - 1),
             initializer="glorot_uniform",
             trainable=True,
         )
+        self.sequence_length = sequence_length
 
     def call(self, Q: tf.Tensor) -> tf.Tensor:
-        x = tf.matmul(Q, self.projection)
-        x = tf.linalg.diag_part(x, k=(0, self.position_size - 1))
-        x = tf.transpose(x, perm=[0, 1, 3, 2])
-        return x
+        S = tf.matmul(Q, self.projection)
+        S = tf.linalg.diag_part(S, k=(0, self.sequence_length - 1))
+        S = tf.transpose(S, perm=[0, 1, 3, 2])
+        return S
 ```
 
 The above layer can be invoked as part of an attention layer as illustrated
@@ -200,24 +203,25 @@ below:
 
 ```python
 class Attention(tf.keras.layers.Layer):
-    def __init__(self, head_size: int, position_size: int) -> None:
+    def __init__(self, head_size: int, sequence_length: int) -> None:
         super().__init__()
         self.head_size = head_size
-        self.position_embedding = PositionEmbedding(
+        self.position_embedding = RelativePositionEmbedding(
             head_size=head_size,
-            position_size=position_size,
+            sequence_length=sequence_length,
         )
 
     def call(self, K: tf.Tensor, V: tf.Tensor, Q: tf.Tensor) -> tf.Tensor:
+        # TODO: Add permutation if needed.
         S = self.position_embedding(Q)
         W = tf.matmul(Q, K, transpose_b=True)
         W = W + S[:, :, :, : K.shape[2]]
         W = W * self.head_size**-0.5
-        # TODO: Add masking.
+        # TODO: Add masking if needed.
         W = tf.nn.softmax(W, axis=-1)
-        # TODO: Add dropout.
+        # TODO: Add dropout if needed.
         A = tf.matmul(W, V)
-        # TODO: Add dropout.
+        # TODO: Add dropout if needed.
         return A
 ```
 
