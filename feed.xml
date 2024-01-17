@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-17T08:46:20+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-17T09:41:47+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
 </subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Relative positional embedding for any attention mechanism</title><link href="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html" rel="alternate" type="text/html" title="Relative positional embedding for any attention mechanism" /><published>2024-01-17T07:00:00+00:00</published><updated>2024-01-17T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"><![CDATA[<p>In <a href="https://arxiv.org/abs/1803.02155">Shaw et al. (2018)</a>, the authors introduce relative positional embedding for
 self-attention in transformer models, and in <a href="https://arxiv.org/abs/1809.04281">Huang et al. (2018)</a>, the authors
@@ -52,8 +52,10 @@ position \(-1\). And it continues in this way down to \(-n_{t_1} + 1\), in which
 case it is only the last query that is involved, since it comes last in the
 sequence and has the longest past.</p>
 
-<p>The memory efficient calculation given in Huang et al. (2018) is limited to
-self-attention with causal connectivity, which is what is found in decoder
+<p>The calculation given in Huang et al. (2018) reduces the intermediate memory
+requirement from \(\mathcal{O}(n_h \, n_d \, n_t^2)\) to \(\mathcal{O}(n_h \,
+n_d \, n_t)\) where \(n_t\) is a general sequence length. However, it is limited
+to self-attention with causal connectivity, which is what is found in decoder
 blocks. It is not suitable for other attention patterns. Therefore, it cannot be
 used in, for instance, encoder blocks and decoder blocks with cross-attention,
 which usually have non-causal attention. In what follow, the limitation is
@@ -150,6 +152,10 @@ shape, \(n_s \times n_h \times n_{t_2} \times n_{t_1}\):</p>
 <p>where \(\text{truncate}\) is a function taking a tensor and keeping only the
 specified number of its first elements in the last dimension, discarding the
 rest.</p>
+
+<p>It can be seen that the algorithm the same intermediate memory requirement than
+the one proposed in Huang at al. (2018), that is, \(\mathcal{O}(n_h \, n_d \,
+n_t)\); however, its application score is larger.</p>
 
 <h1 id="implementation">Implementation</h1>
 
