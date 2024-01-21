@@ -179,7 +179,7 @@ rest.
 
 It can be seen that the algorithm the same intermediate memory requirement than
 the one proposed in Huang at al. (2018), that is, $$\mathcal{O}(n_h \, n_d \,
-n_t)$$; however, its application score is larger.
+n_t)$$; however, its application scope is larger.
 
 # Implementation
 
