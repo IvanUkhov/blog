@@ -69,6 +69,8 @@ weight updates, which is undesirable. One solution is gradient accumulation
 where the weights are updated only after evaluating the gradients for several
 batches. In this article, we show how it can be implemented in TensorFlow.</p>
 
+<h1 id="solution">Solution</h1>
+
 <p>Long story short:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CumulativeAdam</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="n">Adam</span><span class="p">):</span>
