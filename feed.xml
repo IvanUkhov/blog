@@ -1,6 +1,62 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-30T13:29:44+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-30T13:56:12+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
-</subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Relative positional embedding for any attention mechanism</title><link href="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html" rel="alternate" type="text/html" title="Relative positional embedding for any attention mechanism" /><published>2024-01-17T07:00:00+00:00</published><updated>2024-01-17T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"><![CDATA[<p>In <a href="https://arxiv.org/abs/1803.02155">Shaw et al. (2018)</a>, the authors introduce relative positional embedding for
+</subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, the common
+mitigation strategy is to reduce the batch size, thereby allowing more space for
+the model at the expense of the data. However, smaller batches lead to noisier
+weight updates, which is undesirable. One solution is gradient accumulation
+where the weights are updated only after evaluating the gradients for several
+batches. In this article, we show how it can be implemented in TensorFlow.</p>
+
+<p>Long story short:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CumulativeAdam</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="n">Adam</span><span class="p">):</span>
+    <span class="s">"""Optimizer that implement the Adam algorithm with gradient accumulation."""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""Create an instance.
+
+        Arguments:
+          accumulation: The number of iteration to accumulate over. If it is
+          set to one, no accumulation is performed, and the gradients are
+          applied as soon as they are computed. If it is set to a value greater
+          than one, the gradients will be accumulated for the specified number
+          of iteration and only then applied, starting a new cycle.
+
+        All other arguments are passed to `tf.keras.optimizers.Adam`.
+        """</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
+        <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">apply_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="s">"""Apply the gradients according to the accumulation scheme."""</span>
+        <span class="c1"># Split off the gradients from the trainable variables.
+</span>        <span class="n">gradients</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">pairs</span><span class="p">))</span>
+        <span class="c1"># Perform the initialization if needed.
+</span>        <span class="bp">self</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+        <span class="c1"># Compute a scaling factor that will reset the accumulated gradients at
+</span>        <span class="c1"># the beginning of each cycle and do nothing otherwise.
+</span>        <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">tf</span><span class="p">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># Add the new gradients to the old ones after scaling.
+</span>        <span class="k">for</span> <span class="n">gradient</span><span class="p">,</span> <span class="n">addition</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span><span class="p">,</span> <span class="n">gradients</span><span class="p">):</span>
+            <span class="n">gradient</span><span class="p">.</span><span class="n">assign</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">gradient</span> <span class="o">+</span> <span class="n">addition</span><span class="p">)</span>
+        <span class="c1"># Compute a scaling factor that will prevent the weights from updating
+</span>        <span class="c1"># until the end of each cycle and do nothing otherwise.
+</span>        <span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">cast</span><span class="p">((</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="c1"># Apply the gradients to the trainable variables after scaling.
+</span>        <span class="n">gradients</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale</span> <span class="o">*</span> <span class="n">gradient</span> <span class="k">for</span> <span class="n">gradient</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">().</span><span class="n">apply_gradients</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="n">variables</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""Initialize the internal state for the given trainable variables."""</span>
+        <span class="nb">super</span><span class="p">().</span><span class="n">build</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c1"># Allocate memory for accumulation.
+</span>            <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">tf</span><span class="p">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">variable</span><span class="p">),</span> <span class="n">trainable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">variables</span>
+            <span class="p">]</span>
+</code></pre></div></div>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[When the model grows large and does not fit on a single device, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated only after evaluating the gradients for several batches. In this article, we show how it can be implemented in TensorFlow.]]></summary></entry><entry><title type="html">Relative positional embedding for any attention mechanism</title><link href="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html" rel="alternate" type="text/html" title="Relative positional embedding for any attention mechanism" /><published>2024-01-17T07:00:00+00:00</published><updated>2024-01-17T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"><![CDATA[<p>In <a href="https://arxiv.org/abs/1803.02155">Shaw et al. (2018)</a>, the authors introduce relative positional embedding for
 self-attention in transformer models, and in <a href="https://arxiv.org/abs/1809.04281">Huang et al. (2018)</a>, the authors
 present a memory efficient approach to calculating this embedding in decoder
 blocks, in which the self-attention is causal. In this article, the approach is
@@ -3032,251 +3088,4 @@ remain in a specific pristine state defined by us.</p>
 <p>Lastly, it is worth noting that similar images can straightforwardly be built
 for more specific scenarios. For instance, the following repository provides a
 skeleton for building and using a custom <a href="https://cloud.google.com/datalab/">Datalab</a>, which is Google’s wrapper
-for Jupyter notebooks that run in the cloud: <a href="https://github.com/chain-rule/Datalab">Datalab</a>.</p>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session.]]></summary></entry><entry><title type="html">On the expected utility in conversion rate optimization</title><link href="https://blog.ivanukhov.com/2019/07/08/conversion.html" rel="alternate" type="text/html" title="On the expected utility in conversion rate optimization" /><published>2019-07-08T06:00:00+00:00</published><updated>2019-07-08T06:00:00+00:00</updated><id>https://blog.ivanukhov.com/2019/07/08/conversion</id><content type="html" xml:base="https://blog.ivanukhov.com/2019/07/08/conversion.html"><![CDATA[<p>It can be not only extremely useful but also deeply satisfying to occasionally
-dust off one’s math skills. In this article, we approach the classical problem
-of conversion rate optimization—which is frequently faced by companies operating
-online—and derive the expected utility of switching from variant A to variant B
-under some modeling assumptions. This information can subsequently be utilized
-in order to support the corresponding decision-making process.</p>
-
-<p>An R implementation of the math below and more can be found in the following
-repository:</p>
-
-<ul>
-  <li><a href="https://github.com/chain-rule/conversion-rate">conversion-rate</a>.</li>
-</ul>
-
-<p>However, it was written for personal exploratory purposes and has no
-documentation at the moment. If you decide to dive in, you will be on your own.</p>
-
-<h1 id="problem">Problem</h1>
-
-<p>Suppose, as a business, you send communications to your customers in order to
-increase their engagement with the product. Furthermore, suppose you suspect
-that a certain change to the usual way of working might increase the uplift. In
-order to test your hypothesis, you set up an A/B test. The only decision you
-care about is whether or not you should switch from variant A to variant B where
-variant A is the baseline (the usual way of working). The twist is that, from
-the perspective of the business, variant B comes with its own gain if it is the
-winner, and its own loss if it is the loser. The goal is to incorporate this
-information in the final decision, making necessary assumptions along the way.</p>
-
-<h1 id="solution">Solution</h1>
-
-<p>Let \(A\) and \(B\) be two random variables modeling the conversion rates of the
-two variants, variant A and variant B. Furthermore, let \(p\) be the probability
-density function of the joint distribution of \(A\) and \(B\). In what follows,
-concrete values assumed by the variables are denoted by \(a\) and \(b\),
-respectively.</p>
-
-<p>Define the utility function as</p>
-
-\[U(a, b) = G(a, b) I(a &lt; b) + L(a, b) I(a &gt; b)\]
-
-<p>where \(G\) and \(L\) are referred to as the gain and loss functions,
-respectively. The gain function takes effect when variant B has a higher
-conversion rate than the one of variant A, and the loss function takes effect
-when variant A is better than variant B, which is what is enforced by the two
-indicator functions (the equality is not essential). The expected utility is
-then as follows:</p>
-
-\[\begin{align}
-E(U(A, B))
-&amp;= \int_0^1 \int_0^1 U(a, b) p(a, b) \, db \, da \\
-&amp;=
-\int_0^1 \int_a^1 G(a, b) p(a, b) \, db \, da +
-\int_0^1 \int_0^a L(a, b) p(a, b) \, db \, da.
-\end{align}\]
-
-<p>We assume further the gain and loss are linear:</p>
-
-\[\begin{align}
-&amp; G(a, b) = w_g (b - a) \text{ and} \\
-&amp; L(a, b) = w_l (b - a).
-\end{align}\]
-
-<p>In the above, \(w_g\) and \(w_l\) are two non-negative scaling factors, which
-can be used to encode business preferences. Then we have that</p>
-
-\[\begin{align}
-E(U(A, B)) =
-&amp;
-w_g \int_0^1 \int_a^1 b \, p(a, b) \, db \, da -
-w_g \int_0^1 \int_a^1 a \, p(a, b) \, db \, da + {} \\
-&amp;
-w_l \int_0^1 \int_0^a b \, p(a, b) \, db \, da -
-w_l \int_0^1 \int_0^a a \, p(a, b) \, db \, da.
-\end{align}\]
-
-<p>For convenience, denote the four integrals by \(G_1\), \(G_2\), \(L_1\), and
-\(L_2\), respectively, in which case we have that</p>
-
-\[E(U(A, B)) = w_g \, G_1 - w_g \, G_2 + w_l \, L_1 - w_l \, L_2.\]
-
-<p>Now, suppose the distributions of \(A\) and \(B\) are estimated using Bayesian
-inference. In this approach, the prior knowledge of the decision-maker about the
-conversion rates of the two variants is combined with the evidence in the form
-of data continuously streaming from the A/B test. It is natural to use a
-binomial distribution for the data and a beta distribution for the prior
-knowledge, which results in a posterior distribution that is also a beta
-distribution due to conjugacy.</p>
-
-<p><em>A posteriori</em>, we have the following marginal distributions:</p>
-
-\[\begin{align}
-&amp; A \sim \text{Beta}(\alpha_a, \beta_a) \text{ and} \\
-&amp; B \sim \text{Beta}(\alpha_b, \beta_b)
-\end{align}\]
-
-<p>where \(\alpha_a\) and \(\beta_a\) the shape parameters of \(A\), and
-\(\alpha_b\) and \(\beta_b\) of the shape parameters of \(B\). Assuming that the
-two random variables are independent given the parameters,</p>
-
-\[p(a, b) =
-p(a) \, p(b) =
-\frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
-\frac{b^{\alpha_b - 1} (1 - b)^{\beta_b - 1}}{B(\alpha_b, \beta_b)}.\]
-
-<p>We can now compute the expected utility. The first integral is as follows:</p>
-
-\[\begin{align}
-G_1
-&amp;=
-\int_0^1 \int_a^1
-\frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
-\frac{b^{\alpha_b} (1 - b)^{\beta_b - 1}}{B(\alpha_b, \beta_b)} \, db \, da  \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-\int_0^1 \int_a^1
-\frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
-\frac{b^{\alpha_b} (1 - b)^{\beta_b - 1}}{B(\alpha_b + 1, \beta_b)} \, db \, da \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-h(\alpha_a, \beta_a, \alpha_b + 1, \beta_b)
-\end{align}\]
-
-<p>where, which a slight abuse of notation, \(B\) is the beta function and</p>
-
-\[h(\alpha_1, \beta_1, \alpha_2, \beta_2) = P(X_1 &lt; X_2)\]
-
-<p>for any</p>
-
-\[\begin{align}
-&amp; X_1 \sim \text{Beta}(\alpha_1, \beta_1) \text{ and} \\
-&amp; X_2 \sim \text{Beta}(\alpha_2, \beta_2).
-\end{align}\]
-
-<p>The function \(h\) can be computed analytically, as shown in the blog posts
-mentioned above. Specifically,</p>
-
-\[h(\alpha_1, \beta_1, \alpha_2, \beta_2) =
-\sum_{i = 0}^{\alpha_2 - 1} \frac{B(\alpha_1 + i, \beta_1 + \beta_2)}{(\beta_2 + i) B(1 + i, \beta_2) B(\alpha_1, \beta_1)}.\]
-
-<p>Similarly,</p>
-
-\[G_2 =
-\frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-h(\alpha_a + 1, \beta_a, \alpha_b, \beta_b).\]
-
-<p>Regarding the last two integrals in the expression of the utility function,</p>
-
-\[\begin{align}
-L_1
-&amp;=
-\int_0^1 \int_0^a
-\frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
-\frac{b^{\alpha_b} (1 - b)^{\beta_b - 1}}{B(\alpha_b, \beta_b)} \, db \, da  \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-\int_0^1 \int_0^a
-\frac{a^{\alpha_a - 1} (1 - a)^{\beta_a - 1}}{B(\alpha_a, \beta_a)}
-\frac{b^{\alpha_b} (1 - b)^{\beta_b - 1}}{B(\alpha_b + 1, \beta_b)} \, db \, da \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-h(\alpha_b + 1, \beta_b, \alpha_a, \beta_a).
-\end{align}\]
-
-<p>Also,</p>
-
-\[L_2 =
-\frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-h(\alpha_b, \beta_b, \alpha_a + 1, \beta_a).\]
-
-<p>Assembling the integrals together, we obtain</p>
-
-\[\begin{align}
-E(U(A, B)) =
-&amp; w_g \, \frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-h(\alpha_a, \beta_a, \alpha_b + 1, \beta_b) - {} \\
-&amp; w_g \, \frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-h(\alpha_a + 1, \beta_a, \alpha_b, \beta_b) + {} \\
-&amp; w_l \, \frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-h(\alpha_b + 1, \beta_b, \alpha_a, \beta_a) - {} \\
-&amp; w_l \, \frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-h(\alpha_b, \beta_b, \alpha_a + 1, \beta_a).
-\end{align}\]
-
-<p>At this point, we could call it a day, but there is some room for
-simplification. Note that, in the case of the assumed linear model, we have the
-following relationship between \(G\) and \(L\):</p>
-
-\[\begin{align}
-G_1 - G_2
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-h(\alpha_a, \beta_a, \alpha_b + 1, \beta_b) -
-\frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-h(\alpha_a + 1, \beta_a, \alpha_b, \beta_b) \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)}
-(1 - h(\alpha_b + 1, \beta_b, \alpha_a, \beta_a)) -
-\frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)}
-(1 - h(\alpha_b, \beta_b, \alpha_a + 1, \beta_a)) \\
-&amp;=
-\frac{B(\alpha_b + 1, \beta_b)}{B(\alpha_b, \beta_b)} -
-\frac{B(\alpha_a + 1, \beta_a)}{B(\alpha_a, \beta_a)} -
-(L_1 - L_2) \\
-&amp;=
-\Delta - (L_1 - L_2)
-\end{align}\]
-
-<p>where \(\Delta\) is the different between the above two ratios of beta
-functions. Therefore,</p>
-
-\[\begin{align}
-E(U(A, B))
-&amp;= w_g (G_1 - G_2) + w_l (L_1 - L_2) \\
-&amp;= w_g (G_1 - G_2) + w_l (\Delta - (G_1 - G_2)) \\
-&amp;= (w_g - w_l) (G_1 - G_2) + w_l \, \Delta.
-\end{align}\]
-
-<h1 id="conclusion">Conclusion</h1>
-
-<p>The decision-maker is now better equipped to take action. Having obtained the
-posterior distributions of the conversion rates of the two variants, the derived
-formula allows one to assess whether variant B is worth switching to,
-considering its utility to the business at hand.</p>
-
-<p>The reason the expected utility \(E(U(A, B))\) can be evaluated in closed form
-in this case is the linearity of the utility function \(U(a, b)\). More nuanced
-preferences require a different approach. The most flexible candidate is
-simulation, which is straightforward and should arguably be the go-to tool
-regardless of the availability of a closed-form solution, as it is less
-error-prone.</p>
-
-<p>Please feel free to reach out if you have any thoughts or suggestions.</p>
-
-<h1 id="acknowledgments">Acknowledgments</h1>
-
-<p>This article is largely inspired by a series of excellent blog posts by <a href="http://www.evanmiller.org/bayesian-ab-testing.html">Evan
-Miller</a>, <a href="https://www.chrisstucchio.com/blog/2014/bayesian_ab_decision_rule.html">Chris Stucchio</a>, and <a href="http://varianceexplained.org/r/bayesian-ab-testing/">David Robinson</a>, which are strongly recommended.</p>
-
-<h1 id="references">References</h1>
-
-<ul>
-  <li>Chris Stucchio, “<a href="https://www.chrisstucchio.com/blog/2014/bayesian_ab_decision_rule.html">Easy evaluation of decision rules in Bayesian A/B
-testing</a>,” 2014.</li>
-  <li>David Robinson, “<a href="http://varianceexplained.org/r/bayesian-ab-testing/">Is Bayesian A/B testing immune to peeking? Not
-exactly</a>,” 2015.</li>
-  <li>Evan Miller, “<a href="http://www.evanmiller.org/bayesian-ab-testing.html">Formulas for Bayesian A/B testing</a>,” 2014.</li>
-</ul>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[It can be not only extremely useful but also deeply satisfying to occasionally dust off one’s math skills. In this article, we approach the classical problem of conversion rate optimization—which is frequently faced by companies operating online—and derive the expected utility of switching from variant A to variant B under some modeling assumptions. This information can subsequently be utilized in order to support the corresponding decision-making process.]]></summary></entry></feed>
+for Jupyter notebooks that run in the cloud: <a href="https://github.com/chain-rule/Datalab">Datalab</a>.</p>]]></content><author><name>Ivan Ukhov</name></author><summary type="html"><![CDATA[It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session.]]></summary></entry></feed>
