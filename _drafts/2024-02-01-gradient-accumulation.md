@@ -19,14 +19,30 @@ weight updates, which is undesirable. One solution is gradient accumulation
 where the weights are updated only after evaluating the gradients for several
 batches. In this article, we show how it can be implemented in TensorFlow.
 
+Long story short:
+
 ```python
 class CumulativeAdam(tf.keras.optimizers.Adam):
+    """Optimizer that implement the Adam algorithm with gradient accumulation."""
+
     def __init__(self, accumulation: int = 1, **options) -> None:
+        """Create an instance.
+
+        Arguments:
+          accumulation: The number of iteration to accumulate over. If it is
+          set to one, no accumulation is performed, and the gradients are
+          applied as soon as they are computed. If it is set to a value greater
+          than one, the gradients will be accumulated for the specified number
+          of iteration and only then applied, starting a new cycle.
+
+        All other arguments are passed to `tf.keras.optimizers.Adam`.
+        """
         super().__init__(**options)
         self.accumulation = accumulation
         self._gradients = None
 
     def build(self, variables: list[tf.Tensor]) -> None:
+        """Initialize the internal state for the given trainable variables."""
         super().build(variables)
         if self._gradients is None:
             self._gradients = [
@@ -35,12 +51,21 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
             ]
 
     def apply_gradients(self, pairs: list[tuple[tf.Tensor, tf.Tensor]]) -> tf.Tensor:
+        """Apply the gradients according to the accumulation scheme."""
+        # Split the gradients from the variables.
         gradients, variables = zip(*list(pairs))
+        # Perform the initialization if needed.
         self.build(variables)
+        # Compute a scaling factor that will reset the accumulation gradients at
+        # the beginning of each cycle and do nothing otherwise.
         scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
+        # Add the new gradients to the previous ones after scaling.
         for gradient, addition in zip(self._gradients, gradients):
             gradient.assign(scale * gradient + addition)
+        # Compute a scaling factor that will prevent the gradients from updating
+        # until the end of each cycle and do nothing otherwise.
         scale = tf.cast((self.iterations + 1) % self.accumulation == 0, tf.float32)
+        # Apply the gradients to the training variables after scaling.
         gradients = [scale * gradient for gradient in self._gradients]
         return super().apply_gradients(zip(gradients, variables))
 ```
