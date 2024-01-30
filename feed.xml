@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-30T13:56:45+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-01-30T13:57:23+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
 </subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, the common
 mitigation strategy is to reduce the batch size, thereby allowing more space for
@@ -16,11 +16,11 @@ batches. In this article, we show how it can be implemented in TensorFlow.</p>
         <span class="s">"""Create an instance.
 
         Arguments:
-          accumulation: The number of iteration to accumulate over. If it is
-          set to one, no accumulation is performed, and the gradients are
-          applied as soon as they are computed. If it is set to a value greater
-          than one, the gradients will be accumulated for the specified number
-          of iteration and only then applied, starting a new cycle.
+          accumulation: The number of iteration to accumulate over. If it is set
+          to one, no accumulation is performed, and the gradients are applied as
+          soon as they are computed. If it is set to a value greater than one,
+          the gradients will be accumulated for the specified number of
+          iteration and only then applied, starting a new cycle.
 
         All other arguments are passed to `tf.keras.optimizers.Adam`.
         """</span>
