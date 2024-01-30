@@ -8,8 +8,8 @@
 <meta property="og:title" content="Out of memory, or gradient accumulation for larger models" />
 <meta name="author" content="Ivan Ukhov" />
 <meta property="og:locale" content="en_US" />
-<meta name="description" content="When the model grows large and does not fit on a single device, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice." />
-<meta property="og:description" content="When the model grows large and does not fit on a single device, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice." />
+<meta name="description" content="When the model grows large and does not fit on a single device, and there are no more devices to spare, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice." />
+<meta property="og:description" content="When the model grows large and does not fit on a single device, and there are no more devices to spare, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice." />
 <link rel="canonical" href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" />
 <meta property="og:url" content="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" />
 <meta property="og:site_name" content="Good news, everyone!" />
@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary" />
 <meta property="twitter:title" content="Out of memory, or gradient accumulation for larger models" />
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2024-01-31T07:00:00+00:00","datePublished":"2024-01-31T07:00:00+00:00","description":"When the model grows large and does not fit on a single device, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice.","headline":"Out of memory, or gradient accumulation for larger models","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"},"url":"https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"}</script>
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2024-01-31T07:00:00+00:00","datePublished":"2024-01-31T07:00:00+00:00","description":"When the model grows large and does not fit on a single device, and there are no more devices to spare, the common mitigation strategy is to reduce the batch size, thereby allowing more space for the model at the expense of the data. However, smaller batches lead to noisier weight updates, which is undesirable. One solution is gradient accumulation where the weights are updated after evaluating the gradients for several batches at a time. In this article, we show how it can be implemented in practice.","headline":"Out of memory, or gradient accumulation for larger models","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"},"url":"https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"}</script>
 <!-- End Jekyll SEO tag -->
 <meta content="assets/favicon.png" property="og:image">
   <link rel="stylesheet" href="/assets/main.css">
@@ -62,12 +62,13 @@
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
-    <p>When the model grows large and does not fit on a single device, the common
-mitigation strategy is to reduce the batch size, thereby allowing more space for
-the model at the expense of the data. However, smaller batches lead to noisier
-weight updates, which is undesirable. One solution is gradient accumulation
-where the weights are updated after evaluating the gradients for several batches
-at a time. In this article, we show how it can be implemented in practice.</p>
+    <p>When the model grows large and does not fit on a single device, and there are no
+more devices to spare, the common mitigation strategy is to reduce the batch
+size, thereby allowing more space for the model at the expense of the data.
+However, smaller batches lead to noisier weight updates, which is undesirable.
+One solution is gradient accumulation where the weights are updated after
+evaluating the gradients for several batches at a time. In this article, we show
+how it can be implemented in practice.</p>
 
 <h1 id="solution">Solution</h1>
 
