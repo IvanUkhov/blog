@@ -23,7 +23,7 @@ Long story short:
 
 ```python
 class CumulativeAdam(tf.keras.optimizers.Adam):
-    """Optimizer that implement the Adam algorithm with gradient accumulation."""
+    """Optimizer that implements the Adam algorithm with gradient accumulation."""
 
     def __init__(self, accumulation: int = 1, **options) -> None:
         """Create an instance.
