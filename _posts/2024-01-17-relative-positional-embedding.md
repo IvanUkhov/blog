@@ -4,6 +4,7 @@ title: Relative positional embedding for any attention mechanism
 date: 2024-01-17T08:00:00+01:00
 math: true
 keywords:
+  - TensorFlow
   - large language models
   - machine learning
   - positional embedding

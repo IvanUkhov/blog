@@ -5,7 +5,8 @@ date: 2024-01-31T08:00:00+01:00
 math: true
 wide: true
 keywords:
-  - adam
+  - Adam
+  - TensorFlow
   - distributed systems
   - gradient
   - machine learning
@@ -16,8 +17,8 @@ When the model grows large and does not fit on a single device, the common
 mitigation strategy is to reduce the batch size, thereby allowing more space for
 the model at the expense of the data. However, smaller batches lead to noisier
 weight updates, which is undesirable. One solution is gradient accumulation
-where the weights are updated only after evaluating the gradients for several
-batches. In this article, we show how it can be implemented in TensorFlow.
+where the weights are updated after evaluating the gradients for several batches
+at a time. In this article, we show how it can be implemented in practice.
 
 # Solution
 
