@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Out of memory, or gradient accumulation for larger models
-date: 2024-02-01T08:00:00+01:00
+date: 2024-01-31T08:00:00+01:00
 math: true
 wide: true
 keywords:
@@ -41,31 +41,32 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
         self.accumulation = accumulation
         self._gradients = None
 
+    def apply_gradients(self, pairs: list[tuple[tf.Tensor, tf.Tensor]]) -> tf.Tensor:
+        """Apply the gradients according to the accumulation scheme."""
+        # Split off the gradients from the trainable variables.
+        gradients, variables = zip(*list(pairs))
+        # Perform the initialization if needed.
+        self.build(variables)
+        # Compute a scaling factor that will reset the accumulated gradients at
+        # the beginning of each cycle and do nothing otherwise.
+        scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
+        # Add the new gradients to the old ones after scaling.
+        for gradient, addition in zip(self._gradients, gradients):
+            gradient.assign(scale * gradient + addition)
+        # Compute a scaling factor that will prevent the weights from updating
+        # until the end of each cycle and do nothing otherwise.
+        scale = tf.cast((self.iterations + 1) % self.accumulation == 0, tf.float32)
+        # Apply the gradients to the trainable variables after scaling.
+        gradients = [scale * gradient for gradient in self._gradients]
+        return super().apply_gradients(zip(gradients, variables))
+
     def build(self, variables: list[tf.Tensor]) -> None:
         """Initialize the internal state for the given trainable variables."""
         super().build(variables)
         if self._gradients is None:
+            # Allocate memory for accumulation.
             self._gradients = [
                 tf.Variable(tf.zeros_like(variable), trainable=False)
                 for variable in variables
             ]
-
-    def apply_gradients(self, pairs: list[tuple[tf.Tensor, tf.Tensor]]) -> tf.Tensor:
-        """Apply the gradients according to the accumulation scheme."""
-        # Split the gradients from the variables.
-        gradients, variables = zip(*list(pairs))
-        # Perform the initialization if needed.
-        self.build(variables)
-        # Compute a scaling factor that will reset the accumulation gradients at
-        # the beginning of each cycle and do nothing otherwise.
-        scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
-        # Add the new gradients to the previous ones after scaling.
-        for gradient, addition in zip(self._gradients, gradients):
-            gradient.assign(scale * gradient + addition)
-        # Compute a scaling factor that will prevent the gradients from updating
-        # until the end of each cycle and do nothing otherwise.
-        scale = tf.cast((self.iterations + 1) % self.accumulation == 0, tf.float32)
-        # Apply the gradients to the training variables after scaling.
-        gradients = [scale * gradient for gradient in self._gradients]
-        return super().apply_gradients(zip(gradients, variables))
 ```
