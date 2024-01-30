@@ -59,8 +59,8 @@ in leisure time.</p>
 mitigation strategy is to reduce the batch size, thereby allowing more space for
 the model at the expense of the data. However, smaller batches lead to noisier
 weight updates, which is undesirable. One solution is gradient accumulation
-where the weights are updated only after evaluating the gradients for several
-batches. In this article, we show how it can be implemented in TensorFlow.</p>
+where the weights are updated after evaluating the gradients for several batches
+at a time. In this article, we show how it can be implemented in practice.</p>
 </li><li><span class="post-meta">January 17, 2024</span>
       <h3>
         <a class="post-link" href="/2024/01/17/relative-positional-embedding.html">
