@@ -70,3 +70,7 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
                 for variable in variables
             ]
 ```
+
+It is important to note that the learning rate is _not_ held constant during
+accumulation. However, since it is not expected to change much from one
+iteration to another, it is an adequate simplification.
