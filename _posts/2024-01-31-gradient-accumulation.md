@@ -19,6 +19,8 @@ weight updates, which is undesirable. One solution is gradient accumulation
 where the weights are updated only after evaluating the gradients for several
 batches. In this article, we show how it can be implemented in TensorFlow.
 
+# Solution
+
 Long story short:
 
 ```python
