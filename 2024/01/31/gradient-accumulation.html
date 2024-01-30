@@ -120,6 +120,10 @@ batches. In this article, we show how it can be implemented in TensorFlow.</p>
             <span class="p">]</span>
 </code></pre></div></div>
 
+<p>It is important to note that the learning rate is <em>not</em> held constant during
+accumulation. However, since it is not expected to change much from one
+iteration to another, it is an adequate simplification.</p>
+
   </div><div id="disqus_thread"></div>
   <script>
     var disqus_config = function () {
