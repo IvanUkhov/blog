@@ -29,11 +29,11 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
         """Create an instance.
 
         Arguments:
-          accumulation: The number of iteration to accumulate over. If it is
-          set to one, no accumulation is performed, and the gradients are
-          applied as soon as they are computed. If it is set to a value greater
-          than one, the gradients will be accumulated for the specified number
-          of iteration and only then applied, starting a new cycle.
+          accumulation: The number of iteration to accumulate over. If it is set
+          to one, no accumulation is performed, and the gradients are applied as
+          soon as they are computed. If it is set to a value greater than one,
+          the gradients will be accumulated for the specified number of
+          iteration and only then applied, starting a new cycle.
 
         All other arguments are passed to `tf.keras.optimizers.Adam`.
         """
