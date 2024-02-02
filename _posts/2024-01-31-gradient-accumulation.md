@@ -50,7 +50,8 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
         # Split off the gradients from the trainable variables.
         gradients, variables = zip(*list(pairs))
         # Perform the initialization if needed.
-        self.build(variables)
+        with tf.init_scope():
+            self.build(variables)
         # Compute a scaling factor that will reset the accumulated gradients at
         # the beginning of each cycle and do nothing otherwise.
         scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
@@ -70,7 +71,10 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
         if self._gradients is None:
             # Allocate memory for accumulation.
             self._gradients = [
-                tf.Variable(tf.zeros_like(variable), trainable=False)
+                self.add_variable_from_reference(
+                    model_variable=variable,
+                    variable_name="gradient",
+                )
                 for variable in variables
             ]
 ```
