@@ -98,7 +98,8 @@ how it can be implemented in practice.</p>
         <span class="c1"># Split off the gradients from the trainable variables.
 </span>        <span class="n">gradients</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">pairs</span><span class="p">))</span>
         <span class="c1"># Perform the initialization if needed.
-</span>        <span class="bp">self</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+</span>        <span class="k">with</span> <span class="n">tf</span><span class="p">.</span><span class="n">init_scope</span><span class="p">():</span>
+            <span class="bp">self</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
         <span class="c1"># Compute a scaling factor that will reset the accumulated gradients at
 </span>        <span class="c1"># the beginning of each cycle and do nothing otherwise.
 </span>        <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">tf</span><span class="p">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">float32</span><span class="p">)</span>
@@ -118,7 +119,10 @@ how it can be implemented in practice.</p>
         <span class="k">if</span> <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c1"># Allocate memory for accumulation.
 </span>            <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="n">tf</span><span class="p">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">variable</span><span class="p">),</span> <span class="n">trainable</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="bp">self</span><span class="p">.</span><span class="n">add_variable_from_reference</span><span class="p">(</span>
+                    <span class="n">model_variable</span><span class="o">=</span><span class="n">variable</span><span class="p">,</span>
+                    <span class="n">variable_name</span><span class="o">=</span><span class="s">"gradient"</span><span class="p">,</span>
+                <span class="p">)</span>
                 <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">variables</span>
             <span class="p">]</span>
 </code></pre></div></div>
