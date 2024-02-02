@@ -74,7 +74,8 @@ how it can be implemented in practice.</p>
 
 <p>Long story short:</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">CumulativeAdam</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="n">Adam</span><span class="p">):</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Inherit from any optimizer of choice, such as Adam.
+</span><span class="k">class</span> <span class="nc">Optimizer</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="n">Adam</span><span class="p">):</span>
     <span class="s">"""Optimizer that implements the Adam algorithm with gradient accumulation."""</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
@@ -130,6 +131,12 @@ how it can be implemented in practice.</p>
 <p>It is important to note that the learning rate is <em>not</em> held constant during
 accumulation. However, since it is not expected to change much from one
 iteration to another, it is an adequate simplification.</p>
+
+<h1 id="acknowledgments">Acknowledgments</h1>
+
+<p>I would like to thank <a href="https://github.com/andreped">André Pedersen</a> and <a href="https://github.com/tno123">Tor-Arne Nordmo</a> for their help with
+the implementation.</p>
+
 
   </div><div id="disqus_thread"></div>
   <script>
