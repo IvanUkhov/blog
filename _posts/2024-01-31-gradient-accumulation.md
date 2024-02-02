@@ -26,7 +26,8 @@ how it can be implemented in practice.
 Long story short:
 
 ```python
-class CumulativeAdam(tf.keras.optimizers.Adam):
+# Inherit from any optimizer of choice, such as Adam.
+class Optimizer(tf.keras.optimizers.Adam):
     """Optimizer that implements the Adam algorithm with gradient accumulation."""
 
     def __init__(self, accumulation: int = 1, **options) -> None:
@@ -82,3 +83,11 @@ class CumulativeAdam(tf.keras.optimizers.Adam):
 It is important to note that the learning rate is _not_ held constant during
 accumulation. However, since it is not expected to change much from one
 iteration to another, it is an adequate simplification.
+
+# Acknowledgments
+
+I would like to thank [André Pedersen] and [Tor-Arne Nordmo] for their help with
+the implementation.
+
+[André Pedersen]: https://github.com/andreped
+[Tor-Arne Nordmo]: https://github.com/tno123
