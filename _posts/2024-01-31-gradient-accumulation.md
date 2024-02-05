@@ -67,7 +67,7 @@ class Optimizer(tf.keras.optimizers.Adam):
         return super().apply_gradients(zip(gradients, variables))
 
     def build(self, variables: list[tf.Tensor]) -> None:
-        """Initialize the internal state for the given trainable variables."""
+        """Initialize the internal state."""
         super().build(variables)
         if self._gradients is None:
             # Allocate memory for accumulation.
@@ -81,6 +81,7 @@ class Optimizer(tf.keras.optimizers.Adam):
 
     @tf.function
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
+        """Update the internal state."""
         # Allow the internal state to change only at the end of each cycle.
         if (self.iterations + 1) % self.accumulation == 0:
             super().update_step(gradient, variable)
