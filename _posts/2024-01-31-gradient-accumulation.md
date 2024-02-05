@@ -28,7 +28,7 @@ Long story short:
 ```python
 # Inherit from any optimizer of choice, such as Adam.
 class Optimizer(tf.keras.optimizers.Adam):
-    """Optimizer that implements the Adam algorithm with gradient accumulation."""
+    """Optimizer that implements gradient accumulation."""
 
     def __init__(self, accumulation: int = 1, **options) -> None:
         """Create an instance.
@@ -40,7 +40,7 @@ class Optimizer(tf.keras.optimizers.Adam):
           greater than one, the gradients will be accumulated for the specified
           number of iterations and only then applied, starting a new cycle.
 
-        All other arguments are passed to `tf.keras.optimizers.Adam`.
+        All other arguments are passed to the base optimizer.
         """
         super().__init__(**options)
         self.accumulation = accumulation
