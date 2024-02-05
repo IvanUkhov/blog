@@ -78,6 +78,12 @@ class Optimizer(tf.keras.optimizers.Adam):
                 )
                 for variable in variables
             ]
+
+    @tf.function
+    def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
+        # Allow the internal state to change only at the end of each cycle.
+        if (self.iterations + 1) % self.accumulation == 0:
+            super().update_step(gradient, variable)
 ```
 
 It is important to note that the learning rate is _not_ held constant during
@@ -86,8 +92,9 @@ iteration to another, it is an adequate simplification.
 
 # Acknowledgments
 
-I would like to thank [André Pedersen] and [Tor-Arne Nordmo] for their help with
-the implementation.
+I would like to thank [André Pedersen], [Axel Roebel], and [Tor-Arne Nordmo] for
+their help with the implementation.
 
 [André Pedersen]: https://github.com/andreped
+[Axel Roebel]: https://github.com/roebel
 [Tor-Arne Nordmo]: https://github.com/tno123
