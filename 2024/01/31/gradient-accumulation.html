@@ -126,6 +126,12 @@ how it can be implemented in practice.</p>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">variables</span>
             <span class="p">]</span>
+
+    <span class="o">@</span><span class="n">tf</span><span class="p">.</span><span class="n">function</span>
+    <span class="k">def</span> <span class="nf">update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="c1"># Allow the internal state to change only at the end of each cycle.
+</span>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">().</span><span class="n">update_step</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
 </code></pre></div></div>
 
 <p>It is important to note that the learning rate is <em>not</em> held constant during
@@ -134,8 +140,8 @@ iteration to another, it is an adequate simplification.</p>
 
 <h1 id="acknowledgments">Acknowledgments</h1>
 
-<p>I would like to thank <a href="https://github.com/andreped">André Pedersen</a> and <a href="https://github.com/tno123">Tor-Arne Nordmo</a> for their help with
-the implementation.</p>
+<p>I would like to thank <a href="https://github.com/andreped">André Pedersen</a>, <a href="https://github.com/roebel">Axel Roebel</a>, and <a href="https://github.com/tno123">Tor-Arne Nordmo</a> for
+their help with the implementation.</p>
 
 
   </div><div id="disqus_thread"></div>
