@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-02-02T09:10:35+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2024-02-05T10:08:02+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
 </subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, and there are no
 more devices to spare, the common mitigation strategy is to reduce the batch
@@ -14,7 +14,7 @@ how it can be implemented in practice.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Inherit from any optimizer of choice, such as Adam.
 </span><span class="k">class</span> <span class="nc">Optimizer</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">optimizers</span><span class="p">.</span><span class="n">Adam</span><span class="p">):</span>
-    <span class="s">"""Optimizer that implements the Adam algorithm with gradient accumulation."""</span>
+    <span class="s">"""Optimizer that implements gradient accumulation."""</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="s">"""Create an instance.
@@ -26,7 +26,7 @@ how it can be implemented in practice.</p>
           greater than one, the gradients will be accumulated for the specified
           number of iterations and only then applied, starting a new cycle.
 
-        All other arguments are passed to `tf.keras.optimizers.Adam`.
+        All other arguments are passed to the base optimizer.
         """</span>
         <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">options</span><span class="p">)</span>
         <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
