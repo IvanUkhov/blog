@@ -46,7 +46,9 @@ class Optimizer(tf.keras.optimizers.Adam):
         self.accumulation = accumulation
         self._gradients = None
 
-    def apply_gradients(self, pairs: list[tuple[tf.Tensor, tf.Tensor]]) -> tf.Tensor:
+    def apply_gradients(
+        self, pairs: list[tuple[tf.Tensor, tf.Tensor]], **options
+    ) -> tf.Tensor:
         """Apply the gradients according to the accumulation scheme."""
         # Split off the gradients from the trainable variables.
         gradients, variables = zip(*list(pairs))
@@ -59,12 +61,8 @@ class Optimizer(tf.keras.optimizers.Adam):
         # Add the new gradients to the old ones after scaling.
         for gradient, addition in zip(self._gradients, gradients):
             gradient.assign(scale * gradient + addition)
-        # Compute a scaling factor that will prevent the weights from updating
-        # until the end of each cycle and do nothing otherwise.
-        scale = tf.cast((self.iterations + 1) % self.accumulation == 0, tf.float32)
-        # Apply the gradients to the trainable variables after scaling.
-        gradients = [scale * gradient for gradient in self._gradients]
-        return super().apply_gradients(zip(gradients, variables))
+        # Apply the accumulated gradients to the trainable variables.
+        return super().apply_gradients(zip(self._gradients, variables), **options)
 
     def build(self, variables: list[tf.Tensor]) -> None:
         """Initialize the internal state."""
@@ -81,10 +79,16 @@ class Optimizer(tf.keras.optimizers.Adam):
 
     @tf.function
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
-        """Update the internal state."""
-        # Allow the internal state to change only at the end of each cycle.
+        """Update the trainable variable with the gradient."""
+        # Allow the update to happen only at the end of each cycle.
         if (self.iterations + 1) % self.accumulation == 0:
             super().update_step(gradient, variable)
+
+    def get_config(self) -> dict:
+        """Return the configuration."""
+        config = super().get_config()
+        config.update({"accumulation": self.accumulation})
+        return config
 ```
 
 It is important to note that the learning rate is _not_ held constant during
