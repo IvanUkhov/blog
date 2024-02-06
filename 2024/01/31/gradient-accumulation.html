@@ -95,11 +95,11 @@ how it can be implemented in practice.</p>
         <span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">apply_gradients</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]],</span> <span class="o">**</span><span class="n">options</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">gradients_variables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">]],</span> <span class="o">**</span><span class="n">options</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="s">"""Apply the gradients according to the accumulation scheme."""</span>
         <span class="c1"># Split off the gradients from the trainable variables.
-</span>        <span class="n">gradients</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">pairs</span><span class="p">))</span>
+</span>        <span class="n">gradients</span><span class="p">,</span> <span class="n">variables</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="nb">list</span><span class="p">(</span><span class="n">gradients_variables</span><span class="p">))</span>
         <span class="c1"># Perform the initialization if needed.
 </span>        <span class="k">with</span> <span class="n">tf</span><span class="p">.</span><span class="n">init_scope</span><span class="p">():</span>
             <span class="bp">self</span><span class="p">.</span><span class="n">build</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
@@ -111,6 +111,13 @@ how it can be implemented in practice.</p>
             <span class="n">gradient</span><span class="p">.</span><span class="n">assign</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">gradient</span> <span class="o">+</span> <span class="n">addition</span><span class="p">)</span>
         <span class="c1"># Apply the accumulated gradients to the trainable variables.
 </span>        <span class="k">return</span> <span class="nb">super</span><span class="p">().</span><span class="n">apply_gradients</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_gradients</span><span class="p">,</span> <span class="n">variables</span><span class="p">),</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+
+    <span class="o">@</span><span class="n">tf</span><span class="p">.</span><span class="n">function</span>
+    <span class="k">def</span> <span class="nf">update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="s">"""Update the trainable variable with the gradient."""</span>
+        <span class="c1"># Allow the update to happen only at the end of each cycle.
+</span>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">().</span><span class="n">update_step</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="s">"""Initialize the internal state."""</span>
@@ -124,13 +131,6 @@ how it can be implemented in practice.</p>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">variables</span>
             <span class="p">]</span>
-
-    <span class="o">@</span><span class="n">tf</span><span class="p">.</span><span class="n">function</span>
-    <span class="k">def</span> <span class="nf">update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="s">"""Update the trainable variable with the gradient."""</span>
-        <span class="c1"># Allow the update to happen only at the end of each cycle.
-</span>        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">().</span><span class="n">update_step</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">get_config</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
         <span class="s">"""Return the configuration."""</span>
