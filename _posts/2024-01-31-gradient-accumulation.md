@@ -47,7 +47,7 @@ class Optimizer(tf.keras.optimizers.Adam):
         self._gradients = None
 
     def apply_gradients(
-        self, gradients_variables: list[tuple[tf.Tensor, tf.Tensor]], **options
+        self, gradients_variables: list[tuple[tf.Tensor, tf.Tensor]],
     ) -> tf.Tensor:
         """Apply the gradients according to the accumulation scheme."""
         # Split off the gradients from the trainable variables.
@@ -62,7 +62,7 @@ class Optimizer(tf.keras.optimizers.Adam):
         for gradient, addition in zip(self._gradients, gradients):
             gradient.assign(scale * gradient + addition)
         # Apply the accumulated gradients to the trainable variables.
-        return super().apply_gradients(zip(self._gradients, variables), **options)
+        return super().apply_gradients(zip(self._gradients, variables))
 
     @tf.function
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
@@ -83,12 +83,6 @@ class Optimizer(tf.keras.optimizers.Adam):
                 )
                 for variable in variables
             ]
-
-    def get_config(self) -> dict:
-        """Return the configuration."""
-        config = super().get_config()
-        config.update({"accumulation": self.accumulation})
-        return config
 ```
 
 It is important to note that the learning rate is _not_ held constant during
