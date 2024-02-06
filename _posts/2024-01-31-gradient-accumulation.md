@@ -58,7 +58,7 @@ class Optimizer(tf.keras.optimizers.Adam):
         # Compute a scaling factor that will reset the accumulated gradients at
         # the beginning of each cycle and do nothing otherwise.
         scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
-        # Add the new gradients to the old ones after scaling.
+        # Add the new gradients to the old ones after scaling with averaging.
         for gradient, increment in zip(self._gradients, gradients):
             gradient.assign(scale * gradient + increment / self.accumulation)
         # Apply the average accumulated gradients to the trainable variables.
