@@ -47,7 +47,7 @@ class Optimizer(tf.keras.optimizers.Adam):
         self._gradients = None
 
     def apply_gradients(
-        self, gradients_variables: list[tuple[tf.Tensor, tf.Tensor]],
+        self, gradients_variables: list[tuple[tf.Tensor, tf.Tensor]]
     ) -> tf.Tensor:
         """Apply the gradients according to the accumulation scheme."""
         # Split off the gradients from the trainable variables.
