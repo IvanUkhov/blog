@@ -47,11 +47,11 @@ class Optimizer(tf.keras.optimizers.Adam):
         self._gradients = None
 
     def apply_gradients(
-        self, pairs: list[tuple[tf.Tensor, tf.Tensor]], **options
+        self, gradients_variables: list[tuple[tf.Tensor, tf.Tensor]], **options
     ) -> tf.Tensor:
         """Apply the gradients according to the accumulation scheme."""
         # Split off the gradients from the trainable variables.
-        gradients, variables = zip(*list(pairs))
+        gradients, variables = zip(*list(gradients_variables))
         # Perform the initialization if needed.
         with tf.init_scope():
             self.build(variables)
@@ -63,6 +63,13 @@ class Optimizer(tf.keras.optimizers.Adam):
             gradient.assign(scale * gradient + addition)
         # Apply the accumulated gradients to the trainable variables.
         return super().apply_gradients(zip(self._gradients, variables), **options)
+
+    @tf.function
+    def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
+        """Update the trainable variable with the gradient."""
+        # Allow the update to happen only at the end of each cycle.
+        if (self.iterations + 1) % self.accumulation == 0:
+            super().update_step(gradient, variable)
 
     def build(self, variables: list[tf.Tensor]) -> None:
         """Initialize the internal state."""
@@ -76,13 +83,6 @@ class Optimizer(tf.keras.optimizers.Adam):
                 )
                 for variable in variables
             ]
-
-    @tf.function
-    def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
-        """Update the trainable variable with the gradient."""
-        # Allow the update to happen only at the end of each cycle.
-        if (self.iterations + 1) % self.accumulation == 0:
-            super().update_step(gradient, variable)
 
     def get_config(self) -> dict:
         """Return the configuration."""
