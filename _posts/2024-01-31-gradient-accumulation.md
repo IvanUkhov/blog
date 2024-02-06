@@ -61,8 +61,9 @@ class Optimizer(tf.keras.optimizers.Adam):
         # Add the new gradients to the old ones after scaling.
         for gradient, addition in zip(self._gradients, gradients):
             gradient.assign(scale * gradient + addition)
-        # Apply the accumulated gradients to the trainable variables.
-        return super().apply_gradients(zip(self._gradients, variables))
+        # Apply the gradients to the trainable variables after scaling.
+        gradients = [gradient / self.accumulation for gradient in self._gradients]
+        return super().apply_gradients(zip(gradients, variables))
 
     @tf.function
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
