@@ -26,8 +26,8 @@ how it can be implemented in practice.
 Long story short:
 
 ```python
-# Inherit from any optimizer of choice.
-class Optimizer(tf.keras.optimizers.SGD):
+# Inherit from any optimizer of choice, such as Adam.
+class Optimizer(tf.keras.optimizers.Adam):
     """Optimizer that implements gradient accumulation."""
 
     def __init__(self, accumulation: int = 1, **options) -> None:
@@ -44,6 +44,7 @@ class Optimizer(tf.keras.optimizers.SGD):
         """
         super().__init__(**options)
         self.accumulation = accumulation
+        self._accumulation = None
         self._gradients = None
 
     def apply_gradients(
@@ -55,27 +56,34 @@ class Optimizer(tf.keras.optimizers.SGD):
         # Perform the initialization if needed.
         with tf.init_scope():
             self.build(variables)
-        # Compute a scaling factor that will reset the accumulated gradients at
-        # the beginning of each cycle and do nothing otherwise.
-        scale = 1 - tf.cast(self.iterations % self.accumulation == 0, tf.float32)
-        # Add the new gradients to the old ones after scaling.
+        first = self._accumulation % self.accumulation == 0
+        last = (self._accumulation + 1) % self.accumulation == 0
+        # Add the new gradients to the old ones with resetting if needed.
         for gradient, increment in zip(self._gradients, gradients):
-            gradient.assign(scale * gradient + increment)
+            gradient.assign(tf.cast(~first, tf.float32) * gradient + increment)
         # Apply the average accumulated gradients to the trainable variables.
         gradients = [gradient / self.accumulation for gradient in self._gradients]
-        return super().apply_gradients(zip(gradients, variables))
+        super().apply_gradients(zip(gradients, variables))
+        # Decrement the base counter incremented by the application if needed.
+        self.iterations.assign_sub(tf.cast(~last, tf.int64))
+        # Increment the accumulation counter.
+        self._accumulation.assign_add(1)
+        return self.iterations
 
     @tf.function
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
         """Update the trainable variable with the gradient."""
+        last = (self._accumulation + 1) % self.accumulation == 0
         # Allow the update to happen only at the end of each cycle.
-        if (self.iterations + 1) % self.accumulation == 0:
+        if last:
             super().update_step(gradient, variable)
 
     def build(self, variables: list[tf.Tensor]) -> None:
         """Initialize the internal state."""
         super().build(variables)
         if self._gradients is None:
+            # Create a counter for tracking accumulation.
+            self._accumulation = self.add_variable(shape=(), dtype=tf.int64)
             # Allocate memory for accumulation.
             self._gradients = [
                 self.add_variable_from_reference(
