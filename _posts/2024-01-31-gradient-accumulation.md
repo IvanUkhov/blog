@@ -26,8 +26,8 @@ how it can be implemented in practice.
 Long story short:
 
 ```python
-# Inherit from any optimizer of choice, such as Adam.
-class Optimizer(tf.keras.optimizers.Adam):
+# Inherit from any optimizer of choice.
+class Optimizer(tf.keras.optimizers.SGD):
     """Optimizer that implements gradient accumulation."""
 
     def __init__(self, accumulation: int = 1, **options) -> None:
