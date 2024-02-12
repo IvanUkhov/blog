@@ -73,12 +73,9 @@ class Optimizer(tf.keras.optimizers.Adam):
     def update_step(self, gradient: tf.Tensor, variable: tf.Tensor) -> None:
         """Update the trainable variable with the gradient."""
         update_step = super().update_step
+        last = (self._accumulation + 1) % self.accumulation == 0
         # Allow the update to happen only at the end of each cycle.
-        tf.cond(
-            (self._accumulation + 1) % self.accumulation == 0,
-            lambda: update_step(gradient, variable),
-            lambda: None,
-        )
+        tf.cond(last, lambda: update_step(gradient, variable), lambda: None)
 
     def build(self, variables: list[tf.Tensor]) -> None:
         """Initialize the internal state."""
