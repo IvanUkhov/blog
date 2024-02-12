@@ -118,13 +118,15 @@ how it can be implemented in practice.</p>
 </span>        <span class="bp">self</span><span class="p">.</span><span class="n">_accumulation</span><span class="p">.</span><span class="n">assign_add</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="p">.</span><span class="n">iterations</span>
 
-    <span class="o">@</span><span class="n">tf</span><span class="p">.</span><span class="n">function</span>
     <span class="k">def</span> <span class="nf">update_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gradient</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">variable</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="s">"""Update the trainable variable with the gradient."""</span>
-        <span class="n">last</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_accumulation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">update_step</span> <span class="o">=</span> <span class="nb">super</span><span class="p">().</span><span class="n">update_step</span>
         <span class="c1"># Allow the update to happen only at the end of each cycle.
-</span>        <span class="k">if</span> <span class="n">last</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">().</span><span class="n">update_step</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">variable</span><span class="p">)</span>
+</span>        <span class="n">tf</span><span class="p">.</span><span class="n">cond</span><span class="p">(</span>
+            <span class="p">(</span><span class="bp">self</span><span class="p">.</span><span class="n">_accumulation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="p">.</span><span class="n">accumulation</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="n">update_step</span><span class="p">(</span><span class="n">gradient</span><span class="p">,</span> <span class="n">variable</span><span class="p">),</span>
+            <span class="k">lambda</span><span class="p">:</span> <span class="bp">None</span><span class="p">,</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">variables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
         <span class="s">"""Initialize the internal state."""</span>
