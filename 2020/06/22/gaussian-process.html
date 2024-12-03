@@ -184,14 +184,14 @@ half-Gaussian or a half-Student’s t distribution:</p>
 
 <p>The notation means that the standard Gaussian distribution is truncated at zero
 and renormalized. The nontrivial mass around zero implied by the prior is
-considered to be beneficial in this case.<sup id="fnref:1" role="doc-noteref"><a href="#fn:1" class="footnote" rel="footnote">1</a></sup></p>
+considered to be beneficial in this case.<sup id="fnref:1"><a href="#fn:1" class="footnote" rel="footnote" role="doc-noteref">1</a></sup></p>
 
 <p>A prior for the length scale of the covariance function,
 \(\ell_\text{process}\), should be chosen with care. Small values—especially,
 those below the resolution of the data—give the Gaussian process extreme
 flexibility and easily leads to overfitting. Moreover, there are numerical
 ramifications of the length scale approaching zero as well: the quality of
-Hamiltonian Monte Carlo sampling degrades.<sup id="fnref:2" role="doc-noteref"><a href="#fn:2" class="footnote" rel="footnote">2</a></sup> The bottom line is that a prior
+Hamiltonian Monte Carlo sampling degrades.<sup id="fnref:2"><a href="#fn:2" class="footnote" rel="footnote" role="doc-noteref">2</a></sup> The bottom line is that a prior
 penalizing values close to zero is needed. A reasonable choice is an inverse
 gamma distribution:</p>
 
@@ -468,11 +468,11 @@ University Press, 2003.</li>
 
 <div class="footnotes" role="doc-endnotes">
   <ol>
-    <li id="fn:1" role="doc-endnote">
+    <li id="fn:1">
       <p>“<a href="https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-marginal-standard-deviation">Priors for marginal standard deviation</a>,”
   Stan User’s Guide, 2020. <a href="#fnref:1" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
     </li>
-    <li id="fn:2" role="doc-endnote">
+    <li id="fn:2">
       <p>“<a href="https://mc-stan.org/docs/2_19/stan-users-guide/fit-gp-section.html#priors-for-length-scale">Priors for length-scale</a>,” Stan User’s Guide,
   2020. <a href="#fnref:2" class="reversefootnote" role="doc-backlink">&#8617;</a></p>
     </li>
