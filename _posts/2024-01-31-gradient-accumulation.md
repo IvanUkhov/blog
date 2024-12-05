@@ -101,10 +101,10 @@ It is important to note that the learning rate keeps on changing (if variable)
 and the weights keep on decaying (if enabled) during accumulation. Therefore,
 one should account for this when configuring the optimizer at hand.
 
-One should also note that Keras does support gradient accumulation, which is
-controlled via the `gradient_accumulation_steps` option of optimizers. However,
-it does not play well with distributed training strategies, which will hopefully
-be rectified in the future.
+One should also note that TensorFlow does support gradient accumulation as of
+version 2.16, which is controlled by the `gradient_accumulation_steps` option of
+Keras optimizers. However, it does not play well with distributed training
+strategies, which will hopefully be rectified in the future.
 
 # Acknowledgments
 
