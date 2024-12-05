@@ -149,10 +149,10 @@ how it can be implemented in practice.</p>
 and the weights keep on decaying (if enabled) during accumulation. Therefore,
 one should account for this when configuring the optimizer at hand.</p>
 
-<p>One should also note that Keras does support gradient accumulation, which is
-controlled via the <code class="language-plaintext highlighter-rouge">gradient_accumulation_steps</code> option of optimizers. However,
-it does not play well with distributed training strategies, which will hopefully
-be rectified in the future.</p>
+<p>One should also note that TensorFlow does support gradient accumulation as of
+version 2.16, which is controlled by the <code class="language-plaintext highlighter-rouge">gradient_accumulation_steps</code> option of
+Keras optimizers. However, it does not play well with distributed training
+strategies, which will hopefully be rectified in the future.</p>
 
 <h1 id="acknowledgments">Acknowledgments</h1>
 
