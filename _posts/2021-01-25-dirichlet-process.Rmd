@@ -25,6 +25,9 @@ cache_directory <- '../_caches'
 dir.create(cache_directory, showWarnings = FALSE)
 
 theme_set(theme_minimal(base_size = 14))
+
+draw_count <- 10000
+warmup_proportion <- 0.1
 ```
 
 Recall the last time you wanted to understand the distribution of given data.
@@ -274,7 +277,7 @@ curves show the cumulative distribution function of the data as a reference):
 set.seed(42)
 
 tibble(lambda = c(1, 10, 100, 1000)) %>%
-  mutate(data = map(lambda, ~ sample_DP(l = 10000,
+  mutate(data = map(lambda, ~ sample_DP(l = draw_count,
                                         nu = nu_prior(lambda = .x,
                                                       mu0 = 20,
                                                       sigma0 = 5)))) %>%
@@ -302,7 +305,7 @@ distributions with different $$\lambda$$’s:
 set.seed(42)
 
 tibble(lambda = c(1, 10, 100, 1000)) %>%
-  mutate(data = map(lambda, ~ sample_DP(l = 10000,
+  mutate(data = map(lambda, ~ sample_DP(l = draw_count,
                                         nu = nu_posterior(data$x,
                                                           lambda = .x,
                                                           mu0 = 20,
@@ -513,7 +516,7 @@ illustrates the prior for the mean of a component:
 ```{r mixture-prior-mu}
 set.seed(42)
 
-sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
+sample_Ptheta_prior(draw_count, mu0 = 20, kappa0 = 0.01) %>%
   ggplot() +
   geom_vline(aes(xintercept = mean(data$x), color = 'Observation'), size = 1) +
   stat_density(aes(mu, color = 'Model'),
@@ -537,7 +540,7 @@ deviation of a component:
 ```{r mixture-prior-sigma}
 set.seed(42)
 
-sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
+sample_Ptheta_prior(draw_count, mu0 = 20, kappa0 = 0.01) %>%
   ggplot() +
   geom_vline(aes(xintercept = sd(data$x), color = 'Observation'), size = 1) +
   stat_density(aes(sigma, color = 'Model'),
@@ -580,7 +583,7 @@ respectively, which entails the following prior assumption about $$\lambda$$:
 ```{r mixture-prior-lambda}
 set.seed(42)
 
-tibble(lambda = sample_Plambda_prior(1000)) %>%
+tibble(lambda = sample_Plambda_prior(draw_count)) %>%
   ggplot() +
   geom_density(aes(lambda), color = 'gray30', size = 1) +
   labs(x = TeX('Concentration parameter, $\\lambda$'),
@@ -594,23 +597,23 @@ The parameter is allowed to vary freely from small to large values, as desired.
 Having chosen all priors and their hyperparameters, we are ready to investigate
 the behavior of the entire model; see Equations (6), (7), and (9). In what
 follows, we shall limit the number of mixture components to 25; that is, $$m =
-25$$. Furthermore, we shall perform 2000 Gibbs iterations and discard the first
-half as a warm-up period. As before, we start without conditioning on the data
+25$$. Furthermore, we shall perform 10000 Gibbs iterations and discard the first
+1000 as a warm-up period. As before, we start without conditioning on the data
 to observe draws from the prior itself. The following figure shows two sample
 draws:
 
 ```{r mixture-prior-check}
-set.seed(42)
+set.seed(42 + 2)
 
 cache_path <- file.path(cache_directory, 'mixture-prior.RData')
 if (!file.exists(cache_path)) {
-  draws0 <- sample_DPM(data$x, 25, 2000, mu0 = 20, kappa0 = 0.01, prior_only = TRUE)
+  draws0 <- sample_DPM(data$x, 25, draw_count, mu0 = 20, kappa0 = 0.01, prior_only = TRUE)
   save(draws0, file = cache_path)
 } else {
   load(cache_path)
 }
 
-check_predictive(sample(tail(draws0, length(draws0) / 2), 2), data)
+check_predictive(sample(tail(draws0, (1 - warmup_proportion) * length(draws0)), 2), data)
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg)
@@ -618,20 +621,20 @@ check_predictive(sample(tail(draws0, length(draws0) / 2), 2), data)
 It can be seen that clusters of galaxies can appear anywhere in the region of
 interest and can be of various sizes. We conclude that the prior is adequate.
 When taking the observed velocities into account, we obtain a full posterior
-distribution in the form of 1000 draws. The following shows two random draws:
+distribution in the form of 9000 draws. The following shows two random draws:
 
 ```{r mixture-posterior-check}
 set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-posterior.RData')
 if (!file.exists(cache_path)) {
-  draws <- sample_DPM(data$x, 25, 10000, mu0 = 20, kappa0 = 0.01)
+  draws <- sample_DPM(data$x, 25, draw_count, mu0 = 20, kappa0 = 0.01)
   save(draws, file = cache_path)
 } else {
   load(cache_path)
 }
 
-check_predictive(sample(tail(draws, length(draws) / 2), 2), data)
+check_predictive(sample(tail(draws, (1 - warmup_proportion) * length(draws)), 2), data)
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg)
@@ -681,10 +684,9 @@ Let us now take a look at the posterior distributions of the first 10 components
 (note the different scales on the vertical axes):
 
 ```{r mixture-posterior-mu, fig.asp = 3}
-burnin_proportion <- 0.1
 component_count = 10
 
-tail(draws, (1 - burnin_proportion) * length(draws)) %>%
+tail(draws, (1 - warmup_proportion) * length(draws)) %>%
   sapply(function(draw) draw$theta$mu[1:component_count], simplify = FALSE) %>%
   { do.call(rbind, .) } %>%
   as_tibble() %>%
@@ -728,7 +730,7 @@ set.seed(42)
 cache_path <- file.path(cache_directory, 'mixture-posterior-summarized.RData')
 if (!file.exists(cache_path)) {
   draws_summarized <- summarize_inference(
-    tail(draws, (1 - burnin_proportion) * length(draws)), data
+    tail(draws, (1 - warmup_proportion) * length(draws)), data
   )
   save(draws_summarized, file = cache_path)
 } else {

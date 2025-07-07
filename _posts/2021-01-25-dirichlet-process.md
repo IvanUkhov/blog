@@ -492,8 +492,8 @@ The parameter is allowed to vary freely from small to large values, as desired.
 Having chosen all priors and their hyperparameters, we are ready to investigate
 the behavior of the entire model; see Equations (6), (7), and (9). In what
 follows, we shall limit the number of mixture components to 25; that is, $$m =
-25$$. Furthermore, we shall perform 2000 Gibbs iterations and discard the first
-half as a warm-up period. As before, we start without conditioning on the data
+25$$. Furthermore, we shall perform 10000 Gibbs iterations and discard the first
+1000 as a warm-up period. As before, we start without conditioning on the data
 to observe draws from the prior itself. The following figure shows two sample
 draws:
 
@@ -504,7 +504,7 @@ draws:
 It can be seen that clusters of galaxies can appear anywhere in the region of
 interest and can be of various sizes. We conclude that the prior is adequate.
 When taking the observed velocities into account, we obtain a full posterior
-distribution in the form of 1000 draws. The following shows two random draws:
+distribution in the form of 9000 draws. The following shows two random draws:
 
 
 
