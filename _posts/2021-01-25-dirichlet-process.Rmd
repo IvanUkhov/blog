@@ -189,7 +189,7 @@ estimation.
 
 ## Illustration
 
-```{r data, include = FALSE}
+```{r data}
 data <- tibble(x = galaxies / 1000)
 ```
 
@@ -205,7 +205,7 @@ reference point.
 
 The empirical cumulative distribution function of the velocity is as follows:
 
-```{r data-cdf, include = FALSE}
+```{r data-cdf}
 ggplot() +
   geom_observation(data) +
   labs(x = TeX('Velocity ($10^6$ m/s)'),
@@ -221,7 +221,7 @@ distinct regions, one to the left and one to the right, where the curve is flat,
 meaning there are no observations there. The proverbial histogram gives a
 confirmation:
 
-```{r data-histogram, include = FALSE}
+```{r data-histogram}
 ggplot() +
   geom_observation(data, type = 'histogram') +
   labs(x = TeX('Velocity ($10^6$ m/s)'),
@@ -237,7 +237,7 @@ relatively fast compared to the majority located somewhere in the middle around
 twenty thousand kilometers per second. For completeness, kernel density
 estimation results in the following plot:
 
-```{r data-kde, include = FALSE}
+```{r data-kde}
 ggplot(data, aes(x)) +
   geom_density(color = 'gray70', size = 1) +
   labs(x = TeX('Velocity ($10^6$ m/s)'),
@@ -270,7 +270,7 @@ prior itself, which corresponds to Equation (1). The following figure shows a
 single draw from four Dirichlet processes with different $$\lambda$$’s (the gray
 curves show the cumulative distribution function of the data as a reference):
 
-```{r direct-prior, fig.asp = 1.2, include = FALSE}
+```{r direct-prior, fig.asp = 1.2}
 set.seed(42)
 
 tibble(lambda = c(1, 10, 100, 1000)) %>%
@@ -298,7 +298,7 @@ Now, conditioning on the observed velocities of galaxies—that is, sampling as
 shown in Equation (2)—we obtain the following draws from the posterior Dirichlet
 distributions with different $$\lambda$$’s:
 
-```{r direct-posterior, fig.asp = 1.2, include = FALSE}
+```{r direct-posterior, fig.asp = 1.2}
 set.seed(42)
 
 tibble(lambda = c(1, 10, 100, 1000)) %>%
@@ -577,7 +577,7 @@ where $$\{ q_i \}$$ come from the stick-breaking construction. This is a fourth
 step in the Gibbs sampler. We set $$\alpha_0$$ and $$\beta_0$$ to 2 and 0.1,
 respectively, which entails the following prior assumption about $$\lambda$$:
 
-```{r mixture-prior-lambda, include = FALSE}
+```{r mixture-prior-lambda}
 set.seed(42)
 
 tibble(lambda = sample_Plambda_prior(1000)) %>%
@@ -599,7 +599,7 @@ half as a warm-up period. As before, we start without conditioning on the data
 to observe draws from the prior itself. The following figure shows two sample
 draws:
 
-```{r mixture-prior-check, include = FALSE}
+```{r mixture-prior-check}
 set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-prior.RData')
@@ -620,7 +620,7 @@ interest and can be of various sizes. We conclude that the prior is adequate.
 When taking the observed velocities into account, we obtain a full posterior
 distribution in the form of 1000 draws. The following shows two random draws:
 
-```{r mixture-posterior-check, include = FALSE}
+```{r mixture-posterior-check}
 set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-posterior.RData')
@@ -644,7 +644,7 @@ sample chains for a few parameters in order to ensure there are not problems
 with convergence to the stationary distribution. The following shows the number
 of occupied components among the 25 permitted:
 
-```{r mixture-posterior-k, include = FALSE}
+```{r mixture-posterior-k}
 tibble(value = sapply(draws, function(draw) length(unique(draw$k)))) %>%
   mutate(draw = row_number()) %>%
   ggplot(aes(draw, value)) +
@@ -663,7 +663,7 @@ of clusters of galaxies is mostly between 5 and 15 with a median of 10.
 
 As for the concentration parameter, $$\lambda$$, the chain is as follows:
 
-```{r mixture-posterior-lambda, include = FALSE}
+```{r mixture-posterior-lambda}
 tibble(value = sapply(draws, function(draw) draw$lambda)) %>%
   mutate(draw = row_number()) %>%
   ggplot(aes(draw, value)) +
@@ -680,7 +680,7 @@ There is occasional turbulence, but overall, the behavior is relatively adequate
 Let us now take a look at the posterior distributions of the first 10 components
 (note the different scales on the vertical axes):
 
-```{r mixture-posterior-mu, fig.asp = 3, include = FALSE}
+```{r mixture-posterior-mu, fig.asp = 3}
 burnin_proportion <- 0.1
 component_count = 10
 
@@ -722,7 +722,7 @@ Lastly, we summarize the inference using the following figure where the median
 distribution and a 95% uncertainty band—composed of distributions at the 0.025
 and 0.975 quantiles—are plotted:
 
-```{r mixture-posterior-summary, include = FALSE}
+```{r mixture-posterior-summary}
 set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-posterior-summarized.RData')

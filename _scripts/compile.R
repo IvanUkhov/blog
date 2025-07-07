@@ -13,6 +13,7 @@ process_file <- function(input, output, image_path, cache_path) {
     dev = 'svg',
     dev.args = list(bg = 'transparent'),
     echo = FALSE,
+    include = FALSE,
     message = FALSE,
     fig.align = 'center',
     fig.asp = 0.618,
