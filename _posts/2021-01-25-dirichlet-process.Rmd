@@ -510,14 +510,12 @@ compact.
 Now, let us take a look at what the above choices entail. The following figure
 illustrates the prior for the mean of a component:
 
-```{r mixture-prior-mu, include = FALSE}
+```{r mixture-prior-mu}
 set.seed(42)
 
 sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
   ggplot() +
-  geom_vline(aes(xintercept = mean(data$x), color = 'Observation'),
-             size = 1,
-             show.legend = FALSE) +
+  geom_vline(aes(xintercept = mean(data$x), color = 'Observation'), size = 1) +
   stat_density(aes(mu, color = 'Model'),
                geom = 'line',
                position = 'identity',
@@ -536,14 +534,12 @@ in practice. What is important is that there is a generous coverage of the
 plausible values. The following figure shows the prior for the standard
 deviation of a component:
 
-```{r mixture-prior-sigma, include = FALSE}
+```{r mixture-prior-sigma}
 set.seed(42)
 
 sample_Ptheta_prior(1000, mu0 = 20, kappa0 = 0.01) %>%
   ggplot() +
-  geom_vline(aes(xintercept = sd(data$x), color = 'Observation'),
-             size = 1,
-             show.legend = FALSE) +
+  geom_vline(aes(xintercept = sd(data$x), color = 'Observation'), size = 1) +
   stat_density(aes(sigma, color = 'Model'),
                geom = 'line',
                position = 'identity',
