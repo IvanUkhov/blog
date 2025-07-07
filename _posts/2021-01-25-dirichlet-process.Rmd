@@ -629,7 +629,7 @@ set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-posterior.RData')
 if (!file.exists(cache_path)) {
-  draws <- sample_DPM(data$x, 25, 2000, mu0 = 20, kappa0 = 0.01)
+  draws <- sample_DPM(data$x, 25, 10000, mu0 = 20, kappa0 = 0.01)
   save(draws, file = cache_path)
 } else {
   load(cache_path)
@@ -663,7 +663,7 @@ tibble(value = sapply(draws, function(draw) length(unique(draw$k)))) %>%
 The chain fluctuates around a fixed level without any prominent pattern, as it
 should. One can plot the actual marginal posterior distribution for the number
 of components; however, it is already clear that the distribution of the number
-of clusters of galaxies is mostly between 5 and 10 with a median of 7.
+of clusters of galaxies is mostly between 5 and 15 with a median of 10.
 
 As for the concentration parameter, $$\lambda$$, the chain is as follows:
 
@@ -672,32 +672,36 @@ tibble(value = sapply(draws, function(draw) draw$lambda)) %>%
   mutate(draw = row_number()) %>%
   ggplot(aes(draw, value)) +
   geom_line(color = 'gray30', size = 0.5) +
-  ylim(0, 5) +
+  ylim(0, 35) +
   labs(x = 'Iteration',
        y = TeX('Concentration parameter, $\\lambda$'))
 ```
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg)
 
-The behavior is uneventful, which is a good sign.
+There is occasional turbulence, but overall, the behavior is relatively adequate
 
-Let us now take a look at the posterior distributions of the first seven
-components highlighted earlier (note the different scales on the vertical axes):
+Let us now take a look at the posterior distributions of the first 10 components
+(note the different scales on the vertical axes):
 
-```{r mixture-posterior-mu, fig.asp = 2, include = FALSE}
-tail(draws, length(draws) / 2) %>%
-  sapply(function(draw) draw$theta$mu[1:7], simplify = FALSE) %>%
+```{r mixture-posterior-mu, fig.asp = 3, include = FALSE}
+burnin_proportion <- 0.1
+component_count = 10
+
+tail(draws, (1 - burnin_proportion) * length(draws)) %>%
+  sapply(function(draw) draw$theta$mu[1:component_count], simplify = FALSE) %>%
   { do.call(rbind, .) } %>%
   as_tibble() %>%
-  rename_all(function(name) gsub('V', 'Component ', name)) %>%
   pivot_longer(everything()) %>%
+  mutate(number = as.integer(gsub("V", "", name))) %>%
+  mutate(name = factor(number,
+                       levels = 1:component_count,
+                       labels = paste("Component", 1:component_count))) %>%
   ggplot(aes(value)) +
   geom_vline(aes(xintercept = 10, color = 'Observation'), size = 1) +
   geom_vline(aes(xintercept = 16, color = 'Observation'), size = 1) +
   geom_vline(aes(xintercept = 20, color = 'Observation'), size = 1) +
   geom_vline(aes(xintercept = 23, color = 'Observation'), size = 1) +
-  geom_vline(aes(xintercept = 24.5, color = 'Observation'), size = 1) +
-  geom_vline(aes(xintercept = 26, color = 'Observation'), size = 1) +
   geom_vline(aes(xintercept = 33, color = 'Observation'), size = 1) +
   geom_density(aes(color = 'Model'), size = 1) +
   scale_color() +
@@ -710,17 +714,13 @@ tail(draws, length(draws) / 2) %>%
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg)
 
-The components clearly change roles, which can be seen by the multimodal nature
-of the distributions. Component 1 is most often at 10 (times $$10^6$$ m/s);
-however, it also peaks between 24 and 25 and even above 30. Components 2 and 3
-are the most certain ones, which is due to a relatively large number of samples
-present in the corresponding region. They seem to exchanges roles and capture
-velocities of around 20 and 23. Components 4 and 5, on the other hand, appear to
-play the same role. Unlike Component 1, they are most likely to be found at
-around 33. Components 6 and 7 are similar too. They seem to be responsible for
-the small formation to the left and right next to the bulk in the middle (at
-16); recall the histogram of the data. The small formation on the other side of
-the bulk at around 26 is captured as well, which is mostly done by Component 6.
+The components clearly exchange roles, as suggested by the multimodal nature of
+the distributions. Components 1 and 2 are the most stable ones, which can be
+seen by the high-density regions at around 20 and 23 (times $$10^6$$ m/s),
+respectively. The distributions of other components are more spread out (again,
+pay attention to the vertical axes). However, with velocities 20 and 23 out of
+the way, they allow one to see more clearly smaller clusters. More specifically,
+they suggest clustering at around 10, 16, and 33.
 
 Lastly, we summarize the inference using the following figure where the median
 distribution and a 95% uncertainty band—composed of distributions at the 0.025
@@ -731,7 +731,9 @@ set.seed(42)
 
 cache_path <- file.path(cache_directory, 'mixture-posterior-summarized.RData')
 if (!file.exists(cache_path)) {
-  draws_summarized <- summarize_inference(tail(draws, length(draws) / 2), data)
+  draws_summarized <- summarize_inference(
+    tail(draws, (1 - burnin_proportion) * length(draws)), data
+  )
   save(draws_summarized, file = cache_path)
 } else {
   load(cache_path)
@@ -742,7 +744,7 @@ plot_inference(draws_summarized, data)
 
 ![](/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg)
 
-In this view, only five components are visible to the naked eye. The median
+The aforementioned five components are visible to the naked eye. The median
 curve matches well the findings in [Roeder (1990)]. Judging by the width of the
 uncertainty band, there is a lot of plausible alternatives, and it is important
 to communicate this uncertainty to those who base decisions on the inference.
