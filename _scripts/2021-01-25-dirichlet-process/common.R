@@ -228,7 +228,7 @@ geom_observation <- function(data, type = 'cdf', binwidth = 1) {
   } else if (type == 'pdf') {
     geom_histogram(data = data,
                    mapping = aes(x,
-                                 y = ..count.. / sum(..count..),
+                                 y = after_stat(count) / sum(after_stat(count)),
                                  color = 'Observation'),
                    binwidth = binwidth,
                    fill = 'gray70')
