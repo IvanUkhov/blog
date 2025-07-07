@@ -8,10 +8,7 @@ build:
 
 .PHONY: compile
 compile:
-	inotifywait -e close_write,moved_to,create -m _drafts | \
-	while read -r directory events filename; do \
-		./_scripts/compile.R; \
-	done
+	fswatch -o _drafts | xargs -n1 -I{} ./_scripts/compile.R
 
 .PHONY: serve
 serve:
