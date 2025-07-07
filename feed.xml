@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-07T03:38:18+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.2.0">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-07T10:25:03+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or
 invent to sharpen their skills in leisure time
 </subtitle><author><name>Ivan Ukhov</name></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, and there are no
 more devices to spare, the common mitigation strategy is to reduce the batch
@@ -723,8 +723,8 @@ respectively, which entails the following prior assumption about \(\lambda\):</p
 <p>Having chosen all priors and their hyperparameters, we are ready to investigate
 the behavior of the entire model; see Equations (6), (7), and (9). In what
 follows, we shall limit the number of mixture components to 25; that is, \(m =
-25\). Furthermore, we shall perform 2000 Gibbs iterations and discard the first
-half as a warm-up period. As before, we start without conditioning on the data
+25\). Furthermore, we shall perform 10000 Gibbs iterations and discard the first
+1000 as a warm-up period. As before, we start without conditioning on the data
 to observe draws from the prior itself. The following figure shows two sample
 draws:</p>
 
@@ -733,7 +733,7 @@ draws:</p>
 <p>It can be seen that clusters of galaxies can appear anywhere in the region of
 interest and can be of various sizes. We conclude that the prior is adequate.
 When taking the observed velocities into account, we obtain a full posterior
-distribution in the form of 1000 draws. The following shows two random draws:</p>
+distribution in the form of 9000 draws. The following shows two random draws:</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-check-1.svg" alt="" /></p>
 
@@ -750,30 +750,26 @@ of occupied components among the 25 permitted:</p>
 <p>The chain fluctuates around a fixed level without any prominent pattern, as it
 should. One can plot the actual marginal posterior distribution for the number
 of components; however, it is already clear that the distribution of the number
-of clusters of galaxies is mostly between 5 and 10 with a median of 7.</p>
+of clusters of galaxies is mostly between 5 and 15 with a median of 10.</p>
 
 <p>As for the concentration parameter, \(\lambda\), the chain is as follows:</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-lambda-1.svg" alt="" /></p>
 
-<p>The behavior is uneventful, which is a good sign.</p>
+<p>There is occasional turbulence, but overall, the behavior is relatively adequate</p>
 
-<p>Let us now take a look at the posterior distributions of the first seven
-components highlighted earlier (note the different scales on the vertical axes):</p>
+<p>Let us now take a look at the posterior distributions of the first 10 components
+(note the different scales on the vertical axes):</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-mu-1.svg" alt="" /></p>
 
-<p>The components clearly change roles, which can be seen by the multimodal nature
-of the distributions. Component 1 is most often at 10 (times \(10^6\) m/s);
-however, it also peaks between 24 and 25 and even above 30. Components 2 and 3
-are the most certain ones, which is due to a relatively large number of samples
-present in the corresponding region. They seem to exchanges roles and capture
-velocities of around 20 and 23. Components 4 and 5, on the other hand, appear to
-play the same role. Unlike Component 1, they are most likely to be found at
-around 33. Components 6 and 7 are similar too. They seem to be responsible for
-the small formation to the left and right next to the bulk in the middle (at
-16); recall the histogram of the data. The small formation on the other side of
-the bulk at around 26 is captured as well, which is mostly done by Component 6.</p>
+<p>The components clearly exchange roles, as suggested by the multimodal nature of
+the distributions. Components 1 and 2 are the most stable ones, which can be
+seen by the high-density regions at around 20 and 23 (times \(10^6\) m/s),
+respectively. The distributions of other components are more spread out (again,
+pay attention to the scale). However, with velocities 20 and 23 out of the way,
+they allow one to see more clearly smaller clusters. More specifically, they
+suggest clustering at around 10, 16, and 33.</p>
 
 <p>Lastly, we summarize the inference using the following figure where the median
 distribution and a 95% uncertainty band—composed of distributions at the 0.025
@@ -781,7 +777,7 @@ and 0.975 quantiles—are plotted:</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-posterior-summary-1.svg" alt="" /></p>
 
-<p>In this view, only five components are visible to the naked eye. The median
+<p>The aforementioned five components are visible to the naked eye. The median
 curve matches well the findings in <a href="https://doi.org/10.2307/2289993">Roeder (1990)</a>. Judging by the width of the
 uncertainty band, there is a lot of plausible alternatives, and it is important
 to communicate this uncertainty to those who base decisions on the inference.
@@ -817,6 +813,12 @@ GitHub. Any feedback is welcome!</p>
 graduate course in Bayesian statistics titled “<a href="https://github.com/mattiasvillani/AdvBayesLearnCourse">Advanced Bayesian
 learning</a>,” which was the inspiration behind writing this
 article, and for his guidance regarding the implementation.</p>
+
+<h1 id="follow-up">Follow-up</h1>
+
+<p>In June 2025, <a href="https://www.plymouth.ac.uk/staff/julian-stander">Julian Stander</a> drew my attention to a typo in the implementation
+of the sampling procedure for the posterior distribution of \(\lambda\), which I
+am grateful for.</p>
 
 <h1 id="references">References</h1>
 
