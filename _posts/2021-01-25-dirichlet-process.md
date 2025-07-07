@@ -546,9 +546,9 @@ The components clearly exchange roles, as suggested by the multimodal nature of
 the distributions. Components 1 and 2 are the most stable ones, which can be
 seen by the high-density regions at around 20 and 23 (times $$10^6$$ m/s),
 respectively. The distributions of other components are more spread out (again,
-pay attention to the vertical axes). However, with velocities 20 and 23 out of
-the way, they allow one to see more clearly smaller clusters. More specifically,
-they suggest clustering at around 10, 16, and 33.
+pay attention to the scale). However, with velocities 20 and 23 out of the way,
+they allow one to see more clearly smaller clusters. More specifically, they
+suggest clustering at around 10, 16, and 33.
 
 Lastly, we summarize the inference using the following figure where the median
 distribution and a 95% uncertainty band—composed of distributions at the 0.025
