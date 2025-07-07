@@ -593,6 +593,12 @@ graduate course in Bayesian statistics titled “[Advanced Bayesian
 learning][Villani (2020)],” which was the inspiration behind writing this
 article, and for his guidance regarding the implementation.
 
+# Follow-up
+
+In June 2025, [Julian Stander] drew my attention to a typo in the implementation
+of the sampling procedure for the posterior distribution of $$\lambda$$, which I
+am grateful for.
+
 # References
 
 * Andrew Gelman et al., _[Bayesian Data Analysis][Gelman (2014)]_, Chapman and
@@ -605,6 +611,7 @@ article, and for his guidance regarding the implementation.
 
 [Durrett (2010)]: https://services.math.duke.edu/~rtd/PTE/pte.html
 [Gelman (2014)]: http://www.stat.columbia.edu/~gelman/book/
+[Julian Stander]: https://www.plymouth.ac.uk/staff/julian-stander
 [Mattias Villani]: https://www.mattiasvillani.com/
 [Roeder (1990)]: https://doi.org/10.2307/2289993
 [Villani (2020)]: https://github.com/mattiasvillani/AdvBayesLearnCourse
