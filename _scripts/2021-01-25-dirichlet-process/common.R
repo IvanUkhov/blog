@@ -54,7 +54,7 @@ sample_Plambda_posterior <- function(l, q, alpha0 = 2, beta0 = 0.1) {
   sample_Plambda_prior(
     l = l,
     alpha0 = alpha0 + length(q) - 1,
-    beta0 = beta0 - sum(log(head(q, -1)))
+    beta0 = beta0 - sum(log(head(1 - q, -1)))
   )
 }
 
