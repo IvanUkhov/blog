@@ -91,8 +91,11 @@ a, a:visited {
 .theme-1 ::-moz-selection {
   background-color: rgb(129, 226.6363636364, 255);
 }
-.theme-1 .page-content a, .theme-1 .page-content a:visited {
+.theme-1 .page-content a, .theme-1 .page-content a:hover, .theme-1 .page-content a:visited {
   color: #00b3e7;
+}
+.theme-1 .page-content a:hover {
+  text-decoration: underline #00b3e7;
 }
 .theme-1 .site-header {
   background-color: rgb(129, 226.6363636364, 255);
@@ -104,8 +107,11 @@ a, a:visited {
 .theme-2 ::-moz-selection {
   background-color: rgb(128.2107623318, 240.5784753363, 247.7892376682);
 }
-.theme-2 .page-content a, .theme-2 .page-content a:visited {
+.theme-2 .page-content a, .theme-2 .page-content a:hover, .theme-2 .page-content a:visited {
   color: #0cc7d3;
+}
+.theme-2 .page-content a:hover {
+  text-decoration: underline #0cc7d3;
 }
 .theme-2 .site-header {
   background-color: rgb(128.2107623318, 240.5784753363, 247.7892376682);
@@ -117,8 +123,11 @@ a, a:visited {
 .theme-3 ::-moz-selection {
   background-color: rgb(105, 255, 236.884057971);
 }
-.theme-3 .page-content a, .theme-3 .page-content a:visited {
+.theme-3 .page-content a, .theme-3 .page-content a:hover, .theme-3 .page-content a:visited {
   color: #00cfb6;
+}
+.theme-3 .page-content a:hover {
+  text-decoration: underline #00cfb6;
 }
 .theme-3 .site-header {
   background-color: rgb(105, 255, 236.884057971);
@@ -130,8 +139,11 @@ a, a:visited {
 .theme-4 ::-moz-selection {
   background-color: rgb(255, 225.4761904762, 219);
 }
-.theme-4 .page-content a, .theme-4 .page-content a:visited {
+.theme-4 .page-content a, .theme-4 .page-content a:hover, .theme-4 .page-content a:visited {
   color: #ff6442;
+}
+.theme-4 .page-content a:hover {
+  text-decoration: underline #ff6442;
 }
 .theme-4 .site-header {
   background-color: rgb(255, 225.4761904762, 219);
@@ -143,8 +155,11 @@ a, a:visited {
 .theme-5 ::-moz-selection {
   background-color: rgb(243, 242.4, 250.6);
 }
-.theme-5 .page-content a, .theme-5 .page-content a:visited {
+.theme-5 .page-content a, .theme-5 .page-content a:hover, .theme-5 .page-content a:visited {
   color: #8781d3;
+}
+.theme-5 .page-content a:hover {
+  text-decoration: underline #8781d3;
 }
 .theme-5 .site-header {
   background-color: rgb(243, 242.4, 250.6);
@@ -156,8 +171,11 @@ a, a:visited {
 .theme-6 ::-moz-selection {
   background-color: rgb(192.1084337349, 202.0843373494, 209.8915662651);
 }
-.theme-6 .page-content a, .theme-6 .page-content a:visited {
+.theme-6 .page-content a, .theme-6 .page-content a:hover, .theme-6 .page-content a:visited {
   color: #687f91;
+}
+.theme-6 .page-content a:hover {
+  text-decoration: underline #687f91;
 }
 .theme-6 .site-header {
   background-color: rgb(192.1084337349, 202.0843373494, 209.8915662651);
