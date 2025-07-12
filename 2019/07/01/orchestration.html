@@ -4,7 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>A poor man’s orchestration of predictive models, or do it yourself | Good news, everyone!</title>
-<meta name="generator" content="Jekyll v4.2.0" />
+<meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="A poor man’s orchestration of predictive models, or do it yourself" />
 <meta name="author" content="Ivan Ukhov" />
 <meta property="og:locale" content="en_US" />
@@ -20,30 +20,33 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2019-07-01T06:00:00+00:00","datePublished":"2019-07-01T06:00:00+00:00","description":"As a data scientist focusing on developing data products, you naturally want your work to reach its target audience. Suppose, however, that your company does not have a dedicated engineering team for productizing data-science code. One solution is to seek help in other teams, which are surely busy with their own endeavors, and spend months waiting. Alternatively, you could take the initiative and do it yourself. In this article, we take the initiative and schedule the training and application phases of a predictive model using Apache Airflow, Google Compute Engine, and Docker.","headline":"A poor man’s orchestration of predictive models, or do it yourself","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/07/01/orchestration.html"},"url":"https://blog.ivanukhov.com/2019/07/01/orchestration.html"}</script>
 <!-- End Jekyll SEO tag -->
-<meta content="assets/favicon.png" property="og:image">
-  <link rel="stylesheet" href="/assets/main.css">
-  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Apache Airflow, Docker, Google Cloud Platform, data science, machine learning"><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-43DGEP382H');
-  </script>
-</head>
-<body><header class="site-header" role="banner">
+<link id="main-stylesheet" rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
-        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+  gtag('config', 'G-43DGEP382H');
+</script>
+<meta content="assets/favicon.png" property="og:image"><meta name="keywords" content="Apache Airflow, Docker, Google Cloud Platform, data science, machine learning"><link rel="stylesheet" href="/assets/main.css">
+<link rel="shortcut icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">Good news, everyone!</a>
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" />
         <label for="nav-trigger">
-          <span class="menu-icon">
-            <svg viewBox="0 0 18 15" width="18px" height="15px">
-              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
-            </svg>
-          </span>
+          <span class="menu-icon"></span>
         </label>
 
-        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
-      </nav></div>
+        <div class="nav-items">
+  <a class="nav-item" href="/about/">About</a>
+</div>
+
+      </nav>
+  </div>
 </header>
 <main class="page-content" aria-label="Content">
       <div class="wrapper">
@@ -51,9 +54,11 @@
 
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">A poor man’s orchestration of predictive models, or do it yourself</h1>
-    <p class="post-meta">
-      <time class="dt-published" datetime="2019-07-01T06:00:00+00:00" itemprop="datePublished">July 1, 2019
-      </time></p>
+    <div class="post-meta">
+      <time class="dt-published" datetime="2019-07-01T06:00:00+00:00" itemprop="datePublished">
+        July 1, 2019
+      </time>
+    </div>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
@@ -142,12 +147,12 @@ implementation):</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Task</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">training</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">training</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
         <span class="c1"># Read the training data
 </span>        <span class="c1"># Train the model
 </span>        <span class="c1"># Save the trained model
 </span>
-    <span class="k">def</span> <span class="nf">application</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">application</span><span class="p">(</span><span class="n">self</span><span class="p">):</span>
         <span class="c1"># Read the application data
 </span>        <span class="c1"># Load the trained model
 </span>        <span class="c1"># Make predictions
@@ -167,10 +172,10 @@ warehouse.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="c1"># Estimate the model’s parameters
 </span>
-    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="c1"># Make predictions using the estimated parameters
 </span></code></pre></div></div>
 
@@ -380,34 +385,34 @@ neatly organized in a <a href="https://github.com/chain-rule/example-prediction-
 </span><span class="nv">registry</span> <span class="o">?=</span> eu.gcr.io
 
 <span class="c"># The name of the Docker image
-</span><span class="nv">image</span> <span class="o">:=</span> <span class="nv">${name}</span>
+</span><span class="nv">image</span> <span class="o">:=</span> <span class="p">${</span>name<span class="p">}</span>
 <span class="c"># The name of the instance excluding the action
-</span><span class="nv">instance</span> <span class="o">:=</span> <span class="nv">${name}</span>-<span class="nv">${version}</span>
+</span><span class="nv">instance</span> <span class="o">:=</span> <span class="p">${</span>name<span class="p">}</span>-<span class="p">${</span>version<span class="p">}</span>
 
 <span class="nl">build</span><span class="o">:</span>
-	docker rmi <span class="nv">${image}</span> 2&gt; /dev/null <span class="o">||</span> <span class="nb">true</span>
-	docker build <span class="nt">--file</span> container/Dockerfile <span class="nt">--tag</span> <span class="nv">${image}</span> .
-	docker tag <span class="nv">${image}</span> <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span>
-	docker push <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span>
+	docker rmi <span class="p">${</span>image<span class="p">}</span> 2&gt; /dev/null <span class="o">||</span> <span class="nb">true</span>
+	docker build <span class="nt">--file</span> container/Dockerfile <span class="nt">--tag</span> <span class="p">${</span>image<span class="p">}</span> .
+	docker tag <span class="p">${</span>image<span class="p">}</span> <span class="p">${</span>registry<span class="p">}</span>/<span class="p">${</span>project<span class="p">}</span>/<span class="p">${</span>image<span class="p">}</span>:<span class="p">${</span>version<span class="p">}</span>
+	docker push <span class="p">${</span>registry<span class="p">}</span>/<span class="p">${</span>project<span class="p">}</span>/<span class="p">${</span>image<span class="p">}</span>:<span class="p">${</span>version<span class="p">}</span>
 
 <span class="nl">training-start</span><span class="o">:</span>
-	gcloud compute instances create-with-container <span class="nv">${instance}</span><span class="nt">-training</span> <span class="se">\</span>
-		<span class="nt">--container-image</span> <span class="nv">${registry}</span>/<span class="nv">${project}</span>/<span class="nv">${image}</span>:<span class="nv">${version}</span> <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">NAME</span><span class="o">=</span><span class="nv">${name}</span> <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">VERSION</span><span class="o">=</span><span class="nv">${version}</span> <span class="se">\</span>
+	gcloud compute instances create-with-container <span class="p">${</span>instance<span class="p">}</span><span class="nt">-training</span> <span class="se">\</span>
+		<span class="nt">--container-image</span> <span class="p">${</span>registry<span class="p">}</span>/<span class="p">${</span>project<span class="p">}</span>/<span class="p">${</span>image<span class="p">}</span>:<span class="p">${</span>version<span class="p">}</span> <span class="se">\</span>
+		<span class="nt">--container-env</span> <span class="nv">NAME</span><span class="o">=</span><span class="p">${</span>name<span class="p">}</span> <span class="se">\</span>
+		<span class="nt">--container-env</span> <span class="nv">VERSION</span><span class="o">=</span><span class="p">${</span>version<span class="p">}</span> <span class="se">\</span>
 		<span class="nt">--container-env</span> <span class="nv">ACTION</span><span class="o">=</span>training <span class="se">\</span>
-		<span class="nt">--container-env</span> <span class="nv">ZONE</span><span class="o">=</span><span class="nv">${zone}</span> <span class="se">\</span>
+		<span class="nt">--container-env</span> <span class="nv">ZONE</span><span class="o">=</span><span class="p">${</span>zone<span class="p">}</span> <span class="se">\</span>
 		<span class="nt">--container-restart-policy</span> never <span class="se">\</span>
 		<span class="nt">--no-restart-on-failure</span> <span class="se">\</span>
 		<span class="nt">--machine-type</span> n1-standard-1 <span class="se">\</span>
 		<span class="nt">--scopes</span> default,bigquery,compute-rw,storage-rw
-		<span class="p">-</span><span class="nt">-zone</span> <span class="nv">${zone}</span>
+		<span class="p">-</span><span class="nt">-zone</span> <span class="p">${</span>zone<span class="p">}</span>
 
 <span class="nl">training-wait</span><span class="o">:</span>
-	container/wait.sh instance <span class="nv">${instance}</span><span class="nt">-training</span> <span class="nv">${zone}</span>
+	container/wait.sh instance <span class="p">${</span>instance<span class="p">}</span><span class="nt">-training</span> <span class="p">${</span>zone<span class="p">}</span>
 
 <span class="nl">training-check</span><span class="o">:</span>
-	container/wait.sh success <span class="nv">${instance}</span><span class="nt">-training</span>
+	container/wait.sh success <span class="p">${</span>instance<span class="p">}</span><span class="nt">-training</span>
 
 <span class="c"># Similar for application
 </span></code></pre></div></div>
@@ -544,44 +549,44 @@ do-not-repeat-yourself design principle. The <a href="https://github.com/chain-r
 contains the configuration files suggested, and <a href="https://github.com/chain-rule/example-prediction-service/tree/master/scheduler/graph.py"><code class="language-plaintext highlighter-rouge">scheduler/graph.py</code></a> is the
 Python script creating a graph:</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
-<span class="kn">from</span> <span class="nn">airflow.operators.bash_operator</span> <span class="kn">import</span> <span class="n">BashOperator</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="n">airflow</span> <span class="kn">import</span> <span class="n">DAG</span>
+<span class="kn">from</span> <span class="n">airflow.operators.bash_operator</span> <span class="kn">import</span> <span class="n">BashOperator</span>
 
 
 <span class="k">def</span> <span class="nf">configure</span><span class="p">():</span>
     <span class="c1"># Extract the directory containing the current file
-</span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
+</span>    <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="nf">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">)</span>
     <span class="c1"># Extract the name of the current file without its extension
-</span>    <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">basename</span><span class="p">(</span><span class="n">__file__</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+</span>    <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="nf">splitext</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="nf">basename</span><span class="p">(</span><span class="n">__file__</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c1"># Load the configuration file corresponding to the extracted name
-</span>    <span class="n">config</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">'configs'</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'.json'</span><span class="p">)</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="n">loads</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">).</span><span class="n">read</span><span class="p">())</span>
+</span>    <span class="n">config</span> <span class="o">=</span> <span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="sh">'</span><span class="s">configs</span><span class="sh">'</span><span class="p">,</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">.json</span><span class="sh">'</span><span class="p">)</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="p">.</span><span class="nf">loads</span><span class="p">(</span><span class="nf">open</span><span class="p">(</span><span class="n">config</span><span class="p">).</span><span class="nf">read</span><span class="p">())</span>
     <span class="k">return</span> <span class="n">config</span>
 
 
 <span class="k">def</span> <span class="nf">construct</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">_construct_graph</span><span class="p">(</span><span class="n">default_args</span><span class="p">,</span> <span class="n">start_date</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">):</span>
-        <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">.</span><span class="n">datetime</span><span class="p">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="s">'%Y-%m-%d'</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">DAG</span><span class="p">(</span><span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
+        <span class="n">start_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">.</span><span class="n">datetime</span><span class="p">.</span><span class="nf">strptime</span><span class="p">(</span><span class="n">start_date</span><span class="p">,</span> <span class="sh">'</span><span class="s">%Y-%m-%d</span><span class="sh">'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nc">DAG</span><span class="p">(</span><span class="n">default_args</span><span class="o">=</span><span class="n">default_args</span><span class="p">,</span> <span class="n">start_date</span><span class="o">=</span><span class="n">start_date</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_construct_task</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">BashOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">bash_command</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">graph</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nc">BashOperator</span><span class="p">(</span><span class="n">task_id</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">bash_command</span><span class="o">=</span><span class="n">code</span><span class="p">,</span> <span class="n">dag</span><span class="o">=</span><span class="n">graph</span><span class="p">)</span>
 
     <span class="c1"># Construct an empty graph
-</span>    <span class="n">graph</span> <span class="o">=</span> <span class="n">_construct_graph</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'graph'</span><span class="p">])</span>
+</span>    <span class="n">graph</span> <span class="o">=</span> <span class="nf">_construct_graph</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">graph</span><span class="sh">'</span><span class="p">])</span>
     <span class="c1"># Construct the specified tasks
-</span>    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="n">_construct_task</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'tasks'</span><span class="p">]]</span>
-    <span class="n">tasks</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([(</span><span class="n">task</span><span class="p">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">])</span>
+</span>    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[</span><span class="nf">_construct_task</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="o">**</span><span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">tasks</span><span class="sh">'</span><span class="p">]]</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="nf">dict</span><span class="p">([(</span><span class="n">task</span><span class="p">.</span><span class="n">task_id</span><span class="p">,</span> <span class="n">task</span><span class="p">)</span> <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">])</span>
     <span class="c1"># Enforce the specified dependencies between the tasks
-</span>    <span class="k">for</span> <span class="n">child</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'dependencies'</span><span class="p">]:</span>
-        <span class="n">tasks</span><span class="p">[</span><span class="n">parent</span><span class="p">].</span><span class="n">set_downstream</span><span class="p">(</span><span class="n">tasks</span><span class="p">[</span><span class="n">child</span><span class="p">])</span>
+</span>    <span class="k">for</span> <span class="n">child</span><span class="p">,</span> <span class="n">parent</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">dependencies</span><span class="sh">'</span><span class="p">]:</span>
+        <span class="n">tasks</span><span class="p">[</span><span class="n">parent</span><span class="p">].</span><span class="nf">set_downstream</span><span class="p">(</span><span class="n">tasks</span><span class="p">[</span><span class="n">child</span><span class="p">])</span>
     <span class="k">return</span> <span class="n">graph</span>
 
 
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Load an appropriate configuration file and construct a graph accordingly
-</span>    <span class="n">graph</span> <span class="o">=</span> <span class="n">construct</span><span class="p">(</span><span class="n">configure</span><span class="p">())</span>
+</span>    <span class="n">graph</span> <span class="o">=</span> <span class="nf">construct</span><span class="p">(</span><span class="nf">configure</span><span class="p">())</span>
 <span class="k">except</span> <span class="nb">FileNotFoundError</span><span class="p">:</span>
     <span class="c1"># Exit without errors in case the current file has no configuration file
 </span>    <span class="k">pass</span>
@@ -684,63 +689,89 @@ Lakshmanan for further details.</p>
 </ul>
 
 
-  </div><div id="disqus_thread"></div>
+  </div>
+
   <script>
     var disqus_config = function () {
       this.page.url = 'https://blog.ivanukhov.com/2019/07/01/orchestration.html';
-      this.page.identifier = 'https://blog.ivanukhov.com/2019/07/01/orchestration.html';
+      this.page.identifier = '/2019/07/01/orchestration';
     };
-
     (function() {
       var d = document, s = d.createElement('script');
-
       s.src = 'https://good-news-everyone.disqus.com/embed.js';
-
       s.setAttribute('data-timestamp', +new Date());
       (d.head || d.body).appendChild(s);
     })();
   </script>
-  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2019/07/01/orchestration.html" hidden></a>
+  <noscript>
+    Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+<a class="u-url" href="/2019/07/01/orchestration.html" hidden></a>
 </article>
 
       </div>
-    </main><footer class="site-footer h-card">
-  <data class="u-url" href="/"></data>
+    </main><link id="fa-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css">
+
+<footer class="site-footer h-card">
+  <data class="u-url" value="/"></data>
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">Good news, everyone!</h2>
-
     <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
+      <div class="footer-col">
         <ul class="contact-list">
-          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+          <li class="p-name">Ivan Ukhov</li>
+          <li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li>
+        </ul>
       </div>
-
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
-</div>
-
-      <div class="footer-col footer-col-3">
-        <p>Solving problems that a software engineer might encounter in practice—or
-invent to sharpen their skills in leisure time
+      <div class="footer-col">
+        <p>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
 </p>
       </div>
     </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+    <a rel="me" href="https://github.com/IvanUkhov" target="_blank" title="GitHub">
+      <span class="grey fa-brands fa-github fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://www.linkedin.com/in/ivanukhov/" target="_blank" title="LinkedIn">
+      <span class="grey fa-brands fa-linkedin fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://x.com/IvanUkhov" target="_blank" title="X">
+      <span class="grey fa-brands fa-x-twitter fa-lg"></span>
+    </a>
+  </li>
+  <li>
+    <a href="https://blog.ivanukhov.com/feed.xml" target="_blank" title="Subscribe to syndication feed">
+      <svg class="svg-icon grey" viewbox="0 0 16 16">
+        <path d="M12.8 16C12.8 8.978 7.022 3.2 0 3.2V0c8.777 0 16 7.223 16 16h-3.2zM2.194
+          11.61c1.21 0 2.195.985 2.195 2.196 0 1.21-.99 2.194-2.2 2.194C.98 16 0 15.017 0
+          13.806c0-1.21.983-2.195 2.194-2.195zM10.606
+          16h-3.11c0-4.113-3.383-7.497-7.496-7.497v-3.11c5.818 0 10.606 4.79 10.606 10.607z"
+        />
+      </svg>
+    </a>
+  </li>
+</ul>
+</div>
 
   </div>
 
 </footer>
 <script type="text/javascript">
-      function anchor() {
-        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
-          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
-        }
-      }
-      function theme() {
-        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
-      }
-      window.addEventListener('load', anchor);
-      window.addEventListener('load', theme);
-    </script>
-  </body>
+  function anchor() {
+    for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+      header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+    }
+  }
+  function theme() {
+    document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+  }
+  window.addEventListener('load', anchor);
+  window.addEventListener('load', theme);
+</script>
+</body>
+
 </html>

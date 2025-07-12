@@ -4,7 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Relative positional embedding for any attention mechanism | Good news, everyone!</title>
-<meta name="generator" content="Jekyll v4.2.0" />
+<meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Relative positional embedding for any attention mechanism" />
 <meta name="author" content="Ivan Ukhov" />
 <meta property="og:locale" content="en_US" />
@@ -20,30 +20,33 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2024-01-17T07:00:00+00:00","datePublished":"2024-01-17T07:00:00+00:00","description":"In Shaw et al. (2018), the authors introduce relative positional embedding for self-attention in transformer models, and in Huang et al. (2018), the authors present a memory efficient approach to calculating this embedding in decoder blocks, in which the self-attention is causal. In this article, the approach is generalized to any attention mechanism, should it be self or cross or full or causal.","headline":"Relative positional embedding for any attention mechanism","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"},"url":"https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html"}</script>
 <!-- End Jekyll SEO tag -->
-<meta content="assets/favicon.png" property="og:image">
-  <link rel="stylesheet" href="/assets/main.css">
-  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="TensorFlow, large language models, machine learning, positional embedding, transformers"><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-43DGEP382H');
-  </script><script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
-</head>
-<body><header class="site-header" role="banner">
+<link id="main-stylesheet" rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
-        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+  gtag('config', 'G-43DGEP382H');
+</script>
+<meta content="assets/favicon.png" property="og:image"><meta name="keywords" content="TensorFlow, large language models, machine learning, positional embedding, transformers"><link rel="stylesheet" href="/assets/main.css">
+<link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">Good news, everyone!</a>
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" />
         <label for="nav-trigger">
-          <span class="menu-icon">
-            <svg viewBox="0 0 18 15" width="18px" height="15px">
-              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
-            </svg>
-          </span>
+          <span class="menu-icon"></span>
         </label>
 
-        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
-      </nav></div>
+        <div class="nav-items">
+  <a class="nav-item" href="/about/">About</a>
+</div>
+
+      </nav>
+  </div>
 </header>
 <main class="page-content" aria-label="Content">
       <div class="wrapper">
@@ -51,9 +54,11 @@
 
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">Relative positional embedding for any attention mechanism</h1>
-    <p class="post-meta">
-      <time class="dt-published" datetime="2024-01-17T07:00:00+00:00" itemprop="datePublished">January 17, 2024
-      </time></p>
+    <div class="post-meta">
+      <time class="dt-published" datetime="2024-01-17T07:00:00+00:00" itemprop="datePublished">
+        January 17, 2024
+      </time>
+    </div>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
@@ -220,19 +225,19 @@ n_t)\); however, its application scope is larger.</p>
 follows:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">RelativePositionalEmbedding</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">projection</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">add_weight</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">projection</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">add_weight</span><span class="p">(</span>
             <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">head_size</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">sequence_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="n">initializer</span><span class="o">=</span><span class="s">"glorot_uniform"</span><span class="p">,</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="sh">"</span><span class="s">glorot_uniform</span><span class="sh">"</span><span class="p">,</span>
             <span class="n">trainable</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">=</span> <span class="n">sequence_length</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">=</span> <span class="n">sequence_length</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">projection</span><span class="p">)</span>
-        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="n">diag_part</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="nf">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">projection</span><span class="p">)</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">linalg</span><span class="p">.</span><span class="nf">diag_part</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">self</span><span class="p">.</span><span class="n">sequence_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="nf">transpose</span><span class="p">(</span><span class="n">S</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">S</span>
 </code></pre></div></div>
 
@@ -240,24 +245,24 @@ follows:</p>
 below:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">Attention</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">keras</span><span class="p">.</span><span class="n">layers</span><span class="p">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">().</span><span class="n">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span> <span class="o">=</span> <span class="n">head_size</span>
-        <span class="bp">self</span><span class="p">.</span><span class="n">positional_embedding</span> <span class="o">=</span> <span class="n">RelativePositionalEmbedding</span><span class="p">(</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">head_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="nf">super</span><span class="p">().</span><span class="nf">__init__</span><span class="p">()</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">head_size</span> <span class="o">=</span> <span class="n">head_size</span>
+        <span class="n">self</span><span class="p">.</span><span class="n">positional_embedding</span> <span class="o">=</span> <span class="nc">RelativePositionalEmbedding</span><span class="p">(</span>
             <span class="n">head_size</span><span class="o">=</span><span class="n">head_size</span><span class="p">,</span>
             <span class="n">sequence_length</span><span class="o">=</span><span class="n">sequence_length</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">V</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">self</span><span class="p">,</span> <span class="n">K</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">V</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="p">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># TODO: Add permutation if needed.
-</span>        <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">positional_embedding</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
-        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span>        <span class="n">S</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="nf">positional_embedding</span><span class="p">(</span><span class="n">Q</span><span class="p">)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="nf">matmul</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">K</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">+</span> <span class="n">S</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:</span> <span class="n">K</span><span class="p">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
-        <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">*</span> <span class="bp">self</span><span class="p">.</span><span class="n">head_size</span><span class="o">**-</span><span class="mf">0.5</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">W</span> <span class="o">*</span> <span class="n">self</span><span class="p">.</span><span class="n">head_size</span><span class="o">**-</span><span class="mf">0.5</span>
         <span class="c1"># TODO: Add masking if needed.
-</span>        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+</span>        <span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">nn</span><span class="p">.</span><span class="nf">softmax</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># TODO: Add dropout if needed.
-</span>        <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
+</span>        <span class="n">A</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="nf">matmul</span><span class="p">(</span><span class="n">W</span><span class="p">,</span> <span class="n">V</span><span class="p">)</span>
         <span class="c1"># TODO: Add dropout if needed.
 </span>        <span class="k">return</span> <span class="n">A</span>
 </code></pre></div></div>
@@ -271,63 +276,89 @@ structure</a>,” Google Brain, 2018.</li>
 </ul>
 
 
-  </div><div id="disqus_thread"></div>
+  </div>
+
   <script>
     var disqus_config = function () {
       this.page.url = 'https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html';
-      this.page.identifier = 'https://blog.ivanukhov.com/2024/01/17/relative-positional-embedding.html';
+      this.page.identifier = '/2024/01/17/relative-positional-embedding';
     };
-
     (function() {
       var d = document, s = d.createElement('script');
-
       s.src = 'https://good-news-everyone.disqus.com/embed.js';
-
       s.setAttribute('data-timestamp', +new Date());
       (d.head || d.body).appendChild(s);
     })();
   </script>
-  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2024/01/17/relative-positional-embedding.html" hidden></a>
+  <noscript>
+    Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+<a class="u-url" href="/2024/01/17/relative-positional-embedding.html" hidden></a>
 </article>
 
       </div>
-    </main><footer class="site-footer h-card">
-  <data class="u-url" href="/"></data>
+    </main><link id="fa-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css">
+
+<footer class="site-footer h-card">
+  <data class="u-url" value="/"></data>
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">Good news, everyone!</h2>
-
     <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
+      <div class="footer-col">
         <ul class="contact-list">
-          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+          <li class="p-name">Ivan Ukhov</li>
+          <li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li>
+        </ul>
       </div>
-
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
-</div>
-
-      <div class="footer-col footer-col-3">
-        <p>Solving problems that a software engineer might encounter in practice—or
-invent to sharpen their skills in leisure time
+      <div class="footer-col">
+        <p>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
 </p>
       </div>
     </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+    <a rel="me" href="https://github.com/IvanUkhov" target="_blank" title="GitHub">
+      <span class="grey fa-brands fa-github fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://www.linkedin.com/in/ivanukhov/" target="_blank" title="LinkedIn">
+      <span class="grey fa-brands fa-linkedin fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://x.com/IvanUkhov" target="_blank" title="X">
+      <span class="grey fa-brands fa-x-twitter fa-lg"></span>
+    </a>
+  </li>
+  <li>
+    <a href="https://blog.ivanukhov.com/feed.xml" target="_blank" title="Subscribe to syndication feed">
+      <svg class="svg-icon grey" viewbox="0 0 16 16">
+        <path d="M12.8 16C12.8 8.978 7.022 3.2 0 3.2V0c8.777 0 16 7.223 16 16h-3.2zM2.194
+          11.61c1.21 0 2.195.985 2.195 2.196 0 1.21-.99 2.194-2.2 2.194C.98 16 0 15.017 0
+          13.806c0-1.21.983-2.195 2.194-2.195zM10.606
+          16h-3.11c0-4.113-3.383-7.497-7.496-7.497v-3.11c5.818 0 10.606 4.79 10.606 10.607z"
+        />
+      </svg>
+    </a>
+  </li>
+</ul>
+</div>
 
   </div>
 
 </footer>
 <script type="text/javascript">
-      function anchor() {
-        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
-          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
-        }
-      }
-      function theme() {
-        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
-      }
-      window.addEventListener('load', anchor);
-      window.addEventListener('load', theme);
-    </script>
-  </body>
+  function anchor() {
+    for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+      header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+    }
+  }
+  function theme() {
+    document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+  }
+  window.addEventListener('load', anchor);
+  window.addEventListener('load', theme);
+</script>
+</body>
+
 </html>

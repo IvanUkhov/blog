@@ -4,7 +4,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
 <title>Ingestion of sequential data from BigQuery into TensorFlow | Good news, everyone!</title>
-<meta name="generator" content="Jekyll v4.2.0" />
+<meta name="generator" content="Jekyll v4.4.1" />
 <meta property="og:title" content="Ingestion of sequential data from BigQuery into TensorFlow" />
 <meta name="author" content="Ivan Ukhov" />
 <meta property="og:locale" content="en_US" />
@@ -20,30 +20,33 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2019-11-08T07:00:00+00:00","datePublished":"2019-11-08T07:00:00+00:00","description":"How hard can it be to ingest sequential data into a TensorFlow model? As always, the answer is, “It depends.” Where are the sequences in question stored? Can they fit in main memory? Are they of the same length? In what follows, we shall build a flexible and scalable workflow for feeding sequential observations into a TensorFlow graph starting from BigQuery as the data warehouse.","headline":"Ingestion of sequential data from BigQuery into TensorFlow","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html"},"url":"https://blog.ivanukhov.com/2019/11/08/sequential-data.html"}</script>
 <!-- End Jekyll SEO tag -->
-<meta content="assets/favicon.png" property="og:image">
-  <link rel="stylesheet" href="/assets/main.css">
-  <link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><meta name="keywords" content="Apache Beam, BigQuery, Cloud Dataflow, Cloud Storage, Google Cloud Platform, Keras, TensorFlow, data science, machine learning"><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-43DGEP382H');
-  </script>
-</head>
-<body><header class="site-header" role="banner">
+<link id="main-stylesheet" rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  gtag('js', new Date());
 
-  <div class="wrapper"><a class="site-title" rel="author" href="/">Good news, everyone!</a><nav class="site-nav">
-        <input type="checkbox" id="nav-trigger" class="nav-trigger" />
+  gtag('config', 'G-43DGEP382H');
+</script>
+<meta content="assets/favicon.png" property="og:image"><meta name="keywords" content="Apache Beam, BigQuery, Cloud Dataflow, Cloud Storage, Google Cloud Platform, Keras, TensorFlow, data science, machine learning"><link rel="stylesheet" href="/assets/main.css">
+<link rel="shortcut icon" type="image/png" href="/assets/favicon.png">
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">Good news, everyone!</a>
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" />
         <label for="nav-trigger">
-          <span class="menu-icon">
-            <svg viewBox="0 0 18 15" width="18px" height="15px">
-              <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"/>
-            </svg>
-          </span>
+          <span class="menu-icon"></span>
         </label>
 
-        <div class="trigger"><a class="page-link" href="/about/">About</a></div>
-      </nav></div>
+        <div class="nav-items">
+  <a class="nav-item" href="/about/">About</a>
+</div>
+
+      </nav>
+  </div>
 </header>
 <main class="page-content" aria-label="Content">
       <div class="wrapper">
@@ -51,9 +54,11 @@
 
   <header class="post-header">
     <h1 class="post-title p-name" itemprop="name headline">Ingestion of sequential data from BigQuery into TensorFlow</h1>
-    <p class="post-meta">
-      <time class="dt-published" datetime="2019-11-08T07:00:00+00:00" itemprop="datePublished">November 8, 2019
-      </time></p>
+    <div class="post-meta">
+      <time class="dt-published" datetime="2019-11-08T07:00:00+00:00" itemprop="datePublished">
+        November 8, 2019
+      </time>
+    </div>
   </header>
 
   <div class="post-content e-content" itemprop="articleBody">
@@ -284,56 +289,56 @@ the pipeline:</p>
 # schema = ...
 </span>
 <span class="c1"># Read the SQL code
-</span><span class="n">query</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s">'data'</span><span class="p">][</span><span class="s">'path'</span><span class="p">]).</span><span class="n">read</span><span class="p">()</span>
+</span><span class="n">query</span> <span class="o">=</span> <span class="nf">open</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">data</span><span class="sh">'</span><span class="p">][</span><span class="sh">'</span><span class="s">path</span><span class="sh">'</span><span class="p">]).</span><span class="nf">read</span><span class="p">()</span>
 <span class="c1"># Create a BigQuery source
-</span><span class="n">source</span> <span class="o">=</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">BigQuerySource</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">use_standard_sql</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+</span><span class="n">source</span> <span class="o">=</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="nc">BigQuerySource</span><span class="p">(</span><span class="n">query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span> <span class="n">use_standard_sql</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="c1"># Create metadata needed later
-</span><span class="n">spec</span> <span class="o">=</span> <span class="n">schema</span><span class="p">.</span><span class="n">to_feature_spec</span><span class="p">()</span>
-<span class="n">meta</span> <span class="o">=</span> <span class="n">dataset_metadata</span><span class="p">.</span><span class="n">DatasetMetadata</span><span class="p">(</span>
-    <span class="n">schema</span><span class="o">=</span><span class="n">dataset_schema</span><span class="p">.</span><span class="n">from_feature_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
+</span><span class="n">spec</span> <span class="o">=</span> <span class="n">schema</span><span class="p">.</span><span class="nf">to_feature_spec</span><span class="p">()</span>
+<span class="n">meta</span> <span class="o">=</span> <span class="n">dataset_metadata</span><span class="p">.</span><span class="nc">DatasetMetadata</span><span class="p">(</span>
+    <span class="n">schema</span><span class="o">=</span><span class="n">dataset_schema</span><span class="p">.</span><span class="nf">from_feature_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">))</span>
 <span class="c1"># Read data from BigQuery
 </span><span class="n">data</span> <span class="o">=</span> <span class="n">pipeline</span> \
-    <span class="o">|</span> <span class="s">'read'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">Read</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+    <span class="o">|</span> <span class="sh">'</span><span class="s">read</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="nc">Read</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
 <span class="c1"># Loop over modes whose purpose is analysis
 </span><span class="n">transform_functions</span> <span class="o">=</span> <span class="p">{}</span>
-<span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'modes'</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="s">'transform'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+<span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">modes</span><span class="sh">'</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="sh">'</span><span class="s">transform</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">continue</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="s">'name'</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="sh">'</span><span class="s">name</span><span class="sh">'</span><span class="p">]</span>
     <span class="c1"># Select examples that belong to the current mode
 </span>    <span class="n">data_</span> <span class="o">=</span> <span class="n">data</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-filter'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Filter</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-filter</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="nc">Filter</span><span class="p">(</span><span class="nf">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
     <span class="c1"># Analyze the examples
 </span>    <span class="n">transform_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_</span><span class="p">,</span> <span class="n">meta</span><span class="p">)</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-analyze'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="n">AnalyzeDataset</span><span class="p">(</span><span class="n">_analyze</span><span class="p">)</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'transform'</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-analyze</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="nc">AnalyzeDataset</span><span class="p">(</span><span class="n">_analyze</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="nf">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="sh">'</span><span class="s">transform</span><span class="sh">'</span><span class="p">)</span>
     <span class="c1"># Store the transform function
 </span>    <span class="n">transform_functions</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-write-transform'</span> <span class="o">&gt;&gt;</span> <span class="n">transform_fn_io</span><span class="p">.</span><span class="n">WriteTransformFn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-write-transform</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">transform_fn_io</span><span class="p">.</span><span class="nc">WriteTransformFn</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 <span class="c1"># Loop over modes whose purpose is transformation
-</span><span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="s">'modes'</span><span class="p">]:</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="s">'transform'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
+</span><span class="k">for</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">modes</span><span class="sh">'</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="sh">'</span><span class="s">transform</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">mode</span><span class="p">:</span>
         <span class="k">continue</span>
-    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="s">'name'</span><span class="p">]</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">mode</span><span class="p">[</span><span class="sh">'</span><span class="s">name</span><span class="sh">'</span><span class="p">]</span>
     <span class="c1"># Select examples that belong to the current mode
 </span>    <span class="n">data_</span> <span class="o">=</span> <span class="n">data</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-filter'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Filter</span><span class="p">(</span><span class="n">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-filter</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="nc">Filter</span><span class="p">(</span><span class="nf">partial</span><span class="p">(</span><span class="n">_filter</span><span class="p">,</span> <span class="n">mode</span><span class="p">))</span>
     <span class="c1"># Shuffle examples if needed
-</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">.</span><span class="n">get</span><span class="p">(</span><span class="s">'shuffle'</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
+</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">.</span><span class="nf">get</span><span class="p">(</span><span class="sh">'</span><span class="s">shuffle</span><span class="sh">'</span><span class="p">,</span> <span class="bp">False</span><span class="p">):</span>
         <span class="n">data_</span> <span class="o">=</span> <span class="n">data_</span> \
-            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-shuffle'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">transforms</span><span class="p">.</span><span class="n">Reshuffle</span><span class="p">()</span>
+            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-shuffle</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">transforms</span><span class="p">.</span><span class="nc">Reshuffle</span><span class="p">()</span>
     <span class="c1"># Transform the examples using an appropriate transform function
-</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]</span> <span class="o">==</span> <span class="s">'identity'</span><span class="p">:</span>
-        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="n">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
+</span>    <span class="k">if</span> <span class="n">mode</span><span class="p">[</span><span class="sh">'</span><span class="s">transform</span><span class="sh">'</span><span class="p">]</span> <span class="o">==</span> <span class="sh">'</span><span class="s">identity</span><span class="sh">'</span><span class="p">:</span>
+        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="nc">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">data_</span><span class="p">,</span> <span class="n">meta_</span> <span class="o">=</span> <span class="p">((</span><span class="n">data_</span><span class="p">,</span> <span class="n">meta</span><span class="p">),</span> <span class="n">transform_functions</span><span class="p">[</span><span class="n">mode</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]])</span> \
-            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-transform'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="n">TransformDataset</span><span class="p">()</span>
-        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="n">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta_</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
-    <span class="n">path</span> <span class="o">=</span> <span class="n">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'examples'</span><span class="p">,</span> <span class="s">'part'</span><span class="p">)</span>
+        <span class="n">data_</span><span class="p">,</span> <span class="n">meta_</span> <span class="o">=</span> <span class="p">((</span><span class="n">data_</span><span class="p">,</span> <span class="n">meta</span><span class="p">),</span> <span class="n">transform_functions</span><span class="p">[</span><span class="n">mode</span><span class="p">[</span><span class="sh">'</span><span class="s">transform</span><span class="sh">'</span><span class="p">]])</span> \
+            <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-transform</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">tt_beam</span><span class="p">.</span><span class="nc">TransformDataset</span><span class="p">()</span>
+        <span class="n">coder</span> <span class="o">=</span> <span class="n">tft</span><span class="p">.</span><span class="n">coders</span><span class="p">.</span><span class="nc">ExampleProtoCoder</span><span class="p">(</span><span class="n">meta_</span><span class="p">.</span><span class="n">schema</span><span class="p">)</span>
+    <span class="n">path</span> <span class="o">=</span> <span class="nf">_locate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="sh">'</span><span class="s">examples</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">part</span><span class="sh">'</span><span class="p">)</span>
     <span class="c1"># Store the transformed examples as TFRecords
 </span>    <span class="n">data_</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-encode'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">Map</span><span class="p">(</span><span class="n">coder</span><span class="p">.</span><span class="n">encode</span><span class="p">)</span> \
-        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="s">'-write-examples'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">tfrecordio</span><span class="p">.</span><span class="n">WriteToTFRecord</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-encode</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="nc">Map</span><span class="p">(</span><span class="n">coder</span><span class="p">.</span><span class="n">encode</span><span class="p">)</span> \
+        <span class="o">|</span> <span class="n">name</span> <span class="o">+</span> <span class="sh">'</span><span class="s">-write-examples</span><span class="sh">'</span> <span class="o">&gt;&gt;</span> <span class="n">beam</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">tfrecordio</span><span class="p">.</span><span class="nc">WriteToTFRecord</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
 </code></pre></div></div>
 
 <p>At the very beginning, a BigQuery source is created, which is then branched out
@@ -458,30 +463,30 @@ pipeline on the TensorFlow side:</p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># config = ...
 </span>
 <span class="c1"># List all files matching a given pattern
-</span><span class="n">pattern</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="p">.</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="s">'examples'</span><span class="p">,</span> <span class="s">'part-*'</span><span class="p">]</span>
-<span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Dataset</span><span class="p">.</span><span class="n">list_files</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">pattern</span><span class="p">))</span>
+</span><span class="n">pattern</span> <span class="o">=</span> <span class="p">[</span><span class="n">self</span><span class="p">.</span><span class="n">path</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="sh">'</span><span class="s">examples</span><span class="sh">'</span><span class="p">,</span> <span class="sh">'</span><span class="s">part-*</span><span class="sh">'</span><span class="p">]</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">Dataset</span><span class="p">.</span><span class="nf">list_files</span><span class="p">(</span><span class="n">os</span><span class="p">.</span><span class="n">path</span><span class="p">.</span><span class="nf">join</span><span class="p">(</span><span class="o">*</span><span class="n">pattern</span><span class="p">))</span>
 <span class="c1"># Shuffle the files if needed
-</span><span class="k">if</span> <span class="s">'shuffle_macro'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'shuffle_macro'</span><span class="p">])</span>
+</span><span class="k">if</span> <span class="sh">'</span><span class="s">shuffle_macro</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="nf">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">shuffle_macro</span><span class="sh">'</span><span class="p">])</span>
 <span class="c1"># Convert the files into datasets of examples stored as TFRecords and
 # amalgamate these datasets into one dataset of examples
 </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span> \
-    <span class="p">.</span><span class="n">interleave</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">TFRecordDataset</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'interleave'</span><span class="p">])</span>
+    <span class="p">.</span><span class="nf">interleave</span><span class="p">(</span><span class="n">tf</span><span class="p">.</span><span class="n">data</span><span class="p">.</span><span class="n">TFRecordDataset</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">interleave</span><span class="sh">'</span><span class="p">])</span>
 <span class="c1"># Shuffle the examples if needed
-</span><span class="k">if</span> <span class="s">'shuffle_micro'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'shuffle_micro'</span><span class="p">])</span>
+</span><span class="k">if</span> <span class="sh">'</span><span class="s">shuffle_micro</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="nf">shuffle</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">shuffle_micro</span><span class="sh">'</span><span class="p">])</span>
 <span class="c1"># Preprocess the examples with respect to a given spec, pad the examples
 # and form batches of different sizes, and postprocess the batches
 </span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span> \
-    <span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">_preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'map'</span><span class="p">])</span> \
-    <span class="p">.</span><span class="n">padded_batch</span><span class="p">(</span><span class="n">padded_shapes</span><span class="o">=</span><span class="n">_shape</span><span class="p">(),</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'batch'</span><span class="p">])</span> \
-    <span class="p">.</span><span class="nb">map</span><span class="p">(</span><span class="n">_postprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'map'</span><span class="p">])</span>
+    <span class="p">.</span><span class="nf">map</span><span class="p">(</span><span class="n">_preprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">map</span><span class="sh">'</span><span class="p">])</span> \
+    <span class="p">.</span><span class="nf">padded_batch</span><span class="p">(</span><span class="n">padded_shapes</span><span class="o">=</span><span class="nf">_shape</span><span class="p">(),</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">batch</span><span class="sh">'</span><span class="p">])</span> \
+    <span class="p">.</span><span class="nf">map</span><span class="p">(</span><span class="n">_postprocess</span><span class="p">,</span> <span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">map</span><span class="sh">'</span><span class="p">])</span>
 <span class="c1"># Prefetch the batches if needed
-</span><span class="k">if</span> <span class="s">'prefetch'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">prefetch</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'prefetch'</span><span class="p">])</span>
+</span><span class="k">if</span> <span class="sh">'</span><span class="s">prefetch</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="nf">prefetch</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">prefetch</span><span class="sh">'</span><span class="p">])</span>
 <span class="c1"># Repeat the data once the source is exhausted if needed
-</span><span class="k">if</span> <span class="s">'repeat'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="n">repeat</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="s">'repeat'</span><span class="p">])</span>
+</span><span class="k">if</span> <span class="sh">'</span><span class="s">repeat</span><span class="sh">'</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="p">.</span><span class="nf">repeat</span><span class="p">(</span><span class="o">**</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">repeat</span><span class="sh">'</span><span class="p">])</span>
 </code></pre></div></div>
 
 <p>The pipeline is self-explanatory. It is simply a chain of operations stacked on
@@ -490,23 +495,23 @@ preprocessing and postprocessing mappings, which can be seen before and after
 the padding step, respectively:</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_preprocess</span><span class="p">(</span><span class="n">proto</span><span class="p">):</span>
-    <span class="n">spec</span> <span class="o">=</span> <span class="bp">self</span><span class="p">.</span><span class="n">transforms</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="s">'transform'</span><span class="p">]]</span> \
-        <span class="p">.</span><span class="n">transformed_feature_spec</span><span class="p">()</span>
-    <span class="n">example</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="n">parse_single_example</span><span class="p">(</span><span class="n">proto</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">(</span>
-        <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">contextual_names</span><span class="p">},</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">self</span><span class="p">.</span><span class="n">transforms</span><span class="p">[</span><span class="n">config</span><span class="p">[</span><span class="sh">'</span><span class="s">transform</span><span class="sh">'</span><span class="p">]]</span> \
+        <span class="p">.</span><span class="nf">transformed_feature_spec</span><span class="p">()</span>
+    <span class="n">example</span> <span class="o">=</span> <span class="n">tf</span><span class="p">.</span><span class="n">io</span><span class="p">.</span><span class="nf">parse_single_example</span><span class="p">(</span><span class="n">proto</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
+    <span class="nf">return </span><span class="p">(</span>
+        <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">contextual_names</span><span class="p">},</span>
         <span class="p">{</span>
             <span class="c1"># Convert the sequential columns from sparse to dense
-</span>            <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="n">to_dense</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequential_names</span>
+</span>            <span class="n">name</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="nf">to_dense</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">sequential_names</span>
         <span class="p">},</span>
     <span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_postprocess</span><span class="p">(</span><span class="n">contextual</span><span class="p">,</span> <span class="n">sequential</span><span class="p">):</span>
     <span class="n">sequential</span> <span class="o">=</span> <span class="p">{</span>
         <span class="c1"># Convert the sequential columns from dense to sparse
-</span>        <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="n">to_sparse</span><span class="p">(</span><span class="n">sequential</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">.</span><span class="n">sequential_names</span>
+</span>        <span class="n">name</span><span class="p">:</span> <span class="n">self</span><span class="p">.</span><span class="n">schema</span><span class="p">[</span><span class="n">name</span><span class="p">].</span><span class="nf">to_sparse</span><span class="p">(</span><span class="n">sequential</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">self</span><span class="p">.</span><span class="n">sequential_names</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">contextual</span><span class="p">,</span> <span class="o">**</span><span class="n">sequential</span><span class="p">}</span>
 </code></pre></div></div>
@@ -547,63 +552,89 @@ learning</a>,” 2016.</li>
 </ul>
 
 
-  </div><div id="disqus_thread"></div>
+  </div>
+
   <script>
     var disqus_config = function () {
       this.page.url = 'https://blog.ivanukhov.com/2019/11/08/sequential-data.html';
-      this.page.identifier = 'https://blog.ivanukhov.com/2019/11/08/sequential-data.html';
+      this.page.identifier = '/2019/11/08/sequential-data';
     };
-
     (function() {
       var d = document, s = d.createElement('script');
-
       s.src = 'https://good-news-everyone.disqus.com/embed.js';
-
       s.setAttribute('data-timestamp', +new Date());
       (d.head || d.body).appendChild(s);
     })();
   </script>
-  <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript><a class="u-url" href="/2019/11/08/sequential-data.html" hidden></a>
+  <noscript>
+    Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+<a class="u-url" href="/2019/11/08/sequential-data.html" hidden></a>
 </article>
 
       </div>
-    </main><footer class="site-footer h-card">
-  <data class="u-url" href="/"></data>
+    </main><link id="fa-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css">
+
+<footer class="site-footer h-card">
+  <data class="u-url" value="/"></data>
 
   <div class="wrapper">
 
-    <h2 class="footer-heading">Good news, everyone!</h2>
-
     <div class="footer-col-wrapper">
-      <div class="footer-col footer-col-1">
+      <div class="footer-col">
         <ul class="contact-list">
-          <li class="p-name">Ivan Ukhov</li><li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li></ul>
+          <li class="p-name">Ivan Ukhov</li>
+          <li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li>
+        </ul>
       </div>
-
-      <div class="footer-col footer-col-2"><ul class="social-media-list"><li><a href="https://github.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#github"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.linkedin.com/in/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#linkedin"></use></svg> <span class="username">IvanUkhov</span></a></li><li><a href="https://www.twitter.com/IvanUkhov"><svg class="svg-icon"><use xlink:href="/assets/minima-social-icons.svg#twitter"></use></svg> <span class="username">IvanUkhov</span></a></li></ul>
-</div>
-
-      <div class="footer-col footer-col-3">
-        <p>Solving problems that a software engineer might encounter in practice—or
-invent to sharpen their skills in leisure time
+      <div class="footer-col">
+        <p>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
 </p>
       </div>
     </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+    <a rel="me" href="https://github.com/IvanUkhov" target="_blank" title="GitHub">
+      <span class="grey fa-brands fa-github fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://www.linkedin.com/in/ivanukhov/" target="_blank" title="LinkedIn">
+      <span class="grey fa-brands fa-linkedin fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://x.com/IvanUkhov" target="_blank" title="X">
+      <span class="grey fa-brands fa-x-twitter fa-lg"></span>
+    </a>
+  </li>
+  <li>
+    <a href="https://blog.ivanukhov.com/feed.xml" target="_blank" title="Subscribe to syndication feed">
+      <svg class="svg-icon grey" viewbox="0 0 16 16">
+        <path d="M12.8 16C12.8 8.978 7.022 3.2 0 3.2V0c8.777 0 16 7.223 16 16h-3.2zM2.194
+          11.61c1.21 0 2.195.985 2.195 2.196 0 1.21-.99 2.194-2.2 2.194C.98 16 0 15.017 0
+          13.806c0-1.21.983-2.195 2.194-2.195zM10.606
+          16h-3.11c0-4.113-3.383-7.497-7.496-7.497v-3.11c5.818 0 10.606 4.79 10.606 10.607z"
+        />
+      </svg>
+    </a>
+  </li>
+</ul>
+</div>
 
   </div>
 
 </footer>
 <script type="text/javascript">
-      function anchor() {
-        for (let header of document.querySelectorAll('h1[id], h2[id]')) {
-          header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
-        }
-      }
-      function theme() {
-        document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
-      }
-      window.addEventListener('load', anchor);
-      window.addEventListener('load', theme);
-    </script>
-  </body>
+  function anchor() {
+    for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+      header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+    }
+  }
+  function theme() {
+    document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+  }
+  window.addEventListener('load', anchor);
+  window.addEventListener('load', theme);
+</script>
+</body>
+
 </html>
