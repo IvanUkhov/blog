@@ -39,17 +39,28 @@ might be observed on different weeks, and there might be weeks missing between
 the first and the last observation of a store.
 
 Given $$\mathcal{D} = \{(i_j, t_j, x_j, y_j)\}_{j = 1}^m$$, the goal is to find
-a threshold $$\hat{x}_i$$ for the number of sessions and a threshold
-$$\hat{p}_i$$ for the conversion rate above which the two metrics are considered
-to lie within their normal ranges for store $$i \in \{1, \ldots, n\}$$.
-Conversely, when either metric falls below its threshold, the situation is
-considered concerning enough to perform a closer investigation of the
+a threshold for the number of sessions $$\hat{x}_i$$ and a threshold for the
+conversion rate $$\hat{p}_i$$ so that, whenever $$x_k \geq \hat{x}_i$$ and $$p_k
+\geq \hat{p}_i$$ for an unseen week $$t_k$$, the performance of store $$i \in
+\{1, \ldots, n\}$$ is considered usual, uneventful. Conversely, when either
+metric falls below the corresponding guardrail, the situation is considered
+concerning enough to perform a closer investigation of the performance of the
 corresponding store.
-
-# Solution
 
 The problem can be classified as anomaly detection. The topic is well studied,
 and there are many approaches to this end. Here we take a Bayesian perspective.
+
+# Solution
+
+The idea is to build a statistical model and fit it to the data. The properties
+of the model can then be used to derive the guardrails. In Bayesian statistics,
+it means that there will be a fully-fledged probability distribution available
+in the end, which will provide an exhaustive description of the situation at
+hand.
+
+First, we need to acknowledge that the number of sessions, which is a count, is
+very much different from the conversion rate, which is a proportion. Hence, one
+would need to have two different models for the two metrics.
 
 # Conclusion
 
@@ -62,3 +73,7 @@ case, one would not expect to have any prominent annual seasonal effects or
 alike, and it is then not worth complicating the model. Moreover, the rolling
 nature of this approach with a shorter window also helps to accommodate any slow
 trend changes, which fall outside the scope of anomaly detection.
+
+Furthermore, we calculated only a lower bound, but it is equally easy to
+calculate an upper one in case one wants to keep an eye on unusually successful
+weeks.
