@@ -1,7 +1,8 @@
 ---
 ---
 
-@import 'minima';
+@use 'sass:color';
+@use 'sass:list';
 
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
@@ -27,6 +28,11 @@ blockquote {
   font-size: 1em;
   font-style: normal;
   letter-spacing: inherit;
+}
+
+.wrapper {
+  max-width: -webkit-calc(800px - (30px * 2));
+  max-width: calc(800px - (30px * 2));
 }
 
 .site-title {
@@ -90,24 +96,24 @@ a, a:visited {
   color: inherit;
 }
 
-@for $i from 1 through length($colors) {
+@for $i from 1 through list.length($colors) {
   .theme-#{$i} {
     ::selection {
-      background-color: lighten(nth($colors, $i), 30%);
+      background-color: color.adjust(list.nth($colors, $i), $lightness: 30%);
     }
 
     ::-moz-selection {
-      background-color: lighten(nth($colors, $i), 30%);
+      background-color: color.adjust(list.nth($colors, $i), $lightness: 30%);
     }
 
     .page-content {
       a, a:visited {
-        color: nth($colors, $i);
+        color: list.nth($colors, $i);
       }
     }
 
     .site-header {
-      background-color: lighten(nth($colors, $i), 30%);
+      background-color: color.adjust(list.nth($colors, $i), $lightness: 30%);
     }
   }
 }

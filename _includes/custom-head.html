@@ -1,0 +1,23 @@
+<meta content="assets/favicon.png" property="og:image">
+
+{%- if page.keywords -%}
+<meta name="keywords" content="{{ page.keywords | join: ', ' | escape }}">
+{%- endif -%}
+
+<link rel="stylesheet" href="{{ '/assets/main.css' | relative_url }}">
+<link rel="shortcut icon" type="image/png" href="/assets/favicon.png">
+
+{%- if page.math -%}
+<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+{%- endif -%}
+
+{%- if page.wide -%}
+<style>
+  .wrapper {
+    max-width: -webkit-calc(900px - (30px * 2)) !important;
+    max-width: calc(900px - (30px * 2)) !important;
+  }
+</style>
+{%- endif -%}
+
+{{ page.head }}
