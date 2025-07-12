@@ -107,8 +107,12 @@ a, a:visited {
     }
 
     .page-content {
-      a, a:visited {
+      a, a:hover, a:visited {
         color: list.nth($colors, $i);
+      }
+
+      a:hover {
+        text-decoration: underline list.nth($colors, $i);
       }
     }
 
