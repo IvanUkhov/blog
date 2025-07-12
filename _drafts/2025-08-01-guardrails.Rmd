@@ -38,12 +38,13 @@ stores and the continuity of observation within a given store: different stores
 might be observed on different weeks, and there might be weeks missing between
 the first and the last observation of a store.
 
-Given $$\{(i_j, t_j, x_j, y_j)\}_{j = 1}^m$$, the goal is to find a threshold
-$$\hat{x}_i$$ for the number of sessions and a threshold $$\hat{p}_i$$ for the
-conversion rate above which the two metrics are considered to lie within their
-normal ranges for store $$i \in \{1, \ldots, n\}$$. Conversely, when either
-metric falls below its threshold, the situation is considered concerning enough
-to perform a closer investigation of the corresponding store.
+Given $$\mathcal{D} = \{(i_j, t_j, x_j, y_j)\}_{j = 1}^m$$, the goal is to find
+a threshold $$\hat{x}_i$$ for the number of sessions and a threshold
+$$\hat{p}_i$$ for the conversion rate above which the two metrics are considered
+to lie within their normal ranges for store $$i \in \{1, \ldots, n\}$$.
+Conversely, when either metric falls below its threshold, the situation is
+considered concerning enough to perform a closer investigation of the
+corresponding store.
 
 # Solution
 
