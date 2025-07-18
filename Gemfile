@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'jekyll', '4.4.1'
-gem 'minima', github: 'jekyll/minima', ref: '0b7ca6bbdb782a646f8e7b78b1a29fd5032ad4d3'
+gem 'minima', github: 'jekyll/minima', ref: '1fe0fbfb5347fb4e047696d3b7479c04ed0051bc'
 
 group :jekyll_plugins do
   gem 'jekyll-feed'
