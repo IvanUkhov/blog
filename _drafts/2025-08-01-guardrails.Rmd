@@ -96,16 +96,17 @@ positive:
 
 $$
 \begin{align}
-\sigma_{i_j} & = \text{softmax}( \sigma_\text{global} + \sigma_{\text{local}, i_j} )
+\sigma_{i_j} & = \text{softplus}( \sigma_\text{global} + \sigma_{\text{local}, i_j} )
 \end{align}
 $$
 
-where $$\text{softmax}(x) = \ln(1 + \text{exp}(x))$$.
+where $$\text{softplus}(x) = \ln(1 + \text{exp}(x))$$. Technically, it can be
+zero if $$\sigma_\text{global} + \sigma_{\text{local}, i_j}$$ goes to
+$$-\infty$$, but it is not a concern in practice, as we shell see when we come
+to the implementation.
 
-Technically, it can be zero if $$\sigma_\text{global} + \sigma_{\text{local},
-i_j}$$ goes to $$-\infty$$, but it is not a concern in practice, as we shell see
-when we come to the implementation. With this reparameterization, there are
-$$2n + 2$$ parameters in the model. We shall put a Gaussian prior on each one:
+With this reparameterization, there are $$2n + 2$$ parameters in the model. We
+shall put a Gaussian prior on each one as follows:
 
 $$
 \begin{align}
@@ -119,19 +120,21 @@ $$
 It can be seen that the local ones are standard Gaussian, while the global ones
 have the mean set to non-zeros values (to be discussed shortly), with the
 standard deviation set to one still. Since we work on a logarithmic scale due to
-the usage of a log-Gaussian distribution, this standard parameterization should
-be adequate for websites having below a few thousand sessions per week.
+the usage of a log-Gaussian distribution for $$x_j$$, this standard
+parameterization should be adequate for websites having a number of sessions per
+week that is below a few thousand provided the global distributions are centered
+adequately via $$\mu_0$$ and $$\sigma_0$$.
 
 As for $$\mu_0$$ and $$\sigma_0$$, they can be set as follows:
 
 $$
 \begin{align}
 \mu_0 & = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
-\sigma_0 & = \text{softmax}^{-1}\left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right).
+\sigma_0 & = \text{softplus}^{-1}\left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right).
 \end{align}
 $$
 
-where $$\text{softmax}^{-1}(x) = \ln(\text{exp}(x) - 1)$$.
+where $$\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)$$.
 
 # Conclusion
 
