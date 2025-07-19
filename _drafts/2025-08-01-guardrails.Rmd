@@ -66,10 +66,11 @@ count, is very much different from the conversion rate $$p_j$$, which is a
 proportion. Hence, one would need to build two different models for the two
 metrics. Let us start with the number of sessions.
 
-Even though the number of sessions is a count, that is, a natural number, it is
-commonplace to model it as a continuous variable. One could use a Gaussian
-distribution, for instance. However, to respect the fact that is cannot be
-negative, we shall use a log-Gaussian distribution instead:
+Even though the number of sessions is a natural number, it is commonplace to
+model it as a real number. One could, for instance, use a Gaussian distribution
+to this end. However, to respect the fact that is cannot be negative, we shall
+use a log-Gaussian distribution instead, which is even more adequate if the
+popularity of the stores taken collectively spans multiple orders of magnitude:
 
 $$
 \begin{align}
@@ -77,8 +78,60 @@ x_j & \sim \text{log-Gaussian}(\mu_{i_j}, \sigma_{i_j})
 \end{align}
 $$
 
-where $$\mu_{i_j}$$ and $$\sigma_{i_j}$$ are the location and scale of store
-$$i_j$$, respectively.
+where $$\mu_{i_j}$$ and $$\sigma_{i_j}$$ are the location and scale for store
+$$i_j$$. The above is the likelihood of the data. To complete the model, one has
+to specify priors for the two parameters. For each one, we will use a linear
+combination of a global and a store-specific component. For the location
+parameter, it is just that:
+
+$$
+\begin{align}
+\mu_{i_j} & = \mu_\text{global} + \mu_{\text{local}, i_j}.
+\end{align}
+$$
+
+For the scale parameter, which is positive, we also apply a nonlinear
+transformation on top of the linear combination to ensure the end result stays
+positive:
+
+$$
+\begin{align}
+\sigma_{i_j} & = \text{softmax}( \sigma_\text{global} + \sigma_{\text{local}, i_j} )
+\end{align}
+$$
+
+where $$\text{softmax}(x) = \ln(1 + \text{exp}(x))$$.
+
+Technically, it can be zero if $$\sigma_\text{global} + \sigma_{\text{local},
+i_j}$$ goes to $$-\infty$$, but it is not a concern in practice, as we shell see
+when we come to the implementation. With this reparameterization, there are
+$$2n + 2$$ parameters in the model. We shall put a Gaussian prior on each one:
+
+$$
+\begin{align}
+\mu_\text{global} & \sim \text{Gaussian}(\mu_0, 1); \\
+\mu_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}; \\
+\sigma_\text{global} & \sim \text{Gaussian}(\sigma_0, 1); \text{ and} \\
+\sigma_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}.
+\end{align}
+$$
+
+It can be seen that the local ones are standard Gaussian, while the global ones
+have the mean set to non-zeros values (to be discussed shortly), with the
+standard deviation set to one still. Since we work on a logarithmic scale due to
+the usage of a log-Gaussian distribution, this standard parameterization should
+be adequate for websites having below a few thousand sessions per week.
+
+As for $$\mu_0$$ and $$\sigma_0$$, they can be set as follows:
+
+$$
+\begin{align}
+\mu_0 & = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\sigma_0 & = \text{softmax}^{-1}\left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right).
+\end{align}
+$$
+
+where $$\text{softmax}^{-1}(x) = \ln(\text{exp}(x) - 1)$$.
 
 # Conclusion
 
