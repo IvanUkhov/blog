@@ -88,7 +88,7 @@ parameter, it is just that:
 
 $$
 \begin{align}
-\mu_{i_j} & = \mu_\text{global} + \mu_{\text{local}, i_j}.
+\mu_{i_j} & = \mu_\text{global} + \mu_{\text{local}, i_j}. \tag{2}
 \end{align}
 $$
 
@@ -98,7 +98,7 @@ positive:
 
 $$
 \begin{align}
-\sigma_{i_j} & = \text{softplus}( \sigma_\text{global} + \sigma_{\text{local}, i_j} )
+\sigma_{i_j} & = \text{softplus}(\sigma_\text{global} + \sigma_{\text{local}, i_j}) \tag{3}
 \end{align}
 $$
 
@@ -112,10 +112,10 @@ shall put a Gaussian prior on each one as follows:
 
 $$
 \begin{align}
-\mu_\text{global} & \sim \text{Gaussian}(\mu_0, 1); \\
-\mu_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}; \\
-\sigma_\text{global} & \sim \text{Gaussian}(\sigma_0, 1); \text{ and} \\
-\sigma_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}.
+\mu_\text{global} & \sim \text{Gaussian}(\mu_0, 1); \tag{4} \\
+\mu_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}; \tag{5} \\
+\sigma_\text{global} & \sim \text{Gaussian}(\sigma_0, 1); \text{ and} \tag{6} \\
+\sigma_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}. \tag{7}
 \end{align}
 $$
 
@@ -127,22 +127,23 @@ parameterization should be adequate for websites having a number of sessions per
 week that is below a few thousand provided that the global distributions are
 centered appropriately via $$\mu_0$$ and $$\sigma_0$$.
 
-The only two parameters that require custom values are $$\mu_0$$ and
-$$\sigma_0$$. To get a bit of intuition for what they control, it is helpful to
-temporarily set the local parameters to zero. Then $$\mu_{i_j}$$ simplifies to
-$$\mu_\text{global}$$ and $$\sigma_{i_j}$$ to
-$$\text{softplus}(\sigma_\text{global})$$. Furthermore, $$\text{softplus}$$ can
-be dropped, as the corresponding non-linearity manifest itself only close to
-zero. Hence, $$\mu_\text{global}$$ and $$\sigma_\text{global}$$ are simply the
-location and scale of the log-Gaussian distribution in Equation 1. Therefore,
+In the above formulation, there are only two hyperparameters, which require
+custom values: $$\mu_0$$ and $$\sigma_0$$. To get a bit of intuition for what
+they control, it is helpful to temporarily set the local parameters (Equations 5
+and 7) to zero. Then $$\mu_{i_j}$$ simplifies to $$\mu_\text{global}$$ and
+$$\sigma_{i_j}$$ to $$\text{softplus}(\sigma_\text{global})$$. Furthermore,
+$$\text{softplus}$$ can be dropped, since the corresponding non-linearity
+manifest itself only close to zero. Hence, $$\mu_\text{global}$$ and
+$$\sigma_\text{global}$$ can simply be thought of as the location and scale
+parameters of the log-Gaussian distribution in Equation 1. With this in mind,
 they can be used to control the distribution's shape, that is, our prior
 assumptions about the number of weekly sessions.
 
-That does not help much still, as the location and scale parameters of a
-log-Gaussian distribution are _not_ its mean and standard deviation, which are
-familiar concepts. However, it is possible to derive the location and scale
-parameters given a mean and a standard deviation one has in mind. More
-specifically, they are as follows:
+That does not quite help with the intuition still, as the location and scale
+parameters of a log-Gaussian distribution are _not_ its mean and standard
+deviation, which would have been more familiar concepts to work with. However,
+it is possible to derive the location and scale parameters given a mean and a
+standard deviation one has in mind. More specifically, they are as follows:
 
 $$
 \begin{align}
@@ -151,7 +152,8 @@ $$
 \end{align}
 $$
 
-Bringing $$\text{softplus}$$ back into the picture, we obtain the following:
+Bringing $$\text{softplus}$$ back into the picture, we obtain the following for
+the hyperparameters:
 
 $$
 \begin{align}
@@ -161,8 +163,14 @@ $$
 $$
 
 where $$\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)$$. The end result is
-that we can think of a mean and a standard deviation as our prior assumptions
-about the number of sessions.
+that we can think of a mean and a standard deviation for the situation at hand,
+and it would be enough to complete the model.
+
+To recapitulate, the number of sessions is modeled according to Equation 1 where
+the location and scale parameters are given by Equation 2 and 3, respectively,
+with the priors set as in Equations 4–7 and the two hyperparameters set based on
+prior expectations for the mean and standard deviation according to Equation 8
+and 9, respectively.
 
 # Conclusion
 
