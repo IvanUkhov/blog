@@ -66,6 +66,8 @@ count, is very much different from the conversion rate $$p_j$$, which is a
 proportion. Hence, one would need to build two different models for the two
 metrics. Let us start with the number of sessions.
 
+## Sessions
+
 Even though the number of sessions is a natural number, it is commonplace to
 model it as a real number. One could, for instance, use a Gaussian distribution
 to this end. However, to respect the fact that is cannot be negative, we shall
@@ -74,7 +76,7 @@ popularity of the stores taken collectively spans multiple orders of magnitude:
 
 $$
 \begin{align}
-x_j & \sim \text{log-Gaussian}(\mu_{i_j}, \sigma_{i_j})
+x_j & \sim \text{log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
 \end{align}
 $$
 
@@ -122,10 +124,18 @@ have the mean set to non-zeros values (to be discussed shortly), with the
 standard deviation set to one still. Since we work on a logarithmic scale due to
 the usage of a log-Gaussian distribution for $$x_j$$, this standard
 parameterization should be adequate for websites having a number of sessions per
-week that is below a few thousand provided the global distributions are centered
-adequately via $$\mu_0$$ and $$\sigma_0$$.
+week that is below a few thousand provided that the global distributions are
+centered appropriately via $$\mu_0$$ and $$\sigma_0$$.
 
-As for $$\mu_0$$ and $$\sigma_0$$, they can be set as follows:
+The only two parameters that require custom values are $$\mu_0$$ and
+$$\sigma_0$$. To get a bit of intuition for what they control, it is helpful to
+temporarily set the local parameters zero. Then $$\mu_{i_j}$$ simplifies to
+$$\mu_\text{global}$$ and $$\sigma_{i_j}$$ to
+$$\text{softplus}(\sigma_\text{global})$$. Hence, $$\mu_\text{global}$$ and
+$$\sigma_\text{global}$$ are simply the location and scale of the log-Gaussian
+distribution in Equation 1.
+
+They can be set as follows:
 
 $$
 \begin{align}
