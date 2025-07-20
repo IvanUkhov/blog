@@ -156,7 +156,7 @@ where $$\text{diagonal}$$ is a function taking a tensor and stacking its
 diagonals—specified by a range with two offsets relative to the main
 diagonal—from bottom up, and $$\text{transpose}$$ is a function taking a tensor
 and transposing it. Both functions operators on the last two dimensions of the
-given tensor. This resulting matrix can then be plugged into Equation (1) to
+given tensor. This resulting matrix can then be plugged into Equation 1 to
 complete the calculation.
 
 In case the keys and values are shorter than the maximum allowed relative

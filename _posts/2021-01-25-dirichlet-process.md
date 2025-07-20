@@ -108,7 +108,7 @@ $$
 
 Here, $$\delta_x(\cdot)$$ is the Dirac measure, meaning that $$\delta_x(X) = 1$$
 if $$x \in X$$ for any $$X \subseteq \mathcal{X}$$, and otherwise, it is zero.
-It can be seen in Equation (2) that the base measure has simply been augmented
+It can be seen in Equation 2 that the base measure has simply been augmented
 with unit masses placed at the $$n$$ observed data points.
 
 The main question now is, How to draw samples from a Dirichlet process given
@@ -233,7 +233,7 @@ standard deviation of the data—and present results for different $$\lambda$$�
 to investigate how the prior volume affects shrinkage toward the prior.
 
 First, we do not condition on the data to get a better understanding of the
-prior itself, which corresponds to Equation (1). The following figure shows a
+prior itself, which corresponds to Equation 1. The following figure shows a
 single draw from four Dirichlet processes with different $$\lambda$$’s (the gray
 curves show the cumulative distribution function of the data as a reference):
 
@@ -244,10 +244,10 @@ curves show the cumulative distribution function of the data as a reference):
 It can be seen that the larger the prior volume, the smoother the curve. This is
 because larger $$\lambda$$’s “break” the stick into more pieces, allowing the
 normalized base measure to be extensively sampled, which, in the limit,
-converges to this very measure; see Equation (5).
+converges to this very measure; see Equation 5.
 
 Now, conditioning on the observed velocities of galaxies—that is, sampling as
-shown in Equation (2)—we obtain the following draws from the posterior Dirichlet
+shown in Equation 2—we obtain the following draws from the posterior Dirichlet
 distributions with different $$\lambda$$’s:
 
 
@@ -263,10 +263,10 @@ ignored (the bottom curve).
 
 The above model has a serious limitation: it assumes a discrete probability
 distribution for the data-generating process, which can be seen in the prior and
-posterior given in Equation (1) and (2), respectively, and it is also apparent
-in the decomposition given in Equation (3). In some cases, it might be
-appropriate; however, there is arguably more situations where it is inadequate,
-including the running example.
+posterior given in Equation 1 and 2, respectively, and it is also apparent in
+the decomposition given in Equation 3. In some cases, it might be appropriate;
+however, there is arguably more situations where it is inadequate, including the
+running example.
 
 # Mixing prior
 
@@ -291,7 +291,7 @@ member of the family by its mean and standard deviation. Parameters $$\{
 $$P_\theta$$. Distribution $$P_\theta$$ is not known either and gets a Dirichlet
 process prior with measure $$\lambda P_0$$.
 
-It can be seen in Equation (6) that each data point can potentially have its own
+It can be seen in Equation 6 that each data point can potentially have its own
 unique set of parameters. However, this is not what usually happens in practice.
 If $$\lambda$$ is reasonably small, the vast majority of the stick—the one we
 explained how to break in the previous section—tends to be consumed by a small
@@ -306,7 +306,7 @@ posterior is not a Dirichlet process. There is, however, a simple Markov chain
 Monte Carlo sampling strategy based on the stick-breaking construction. It
 belongs to the class of Gibbs samplers and is as follows.
 
-Similarly to Equation (3), we have the following decomposition:
+Similarly to Equation 3, we have the following decomposition:
 
 $$
 P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i)
@@ -348,8 +348,8 @@ $$j = 1, \dots, m$$.
 
 Second, given $$\{ k_i \}$$, the probabilities of the mixture components, $$\{ p_i
 \}$$, are updated using the stick-breaking construction described earlier. This
-time, however, the beta distribution for sampling $$\{ q_i \}$$ in Equation (4)
-is replaced with the following:
+time, however, the beta distribution for sampling $$\{ q_i \}$$ in Equation 4 is
+replaced with the following:
 
 $$
 q_i \sim \text{Beta}\left( 1 + n_i, \lambda + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,
@@ -435,7 +435,7 @@ for different components and, moreover, will vary from iteration to iteration.
 We set $$\mu_0$$ to 20, which is roughly the mean of the data, and $$\nu_0$$ to
 3, which is the smallest integer that allows the scaled chi-squared distribution
 to have a finite expectation. The choice of $$\kappa_0$$ and $$\sigma_0$$ is
-more subtle. Recall Equation (8). What we would like from the prior is to allow
+more subtle. Recall Equation 8. What we would like from the prior is to allow
 for free formation of clusters in a region generously covering the support of
 the data. To this end, the uncertainty in the mean, $$\mu_i$$, has to be high;
 however, it should not come from $$\sigma_i$$, since it would produce very
@@ -490,11 +490,11 @@ respectively, which entails the following prior assumption about $$\lambda$$:
 The parameter is allowed to vary freely from small to large values, as desired.
 
 Having chosen all priors and their hyperparameters, we are ready to investigate
-the behavior of the entire model; see Equations (6), (7), and (9). In what
-follows, we shall limit the number of mixture components to 25; that is, $$m =
-25$$. Furthermore, we shall perform 10000 Gibbs iterations and discard the first
-1000 as a warm-up period. As before, we start without conditioning on the data
-to observe draws from the prior itself. The following figure shows two sample
+the behavior of the entire model; see Equations 6, 7, and 9. In what follows, we
+shall limit the number of mixture components to 25; that is, $$m = 25$$.
+Furthermore, we shall perform 10000 Gibbs iterations and discard the first 1000
+as a warm-up period. As before, we start without conditioning on the data to
+observe draws from the prior itself. The following figure shows two sample
 draws:
 
 

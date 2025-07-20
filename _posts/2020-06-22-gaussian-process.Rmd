@@ -145,8 +145,8 @@ It can be seen that it takes a greater distance for a function with a larger
 length scale (_top_) to change to the same extent compared to a function with a
 smaller length scale (_bottom_).
 
-Let us now return to Equation (1) and discuss the error terms, $$\epsilon_i$$.
-In linear regression, they are modeled as independent identically distributed
+Let us now return to Equation 1 and discuss the error terms, $$\epsilon_i$$. In
+linear regression, they are modeled as independent identically distributed
 Gaussian random variables:
 
 $$
@@ -227,7 +227,7 @@ scale of the distance in the data; recall the very first figure. Consequently,
 the choice is adequate.
 
 The choice of priors for the parameters of the noise is complicated by the
-nonlinear link function; see Equation (4). What is important to realize is that
+nonlinear link function; see Equation 4. What is important to realize is that
 small amounts of noise correspond to negative values in the linear space, which
 is probably what one should be expecting given the scale of the response.
 Therefore, the priors should allow for large negative values. Let us make an
@@ -254,7 +254,7 @@ prior_noise_sigma_plot()
 The variability in the intercept, $$\alpha_\text{noise}$$, allows the standard
 deviation, $$\sigma_\text{noise}$$, to comfortably vary from small to large
 values, keeping in mind the scale of the response. Here are two draws from the
-prior distribution of the noise, including Equations (3) and (4):
+prior distribution of the noise, including Equations 3 and 4:
 
 ```{r prior-noise, include = FALSE}
 set.seed(1)
@@ -456,7 +456,7 @@ E(\mathbf{f}_\text{new})
 \end{align}
 $$
 
-The final component is the noise, as per Equation (1). The noise does not change
+The final component is the noise, as per Equation 1. The noise does not change
 the mean of the multivariate Gaussian distribution but does magnify the
 variance:
 
@@ -496,7 +496,7 @@ available at any location of interest.
 
 Before we conclude, let us illustrate what would happen if the data were modeled
 as having homogeneous noise. To this end, the variance of the noise is assumed
-to be independent of the covariates, as in Equation (2). After repeating the
+to be independent of the covariates, as in Equation 2. After repeating the
 inference and prediction processes, the following is obtained:
 
 ```{r, include = FALSE}
