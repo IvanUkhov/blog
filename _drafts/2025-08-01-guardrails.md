@@ -122,29 +122,47 @@ $$
 It can be seen that the local ones are standard Gaussian, while the global ones
 have the mean set to non-zeros values (to be discussed shortly), with the
 standard deviation set to one still. Since we work on a logarithmic scale due to
-the usage of a log-Gaussian distribution for $$x_j$$, this standard
+the usage of a log-Gaussian distribution in Equation 1, this standard
 parameterization should be adequate for websites having a number of sessions per
 week that is below a few thousand provided that the global distributions are
 centered appropriately via $$\mu_0$$ and $$\sigma_0$$.
 
 The only two parameters that require custom values are $$\mu_0$$ and
 $$\sigma_0$$. To get a bit of intuition for what they control, it is helpful to
-temporarily set the local parameters zero. Then $$\mu_{i_j}$$ simplifies to
+temporarily set the local parameters to zero. Then $$\mu_{i_j}$$ simplifies to
 $$\mu_\text{global}$$ and $$\sigma_{i_j}$$ to
-$$\text{softplus}(\sigma_\text{global})$$. Hence, $$\mu_\text{global}$$ and
-$$\sigma_\text{global}$$ are simply the location and scale of the log-Gaussian
-distribution in Equation 1.
+$$\text{softplus}(\sigma_\text{global})$$. Furthermore, $$\text{softplus}$$ can
+be dropped, as the corresponding non-linearity manifest itself only close to
+zero. Hence, $$\mu_\text{global}$$ and $$\sigma_\text{global}$$ are simply the
+location and scale of the log-Gaussian distribution in Equation 1. Therefore,
+they can be used to control the distribution's shape, that is, our prior
+assumptions about the number of weekly sessions.
 
-They can be set as follows:
+That does not help much still, as the location and scale parameters of a
+log-Gaussian distribution are _not_ its mean and standard deviation, which are
+familiar concepts. However, it is possible to derive the location and scale
+parameters given a mean and a standard deviation one has in mind. More
+specifically, they are as follows:
+
+$$
+\begin{align}
+\text{location} & = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\text{scale} & = \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)}.
+\end{align}
+$$
+
+Bringing $$\text{softplus}$$ back into the picture, we obtain the following:
 
 $$
 \begin{align}
 \mu_0 & = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
-\sigma_0 & = \text{softplus}^{-1}\left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right).
+\sigma_0 & = \text{softplus}^{-1} \left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right)
 \end{align}
 $$
 
-where $$\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)$$.
+where $$\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)$$. The end result is
+that we can think of a mean and a standard deviation as our prior assumptions
+about the number of sessions.
 
 # Conclusion
 
