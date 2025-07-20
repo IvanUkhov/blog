@@ -145,8 +145,8 @@ The following figure shows 10 random draws for \(\ell_\text{process} = 0.1\):</p
 length scale (<em>top</em>) to change to the same extent compared to a function with a
 smaller length scale (<em>bottom</em>).</p>
 
-<p>Let us now return to Equation (1) and discuss the error terms, \(\epsilon_i\).
-In linear regression, they are modeled as independent identically distributed
+<p>Let us now return to Equation 1 and discuss the error terms, \(\epsilon_i\). In
+linear regression, they are modeled as independent identically distributed
 Gaussian random variables:</p>
 
 \[\epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
@@ -213,7 +213,7 @@ scale of the distance in the data; recall the very first figure. Consequently,
 the choice is adequate.</p>
 
 <p>The choice of priors for the parameters of the noise is complicated by the
-nonlinear link function; see Equation (4). What is important to realize is that
+nonlinear link function; see Equation 4. What is important to realize is that
 small amounts of noise correspond to negative values in the linear space, which
 is probably what one should be expecting given the scale of the response.
 Therefore, the priors should allow for large negative values. Let us make an
@@ -234,7 +234,7 @@ is depicted below (note the logarithmic scale on the horizontal axis):</p>
 <p>The variability in the intercept, \(\alpha_\text{noise}\), allows the standard
 deviation, \(\sigma_\text{noise}\), to comfortably vary from small to large
 values, keeping in mind the scale of the response. Here are two draws from the
-prior distribution of the noise, including Equations (3) and (4):</p>
+prior distribution of the noise, including Equations 3 and 4:</p>
 
 <p><img src="/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg" alt="" /></p>
 
@@ -398,7 +398,7 @@ E(\mathbf{f}_\text{new})
 - k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} k(\mathbf{X}, \mathbf{X}_\text{new}).
 \end{align}\]
 
-<p>The final component is the noise, as per Equation (1). The noise does not change
+<p>The final component is the noise, as per Equation 1. The noise does not change
 the mean of the multivariate Gaussian distribution but does magnify the
 variance:</p>
 
@@ -432,7 +432,7 @@ available at any location of interest.</p>
 
 <p>Before we conclude, let us illustrate what would happen if the data were modeled
 as having homogeneous noise. To this end, the variance of the noise is assumed
-to be independent of the covariates, as in Equation (2). After repeating the
+to be independent of the covariates, as in Equation 2. After repeating the
 inference and prediction processes, the following is obtained:</p>
 
 <p><img src="/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg" alt="" /></p>

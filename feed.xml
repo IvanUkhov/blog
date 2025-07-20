@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-18T18:51:24+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-20T05:04:01+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
 </subtitle><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, and there are no
 more devices to spare, the common mitigation strategy is to reduce the batch
 size, thereby allowing more space for the model at the expense of the data.
@@ -227,7 +227,7 @@ s_{3 - 3} &amp; s_{3 - 2} &amp; s_{3 - 1} &amp; s_{3 + 0} \\
 diagonals—specified by a range with two offsets relative to the main
 diagonal—from bottom up, and \(\text{transpose}\) is a function taking a tensor
 and transposing it. Both functions operators on the last two dimensions of the
-given tensor. This resulting matrix can then be plugged into Equation (1) to
+given tensor. This resulting matrix can then be plugged into Equation 1 to
 complete the calculation.</p>
 
 <p>In case the keys and values are shorter than the maximum allowed relative
@@ -386,7 +386,7 @@ P_0 &amp; := \frac{\lambda}{\lambda + n} P_0 + \frac{1}{\lambda + n} \sum_{i = 1
 
 <p>Here, \(\delta_x(\cdot)\) is the Dirac measure, meaning that \(\delta_x(X) = 1\)
 if \(x \in X\) for any \(X \subseteq \mathcal{X}\), and otherwise, it is zero.
-It can be seen in Equation (2) that the base measure has simply been augmented
+It can be seen in Equation 2 that the base measure has simply been augmented
 with unit masses placed at the \(n\) observed data points.</p>
 
 <p>The main question now is, How to draw samples from a Dirichlet process given
@@ -495,7 +495,7 @@ standard deviation of the data—and present results for different \(\lambda\)�
 to investigate how the prior volume affects shrinkage toward the prior.</p>
 
 <p>First, we do not condition on the data to get a better understanding of the
-prior itself, which corresponds to Equation (1). The following figure shows a
+prior itself, which corresponds to Equation 1. The following figure shows a
 single draw from four Dirichlet processes with different \(\lambda\)’s (the gray
 curves show the cumulative distribution function of the data as a reference):</p>
 
@@ -504,10 +504,10 @@ curves show the cumulative distribution function of the data as a reference):</p
 <p>It can be seen that the larger the prior volume, the smoother the curve. This is
 because larger \(\lambda\)’s “break” the stick into more pieces, allowing the
 normalized base measure to be extensively sampled, which, in the limit,
-converges to this very measure; see Equation (5).</p>
+converges to this very measure; see Equation 5.</p>
 
 <p>Now, conditioning on the observed velocities of galaxies—that is, sampling as
-shown in Equation (2)—we obtain the following draws from the posterior Dirichlet
+shown in Equation 2—we obtain the following draws from the posterior Dirichlet
 distributions with different \(\lambda\)’s:</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/direct-posterior-1.svg" alt="" /></p>
@@ -521,10 +521,10 @@ ignored (the bottom curve).</p>
 
 <p>The above model has a serious limitation: it assumes a discrete probability
 distribution for the data-generating process, which can be seen in the prior and
-posterior given in Equation (1) and (2), respectively, and it is also apparent
-in the decomposition given in Equation (3). In some cases, it might be
-appropriate; however, there is arguably more situations where it is inadequate,
-including the running example.</p>
+posterior given in Equation 1 and 2, respectively, and it is also apparent in
+the decomposition given in Equation 3. In some cases, it might be appropriate;
+however, there is arguably more situations where it is inadequate, including the
+running example.</p>
 
 <h1 id="mixing-prior">Mixing prior</h1>
 
@@ -547,7 +547,7 @@ member of the family by its mean and standard deviation. Parameters \(\{
 \(P_\theta\). Distribution \(P_\theta\) is not known either and gets a Dirichlet
 process prior with measure \(\lambda P_0\).</p>
 
-<p>It can be seen in Equation (6) that each data point can potentially have its own
+<p>It can be seen in Equation 6 that each data point can potentially have its own
 unique set of parameters. However, this is not what usually happens in practice.
 If \(\lambda\) is reasonably small, the vast majority of the stick—the one we
 explained how to break in the previous section—tends to be consumed by a small
@@ -562,7 +562,7 @@ posterior is not a Dirichlet process. There is, however, a simple Markov chain
 Monte Carlo sampling strategy based on the stick-breaking construction. It
 belongs to the class of Gibbs samplers and is as follows.</p>
 
-<p>Similarly to Equation (3), we have the following decomposition:</p>
+<p>Similarly to Equation 3, we have the following decomposition:</p>
 
 \[P_m(\cdot) = \sum_{i = 1}^\infty p_i P_x(\cdot | \theta_i)\]
 
@@ -598,8 +598,8 @@ whose unnormalized probabilities are given by \(p_j P_x(x_i | \theta_j)\), for
 
 <p>Second, given \(\{ k_i \}\), the probabilities of the mixture components, \(\{ p_i
 \}\), are updated using the stick-breaking construction described earlier. This
-time, however, the beta distribution for sampling \(\{ q_i \}\) in Equation (4)
-is replaced with the following:</p>
+time, however, the beta distribution for sampling \(\{ q_i \}\) in Equation 4 is
+replaced with the following:</p>
 
 \[q_i \sim \text{Beta}\left( 1 + n_i, \lambda + \sum_{j = i + 1}^m n_j \right), \text{ for } i = 1, \dots, m,\]
 
@@ -675,7 +675,7 @@ for different components and, moreover, will vary from iteration to iteration.</
 <p>We set \(\mu_0\) to 20, which is roughly the mean of the data, and \(\nu_0\) to
 3, which is the smallest integer that allows the scaled chi-squared distribution
 to have a finite expectation. The choice of \(\kappa_0\) and \(\sigma_0\) is
-more subtle. Recall Equation (8). What we would like from the prior is to allow
+more subtle. Recall Equation 8. What we would like from the prior is to allow
 for free formation of clusters in a region generously covering the support of
 the data. To this end, the uncertainty in the mean, \(\mu_i\), has to be high;
 however, it should not come from \(\sigma_i\), since it would produce very
@@ -720,11 +720,11 @@ respectively, which entails the following prior assumption about \(\lambda\):</p
 <p>The parameter is allowed to vary freely from small to large values, as desired.</p>
 
 <p>Having chosen all priors and their hyperparameters, we are ready to investigate
-the behavior of the entire model; see Equations (6), (7), and (9). In what
-follows, we shall limit the number of mixture components to 25; that is, \(m =
-25\). Furthermore, we shall perform 10000 Gibbs iterations and discard the first
-1000 as a warm-up period. As before, we start without conditioning on the data
-to observe draws from the prior itself. The following figure shows two sample
+the behavior of the entire model; see Equations 6, 7, and 9. In what follows, we
+shall limit the number of mixture components to 25; that is, \(m = 25\).
+Furthermore, we shall perform 10000 Gibbs iterations and discard the first 1000
+as a warm-up period. As before, we start without conditioning on the data to
+observe draws from the prior itself. The following figure shows two sample
 draws:</p>
 
 <p><img src="/assets/images/2021-01-25-dirichlet-process/mixture-prior-check-1.svg" alt="" /></p>
@@ -912,8 +912,8 @@ The following figure shows 10 random draws for \(\ell_\text{process} = 0.1\):</p
 length scale (<em>top</em>) to change to the same extent compared to a function with a
 smaller length scale (<em>bottom</em>).</p>
 
-<p>Let us now return to Equation (1) and discuss the error terms, \(\epsilon_i\).
-In linear regression, they are modeled as independent identically distributed
+<p>Let us now return to Equation 1 and discuss the error terms, \(\epsilon_i\). In
+linear regression, they are modeled as independent identically distributed
 Gaussian random variables:</p>
 
 \[\epsilon_i \sim \text{Gaussian}\left( 0, \sigma_\text{noise}^2 \right),
@@ -980,7 +980,7 @@ scale of the distance in the data; recall the very first figure. Consequently,
 the choice is adequate.</p>
 
 <p>The choice of priors for the parameters of the noise is complicated by the
-nonlinear link function; see Equation (4). What is important to realize is that
+nonlinear link function; see Equation 4. What is important to realize is that
 small amounts of noise correspond to negative values in the linear space, which
 is probably what one should be expecting given the scale of the response.
 Therefore, the priors should allow for large negative values. Let us make an
@@ -1001,7 +1001,7 @@ is depicted below (note the logarithmic scale on the horizontal axis):</p>
 <p>The variability in the intercept, \(\alpha_\text{noise}\), allows the standard
 deviation, \(\sigma_\text{noise}\), to comfortably vary from small to large
 values, keeping in mind the scale of the response. Here are two draws from the
-prior distribution of the noise, including Equations (3) and (4):</p>
+prior distribution of the noise, including Equations 3 and 4:</p>
 
 <p><img src="/assets/images/2020-06-22-gaussian-process/prior-noise-1.svg" alt="" /></p>
 
@@ -1165,7 +1165,7 @@ E(\mathbf{f}_\text{new})
 - k(\mathbf{X}_\text{new}, \mathbf{X})(\mathbf{K} + \mathbf{D})^{-1} k(\mathbf{X}, \mathbf{X}_\text{new}).
 \end{align}\]
 
-<p>The final component is the noise, as per Equation (1). The noise does not change
+<p>The final component is the noise, as per Equation 1. The noise does not change
 the mean of the multivariate Gaussian distribution but does magnify the
 variance:</p>
 
@@ -1199,7 +1199,7 @@ available at any location of interest.</p>
 
 <p>Before we conclude, let us illustrate what would happen if the data were modeled
 as having homogeneous noise. To this end, the variance of the noise is assumed
-to be independent of the covariates, as in Equation (2). After repeating the
+to be independent of the covariates, as in Equation 2. After repeating the
 inference and prediction processes, the following is obtained:</p>
 
 <p><img src="/assets/images/2020-06-22-gaussian-process/posterior-predictive-homoscedastic-1.svg" alt="" /></p>
@@ -1385,7 +1385,7 @@ can be evaluated as follows:</p>
 value \(j\), which has the effect of marginalizing out other variables
 conditioned on the chosen value of variable \(i\), that is, on value \(j\).</p>
 
-<p>We can now compare \(n_i\), computed according to Equation (1), with its
+<p>We can now compare \(n_i\), computed according to Equation 1, with its
 counterpart in the population (the total number of customers who belong to cell
 \(i\)), which is denoted by \(N_i\), taking into consideration the sample size
 \(n\) and the population size \(N\). Problems occur when the ratios within one
@@ -1393,7 +1393,7 @@ or more of the following tuples largely disagree:</p>
 
 \[\left(\frac{n_i}{n}, \frac{N_i}{N}\right) \tag{4}\]
 
-<p>for \(i = 1, \dots, K\). When this happens, the scores given by Equation (3) or
+<p>for \(i = 1, \dots, K\). When this happens, the scores given by Equation 3 or
 any analyses oblivious of this disagreement cannot be trusted, since they
 misrepresent the population. (It should be noted, however, that equality within
 each tuple does not guarantee the absence of participation bias, since there
@@ -1424,7 +1424,7 @@ the grouping variables.</p>
     <p>The \(\prod_i m_i\) “cell-scores” are combined to produce \(\sum_i m_i\)
 “value-scores”—one for each value of each variable. This is done in such a
 way that the contribution of each cell to the score is equal to the relative
-size of that cell in the population given by Equation (4).</p>
+size of that cell in the population given by Equation 4.</p>
   </li>
 </ol>
 
@@ -1440,11 +1440,11 @@ enables information exchange through a common ancestor. <em>Multinomial</em> ref
 the distribution used for modeling the response variable. The family of
 multinomial distributions is appropriate, since we work with counts of events
 falling into one of several categories: detractors, neutrals, and promoters; see
-Equation (2). The response for each cell is then as follows:</p>
+Equation 2. The response for each cell is then as follows:</p>
 
 \[y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i)\]
 
-<p>where \(n_i\) is given by Equation (1), and</p>
+<p>where \(n_i\) is given by Equation 1, and</p>
 
 \[\theta_i = \left\langle\theta^d_i, \theta^u_i, \theta^p_i\right\rangle\]
 
@@ -1547,7 +1547,7 @@ zero.</p>
 \end{align}\]
 
 <p>The model has \(2 \times (1 + \sum_i m_i + M)\) parameters in total. The
-structure that can be seen in Equations (5a) and (5b) is what makes the model
+structure that can be seen in Equations 5a and 5b is what makes the model
 multilevel. This is an important feature, since it allows for information
 sharing between the individual values of the grouping variables. In particular,
 this has a regularizing effect on the estimates, which is also known as
@@ -1572,7 +1572,7 @@ grouping variables, which results in \(\sum_i m_i\) scores in total.</p>
 
 <p>Step 2 is poststratification, whose purpose is to correct for potential
 deviations of the sample from the population; recall the discussion around
-Equation (4). The foundation laid in the previous subsection makes the work here
+Equation 4. The foundation laid in the previous subsection makes the work here
 straightforward. The idea is as follows. Each draw from the posterior
 distribution consists of \(K\) values for the net promoter score, one for each
 cell. All one has to do in order to correct for a mismatch in proportions is to
@@ -1581,7 +1581,7 @@ observed in the population:</p>
 
 \[s^i_j = \frac{\sum_{k \in I^i_j} N_k \, s_k}{\sum_{k \in I^i_j} N_k}\]
 
-<p>where \(I^i_j\) is as in Equation (3), for \(i = 1, \dots, M\) and \(j = 1,
+<p>where \(I^i_j\) is as in Equation 3, for \(i = 1, \dots, M\) and \(j = 1,
 \dots, m_i\). The above gives a poststratified draw from the posterior
 distribution of the net promoter score for variable \(i\) and value \(j\). In
 practice, depending on the tool used, one might perform the poststratification

@@ -145,7 +145,7 @@ can be evaluated as follows:</p>
 value \(j\), which has the effect of marginalizing out other variables
 conditioned on the chosen value of variable \(i\), that is, on value \(j\).</p>
 
-<p>We can now compare \(n_i\), computed according to Equation (1), with its
+<p>We can now compare \(n_i\), computed according to Equation 1, with its
 counterpart in the population (the total number of customers who belong to cell
 \(i\)), which is denoted by \(N_i\), taking into consideration the sample size
 \(n\) and the population size \(N\). Problems occur when the ratios within one
@@ -153,7 +153,7 @@ or more of the following tuples largely disagree:</p>
 
 \[\left(\frac{n_i}{n}, \frac{N_i}{N}\right) \tag{4}\]
 
-<p>for \(i = 1, \dots, K\). When this happens, the scores given by Equation (3) or
+<p>for \(i = 1, \dots, K\). When this happens, the scores given by Equation 3 or
 any analyses oblivious of this disagreement cannot be trusted, since they
 misrepresent the population. (It should be noted, however, that equality within
 each tuple does not guarantee the absence of participation bias, since there
@@ -184,7 +184,7 @@ the grouping variables.</p>
     <p>The \(\prod_i m_i\) “cell-scores” are combined to produce \(\sum_i m_i\)
 “value-scores”—one for each value of each variable. This is done in such a
 way that the contribution of each cell to the score is equal to the relative
-size of that cell in the population given by Equation (4).</p>
+size of that cell in the population given by Equation 4.</p>
   </li>
 </ol>
 
@@ -200,11 +200,11 @@ enables information exchange through a common ancestor. <em>Multinomial</em> ref
 the distribution used for modeling the response variable. The family of
 multinomial distributions is appropriate, since we work with counts of events
 falling into one of several categories: detractors, neutrals, and promoters; see
-Equation (2). The response for each cell is then as follows:</p>
+Equation 2. The response for each cell is then as follows:</p>
 
 \[y_i | \theta_i \sim \text{Multinomial}(n_i, \theta_i)\]
 
-<p>where \(n_i\) is given by Equation (1), and</p>
+<p>where \(n_i\) is given by Equation 1, and</p>
 
 \[\theta_i = \left\langle\theta^d_i, \theta^u_i, \theta^p_i\right\rangle\]
 
@@ -307,7 +307,7 @@ zero.</p>
 \end{align}\]
 
 <p>The model has \(2 \times (1 + \sum_i m_i + M)\) parameters in total. The
-structure that can be seen in Equations (5a) and (5b) is what makes the model
+structure that can be seen in Equations 5a and 5b is what makes the model
 multilevel. This is an important feature, since it allows for information
 sharing between the individual values of the grouping variables. In particular,
 this has a regularizing effect on the estimates, which is also known as
@@ -332,7 +332,7 @@ grouping variables, which results in \(\sum_i m_i\) scores in total.</p>
 
 <p>Step 2 is poststratification, whose purpose is to correct for potential
 deviations of the sample from the population; recall the discussion around
-Equation (4). The foundation laid in the previous subsection makes the work here
+Equation 4. The foundation laid in the previous subsection makes the work here
 straightforward. The idea is as follows. Each draw from the posterior
 distribution consists of \(K\) values for the net promoter score, one for each
 cell. All one has to do in order to correct for a mismatch in proportions is to
@@ -341,7 +341,7 @@ observed in the population:</p>
 
 \[s^i_j = \frac{\sum_{k \in I^i_j} N_k \, s_k}{\sum_{k \in I^i_j} N_k}\]
 
-<p>where \(I^i_j\) is as in Equation (3), for \(i = 1, \dots, M\) and \(j = 1,
+<p>where \(I^i_j\) is as in Equation 3, for \(i = 1, \dots, M\) and \(j = 1,
 \dots, m_i\). The above gives a poststratified draw from the posterior
 distribution of the net promoter score for variable \(i\) and value \(j\). In
 practice, depending on the tool used, one might perform the poststratification
