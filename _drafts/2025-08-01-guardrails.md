@@ -13,6 +13,8 @@ keywords:
   - website traffic
 ---
 
+
+
 Suppose you run several online stores, and their number keeps on growing. It is
 becoming increasingly difficult to monitor the performance of any given one as
 there are simply too many of them. There is a fair chance that something
@@ -166,6 +168,20 @@ where $$\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)$$. The end result is
 that we can think of a mean and a standard deviation for the situation at hand,
 and it would be enough to complete the model.
 
+It is always a good idea to perform a prior predictive check, which can be done
+by sampling from the prior distribution and performing a kernel density
+estimation. For instance, assuming a mean and a standard deviation of 500 and
+setting the local variable to zero for simplicity, we obtain the following prior
+probability density:
+
+
+
+![](/assets/images/2025-08-01-guardrails/sessions-prior-1.svg)
+
+It can be seen that it covers well the area that we hypothesis to be plausible.
+The distribution also has a very long tail, which is truncated here, allowing
+for the number of sessions to be untypically large.
+
 To recapitulate, the number of sessions is modeled according to Equation 1 where
 the location and scale parameters are given by Equation 2 and 3, respectively,
 with the priors set as in Equations 4–7 and the two hyperparameters set based on
@@ -209,25 +225,30 @@ priori_ distributed according to Gaussian distributions as follows:
 
 $$
 \begin{align}
-\alpha_\text{global} & \sim \text{Gaussian}(\mu_0, 1) \text{ and} \\
-\alpha_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1). \\
+\alpha_\text{global} & \sim \text{Gaussian}(\mu_0, 1) \text{ and} \tag{10} \\
+\alpha_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1). \tag{11} \\
 \end{align}
 $$
 
 As before, the number of hyperparameters is kept to a minimum; there is only one
 in this case: $$\mu_0$$. The interpretation of $$\mu_0$$ is that it controls the
 base conversion rate, which one can see by temporarily setting the local
-parameters to zero. Equation 9 then reduces to $$\alpha_{i_j} =
+parameters (Equation 11) to zero. Equation 9 then reduces to $$\alpha_{i_j} =
 \text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming one has a
 conversion rate in mind, the parameter can be set as follows:
 
 $$
 \begin{align}
-\mu_0 & = \text{logit}(\text{rate})
+\mu_0 & = \text{logit}(\text{rate}) \tag{12}
 \end{align}
 $$
 
 where $$\text{logit}(x) = \ln(x / (1 - x))$$.
+
+To summarize, the conversion rate is modeled indirectly via the number of
+sessions with purchases in accordance with Equation 8 where the
+success-probability parameter is given by Equation 9, with the priors set as in
+Equations 10 and 11 and the hyperparameter as in Equation 12.
 
 # Conclusion
 
