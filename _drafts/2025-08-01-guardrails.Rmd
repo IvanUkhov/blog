@@ -3,6 +3,7 @@ layout: post
 title: Building guardrails with Bayesian statistics
 date: 2025-08-01T08:00:00+01:00
 math: true
+stan: true
 keywords:
   - Bayesian statistics
   - R
@@ -74,7 +75,7 @@ count, is very much different from the conversion rate $$p_j$$, which is a
 proportion. Hence, one would need to build two different models for the two
 metrics. Let us start with the number of sessions.
 
-## Number of sessions
+## Modeling: Number of sessions
 
 Even though the number of sessions is a natural number, it is commonplace to
 model it as a real number. One could, for instance, use a Gaussian distribution
@@ -228,7 +229,7 @@ with the priors set as in Equations 4–7 and the two hyperparameters set based 
 prior expectations for the mean and standard deviation according to Equation 8
 and 9, respectively.
 
-## Conversion rate
+## Modeling: Conversion rate
 
 The conversion rate is a proportion, that is, a real number between zero and
 one, which is obtained by dividing the number of purchases by the number of
@@ -275,11 +276,11 @@ in this case: $$\alpha_0$$. The interpretation of $$\alpha_0$$ is that it
 controls the base conversion rate, which one can see by temporarily setting the
 local parameters (Equation 11) to zero. Equation 9 then reduces to
 $$\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming
-one has a conversion rate in mind, the parameter can be set as follows:
+one has an average conversion rate in mind, the parameter can be set as follows:
 
 $$
 \begin{align}
-\alpha_0 & = \text{logit}(\text{rate}) \tag{12}
+\alpha_0 & = \text{logit}(\text{mean}) \tag{12}
 \end{align}
 $$
 
@@ -293,9 +294,9 @@ we obtain the following prior probability density:
 set.seed(42)
 
 count <- 10000
-rate <- 0.025
+mean <- 0.025
 
-alpha_0 <- log(rate / (1 - rate))
+alpha_0 <- log(mean / (1 - mean))
 
 alpha_global <- rnorm(count, mean = alpha_0, sd = 1)
 
@@ -325,7 +326,7 @@ tibble(x = prior$x, y = prior$y) %>%
 
 Here we assume 500 sessions per week and divide the sampled number of
 conversions by that number. It can be seen that the density is mostly
-consentrated on what one might consider realistic conversion rates but allows
+concentrated on what one might consider realistic conversion rates but allows
 for optimistic scenarios as well if that turns out to be the case.
 
 To summarize, the conversion rate is modeled indirectly via the number of
@@ -348,3 +349,116 @@ trend changes, which fall outside the scope of anomaly detection.
 Furthermore, we calculated only a lower bound, but it is equally easy to
 calculate an upper one in case one wants to keep an eye on unusually successful
 weeks.
+
+# Appendix
+
+## Modeling: Number of sessions
+
+```c
+data {
+  int<lower=1> group_count;
+  int<lower=1> value_count;
+
+  array[value_count] int<lower=1, upper=group_count> groups;
+  vector[value_count] values;
+
+  int prior_only;
+}
+
+transformed data {
+  real mean = 500;
+  real deviation = 500;
+  real epsilon = 1e-3;
+
+  real mu = log(mean) - 0.5 * log(1 + pow(deviation / mean, 2));
+  real sigma = sqrt(log(1 + pow(deviation / mean, 2)));
+}
+
+parameters {
+  real location_global;
+  vector[group_count] location_local;
+
+  real scale_global;
+  vector[group_count] scale_local;
+}
+
+transformed parameters {
+  vector[group_count] location = location_global + location_local;
+  vector[group_count] scale = log1p_exp(scale_global + scale_local) + epsilon;
+}
+
+model {
+  location_global ~ normal(mu, 1);
+  location_local ~ normal(0, 1);
+
+  scale_global ~ normal(log(exp(sigma) - 1), 1);
+  scale_local ~ normal(0, 1);
+
+  if (!prior_only) {
+    for (i in 1:value_count) {
+      values[i] ~ lognormal(location[groups[i]], scale[groups[i]]);
+    }
+  }
+}
+
+generated quantities {
+  vector[value_count] samples;
+  for (i in 1:value_count) {
+    samples[i] = lognormal_rng(location[groups[i]], scale[groups[i]]);
+  }
+}
+```
+
+## Modeling: Conversion rate
+
+```c
+data {
+  int<lower=1> group_count;
+  int<lower=1> value_count;
+
+  array[value_count] int<lower=1, upper=group_count> groups;
+  array[value_count] int<lower=0> values_numerator;
+  array[value_count] int<lower=0> values_denominator;
+
+  int prior_only;
+}
+
+transformed data {
+  real mean = 0.025;
+
+  real mu = mean;
+}
+
+parameters {
+  real location_global;
+  vector[group_count] location_local;
+}
+
+transformed parameters {
+  vector[group_count] location = location_global + location_local;
+}
+
+model {
+  location_global ~ normal(logit(mu), 1);
+  location_local ~ normal(0, 1);
+
+  if (!prior_only) {
+    for (i in 1:value_count) {
+      values_numerator[i] ~ binomial_logit(
+        values_denominator[i],
+        location[groups[i]]
+      );
+    }
+  }
+}
+
+generated quantities {
+  vector<lower=0, upper=1>[value_count] samples;
+  for (i in 1:value_count) {
+    samples[i] = 1.0 * binomial_rng(
+      values_denominator[i],
+      inv_logit(location[groups[i]])
+    ) / values_denominator[i];
+  }
+}
+```
