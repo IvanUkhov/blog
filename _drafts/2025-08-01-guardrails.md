@@ -286,13 +286,11 @@ weeks.
 
 ```c
 data {
-  int<lower=1> n;
-  int<lower=1> m;
+  int<lower=1> n; // Number of stores
+  int<lower=1> m; // Number of observations
 
-  array[m] int<lower=1, upper=n> i;
-  vector[m] x;
-
-  int prior_only;
+  array[m] int<lower=1, upper=n> i; // Mapping from observations to stores
+  vector[m] x; // Number of sessions
 }
 
 transformed data {
@@ -324,10 +322,8 @@ model {
   sigma_global ~ normal(log(exp(sigma_0) - 1), 1);
   sigma_local ~ normal(0, 1);
 
-  if (!prior_only) {
-    for (j in 1:m) {
-      x[j] ~ lognormal(mu[i[j]], sigma[i[j]]);
-    }
+  for (j in 1:m) {
+    x[j] ~ lognormal(mu[i[j]], sigma[i[j]]);
   }
 }
 
@@ -343,14 +339,12 @@ generated quantities {
 
 ```c
 data {
-  int<lower=1> n;
-  int<lower=1> m;
+  int<lower=1> n; // Number of stores
+  int<lower=1> m; // Number of observations
 
-  array[m] int<lower=1, upper=n> i;
-  array[m] int<lower=0> x;
-  array[m] int<lower=0> y;
-
-  int prior_only;
+  array[m] int<lower=1, upper=n> i; // Mapping from observations to stores
+  array[m] int<lower=0> x; // Number of sessions
+  array[m] int<lower=0> y; // Number of sessions with purchases
 }
 
 transformed data {
@@ -372,10 +366,8 @@ model {
   alpha_global ~ normal(logit(alpha_0), 1);
   alpha_local ~ normal(0, 1);
 
-  if (!prior_only) {
-    for (j in 1:m) {
-      y[j] ~ binomial_logit(x[j], alpha[i[j]]);
-    }
+  for (j in 1:m) {
+    y[j] ~ binomial_logit(x[j], alpha[i[j]]);
   }
 }
 
