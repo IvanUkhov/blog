@@ -66,7 +66,7 @@ count, is very much different from the conversion rate $$p_j$$, which is a
 proportion. Hence, one would need to build two different models for the two
 metrics. Let us start with the number of sessions.
 
-## Sessions
+## Number of sessions
 
 Even though the number of sessions is a natural number, it is commonplace to
 model it as a real number. One could, for instance, use a Gaussian distribution
@@ -76,7 +76,7 @@ popularity of the stores taken collectively spans multiple orders of magnitude:
 
 $$
 \begin{align}
-x_j & \sim \text{log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
+x_j & \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
 \end{align}
 $$
 
@@ -112,10 +112,10 @@ shall put a Gaussian prior on each one as follows:
 
 $$
 \begin{align}
-\mu_\text{global} & \sim \text{Gaussian}(\mu_0, 1); \tag{4} \\
-\mu_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}; \tag{5} \\
-\sigma_\text{global} & \sim \text{Gaussian}(\sigma_0, 1); \text{ and} \tag{6} \\
-\sigma_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \text{ for } i_j \in \{ 1, \dots, n \}. \tag{7}
+\mu_\text{global} & \sim \text{Gaussian}(\mu_0, 1), \tag{4} \\
+\mu_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1), \tag{5} \\
+\sigma_\text{global} & \sim \text{Gaussian}(\sigma_0, 1), \text{ and} \tag{6} \\
+\sigma_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1). \tag{7}
 \end{align}
 $$
 
@@ -171,6 +171,63 @@ the location and scale parameters are given by Equation 2 and 3, respectively,
 with the priors set as in Equations 4–7 and the two hyperparameters set based on
 prior expectations for the mean and standard deviation according to Equation 8
 and 9, respectively.
+
+## Conversion rate
+
+The conversion rate is a proportion, that is, a real number between zero and
+one, which is obtained by dividing the number of purchases by the number of
+sessions: $$p_j = y_j / x_j$$. Since we have the constituents at our disposal,
+it makes sense to model it using a binomial distribution:
+
+$$
+\begin{align}
+y_j & \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.
+\end{align}
+$$
+
+In this framework, one thinks of $$x_j$$ and $$y_j$$ as the number of trials and
+the number of successes, respectively, and of $$\alpha_{i_j}$$ as the
+probability of success. In our case, a trial is a session, a success is having
+at least one purchase within that session, and the probability of success is the
+conversion rate.
+
+Similarly to the number of sessions, we will use a linear combination for the
+parameters:
+
+$$
+\begin{align}
+\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global} + \alpha_{\text{local}, i_j}) \tag{9}
+\end{align}
+$$
+
+where $$\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))$$, used ensure the
+output stays in $$[0, 1]$$. There is a global components, which all stores
+share, and each one has its own local.
+
+There are $$n + 1$$ parameters in the model, which we shall consider to be _a
+priori_ distributed according to Gaussian distributions as follows:
+
+$$
+\begin{align}
+\alpha_\text{global} & \sim \text{Gaussian}(\mu_0, 1) \text{ and} \\
+\alpha_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1). \\
+\end{align}
+$$
+
+As before, the number of hyperparameters is kept to a minimum; there is only one
+in this case: $$\mu_0$$. The interpretation of $$\mu_0$$ is that it controls the
+base conversion rate, which one can see by temporarily setting the local
+parameters to zero. Equation 9 then reduces to $$\alpha_{i_j} =
+\text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming one has a
+conversion rate in mind, the parameter can be set as follows:
+
+$$
+\begin{align}
+\mu_0 & = \text{logit}(\text{rate})
+\end{align}
+$$
+
+where $$\text{logit}(x) = \ln(x / (1 - x))$$.
 
 # Conclusion
 
