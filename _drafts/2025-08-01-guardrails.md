@@ -239,11 +239,23 @@ conversion rate in mind, the parameter can be set as follows:
 
 $$
 \begin{align}
-\mu_0 & = \text{logit}(\text{rate}) \tag{12}
+\alpha_0 & = \text{logit}(\text{rate}) \tag{12}
 \end{align}
 $$
 
 where $$\text{logit}(x) = \ln(x / (1 - x))$$.
+
+Let us perform a prior predictive check for the conversion rate as well.
+Assuming a conversion rate of 0.025 (2.5%), we obtain the following prior
+probability density:
+
+
+
+![](/assets/images/2025-08-01-guardrails/purchases-prior-1.svg)
+
+It can be seen that the density is mostly consentrated on, what one might
+consider, realistic conversion rates but allows for optimistic scenarios as well
+if that turns out to be the case.
 
 To summarize, the conversion rate is modeled indirectly via the number of
 sessions with purchases in accordance with Equation 8 where the

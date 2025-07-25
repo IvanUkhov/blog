@@ -197,13 +197,13 @@ x <- mapply(function(location, scale) rlnorm(1, meanlog = location, sdlog = scal
             location = mu_global,
             scale = log(1 + exp(sigma_global)))
 
-prior <- density(x, n = 100000)
+prior <- density(x, n = 10 * count)
 x_limit <- quantile(x, 0.95)
 y_limit <- max(prior$y)
 
 tibble(x = prior$x, y = prior$y) %>%
   ggplot(aes(x = x, y = y)) +
-  geom_line(size = 1) +
+  geom_line(linewidth = 1) +
   xlim(0, 1.1 * x_limit) +
   geom_vline(xintercept = x_limit, linetype = 'dashed', color = 'black') +
   annotate('text',
@@ -279,11 +279,53 @@ conversion rate in mind, the parameter can be set as follows:
 
 $$
 \begin{align}
-\mu_0 & = \text{logit}(\text{rate}) \tag{12}
+\alpha_0 & = \text{logit}(\text{rate}) \tag{12}
 \end{align}
 $$
 
 where $$\text{logit}(x) = \ln(x / (1 - x))$$.
+
+Let us perform a prior predictive check for the conversion rate as well.
+Assuming a conversion rate of 0.025 (2.5%), we obtain the following prior
+probability density:
+
+```{r purchases-prior}
+set.seed(42)
+
+count <- 10000
+rate <- 0.025
+
+alpha_0 <- log(rate / (1 - rate))
+
+alpha_global <- rnorm(count, mean = alpha_0, sd = 1)
+
+x <- mapply(function(probability) rbinom(1, size = 500, prob = probability),
+            probability = 1 / (1 + exp(-alpha_global))) / 500
+
+prior <- density(x, n = 10 * count)
+x_limit <- quantile(x, 0.95)
+y_limit <- max(prior$y)
+
+tibble(x = prior$x, y = prior$y) %>%
+  ggplot(aes(x = x, y = y)) +
+  geom_line(linewidth = 1) +
+  xlim(0, 1.1 * x_limit) +
+  geom_vline(xintercept = x_limit, linetype = 'dashed', color = 'black') +
+  annotate('text',
+           label = '95%',
+           x = x_limit,
+           y = y_limit,
+           vjust = 0.5,
+           hjust = -0.5,
+           size = font_size / .pt) +
+  labs(x = 'Conversion rate', y = 'Prior probability density')
+```
+
+![](/assets/images/2025-08-01-guardrails/purchases-prior-1.svg)
+
+It can be seen that the density is mostly consentrated on, what one might
+consider, realistic conversion rates but allows for optimistic scenarios as well
+if that turns out to be the case.
 
 To summarize, the conversion rate is modeled indirectly via the number of
 sessions with purchases in accordance with Equation 8 where the
