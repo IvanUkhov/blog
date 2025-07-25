@@ -18,7 +18,7 @@ process_file <- function(input, output, image_path, cache_path) {
     fig.align = 'center',
     fig.asp = 0.618,
     fig.cap = '',
-    fig.width = 8,
+    fig.width = 740 / 576 * 8,
     fig.path = paste0(image_path, '/', sub('.Rmd$', '', basename(input)), '/'),
     cache.path = file.path(cache_path, '/', sub('.Rmd$', '', basename(input)), '/')
   )
