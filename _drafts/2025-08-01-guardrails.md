@@ -286,11 +286,11 @@ weeks.
 
 ```c
 data {
-  int<lower=1> group_count;
-  int<lower=1> value_count;
+  int<lower=1> n;
+  int<lower=1> m;
 
-  array[value_count] int<lower=1, upper=group_count> groups;
-  vector[value_count] values;
+  array[m] int<lower=1, upper=n> i;
+  vector[m] x;
 
   int prior_only;
 }
@@ -300,41 +300,41 @@ transformed data {
   real deviation = 500;
   real epsilon = 1e-3;
 
-  real mu = log(mean) - 0.5 * log(1 + pow(deviation / mean, 2));
-  real sigma = sqrt(log(1 + pow(deviation / mean, 2)));
+  real mu_0 = log(mean) - 0.5 * log(1 + pow(deviation / mean, 2));
+  real sigma_0 = sqrt(log(1 + pow(deviation / mean, 2)));
 }
 
 parameters {
-  real location_global;
-  vector[group_count] location_local;
+  real mu_global;
+  vector[n] mu_local;
 
-  real scale_global;
-  vector[group_count] scale_local;
+  real sigma_global;
+  vector[n] sigma_local;
 }
 
 transformed parameters {
-  vector[group_count] location = location_global + location_local;
-  vector[group_count] scale = log1p_exp(scale_global + scale_local) + epsilon;
+  vector[n] mu = mu_global + mu_local;
+  vector[n] sigma = log1p_exp(sigma_global + sigma_local) + epsilon;
 }
 
 model {
-  location_global ~ normal(mu, 1);
-  location_local ~ normal(0, 1);
+  mu_global ~ normal(mu_0, 1);
+  mu_local ~ normal(0, 1);
 
-  scale_global ~ normal(log(exp(sigma) - 1), 1);
-  scale_local ~ normal(0, 1);
+  sigma_global ~ normal(log(exp(sigma_0) - 1), 1);
+  sigma_local ~ normal(0, 1);
 
   if (!prior_only) {
-    for (i in 1:value_count) {
-      values[i] ~ lognormal(location[groups[i]], scale[groups[i]]);
+    for (j in 1:m) {
+      x[j] ~ lognormal(mu[i[j]], sigma[i[j]]);
     }
   }
 }
 
 generated quantities {
-  vector[value_count] samples;
-  for (i in 1:value_count) {
-    samples[i] = lognormal_rng(location[groups[i]], scale[groups[i]]);
+  vector[m] samples;
+  for (j in 1:m) {
+    samples[j] = lognormal_rng(mu[i[j]], sigma[i[j]]);
   }
 }
 ```
@@ -343,12 +343,12 @@ generated quantities {
 
 ```c
 data {
-  int<lower=1> group_count;
-  int<lower=1> value_count;
+  int<lower=1> n;
+  int<lower=1> m;
 
-  array[value_count] int<lower=1, upper=group_count> groups;
-  array[value_count] int<lower=0> values_numerator;
-  array[value_count] int<lower=0> values_denominator;
+  array[m] int<lower=1, upper=n> i;
+  array[m] int<lower=0> x;
+  array[m] int<lower=0> y;
 
   int prior_only;
 }
@@ -356,39 +356,33 @@ data {
 transformed data {
   real mean = 0.025;
 
-  real mu = mean;
+  real alpha_0 = mean;
 }
 
 parameters {
-  real location_global;
-  vector[group_count] location_local;
+  real alpha_global;
+  vector[n] alpha_local;
 }
 
 transformed parameters {
-  vector[group_count] location = location_global + location_local;
+  vector[n] alpha = alpha_global + alpha_local;
 }
 
 model {
-  location_global ~ normal(logit(mu), 1);
-  location_local ~ normal(0, 1);
+  alpha_global ~ normal(logit(alpha_0), 1);
+  alpha_local ~ normal(0, 1);
 
   if (!prior_only) {
-    for (i in 1:value_count) {
-      values_numerator[i] ~ binomial_logit(
-        values_denominator[i],
-        location[groups[i]]
-      );
+    for (j in 1:m) {
+      y[j] ~ binomial_logit(x[j], alpha[i[j]]);
     }
   }
 }
 
 generated quantities {
-  vector<lower=0, upper=1>[value_count] samples;
-  for (i in 1:value_count) {
-    samples[i] = 1.0 * binomial_rng(
-      values_denominator[i],
-      inv_logit(location[groups[i]])
-    ) / values_denominator[i];
+  vector<lower=0, upper=1>[m] samples;
+  for (j in 1:m) {
+    samples[j] = 1.0 * binomial_rng(x[j], inv_logit(alpha[i[j]])) / x[j];
   }
 }
 ```
