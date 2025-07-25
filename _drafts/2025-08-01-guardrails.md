@@ -225,17 +225,17 @@ priori_ distributed according to Gaussian distributions as follows:
 
 $$
 \begin{align}
-\alpha_\text{global} & \sim \text{Gaussian}(\mu_0, 1) \text{ and} \tag{10} \\
+\alpha_\text{global} & \sim \text{Gaussian}(\alpha_0, 1) \text{ and} \tag{10} \\
 \alpha_{\text{local}, i_j} & \sim \text{Gaussian}(0, 1). \tag{11} \\
 \end{align}
 $$
 
 As before, the number of hyperparameters is kept to a minimum; there is only one
-in this case: $$\mu_0$$. The interpretation of $$\mu_0$$ is that it controls the
-base conversion rate, which one can see by temporarily setting the local
-parameters (Equation 11) to zero. Equation 9 then reduces to $$\alpha_{i_j} =
-\text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming one has a
-conversion rate in mind, the parameter can be set as follows:
+in this case: $$\alpha_0$$. The interpretation of $$\alpha_0$$ is that it
+controls the base conversion rate, which one can see by temporarily setting the
+local parameters (Equation 11) to zero. Equation 9 then reduces to
+$$\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming
+one has a conversion rate in mind, the parameter can be set as follows:
 
 $$
 \begin{align}
@@ -246,16 +246,17 @@ $$
 where $$\text{logit}(x) = \ln(x / (1 - x))$$.
 
 Let us perform a prior predictive check for the conversion rate as well.
-Assuming a conversion rate of 0.025 (2.5%), we obtain the following prior
-probability density:
+Assuming a conversion rate of 2.5%, that is, $$\alpha_0 = \text{logit}(0.025)$$,
+we obtain the following prior probability density:
 
 
 
 ![](/assets/images/2025-08-01-guardrails/purchases-prior-1.svg)
 
-It can be seen that the density is mostly consentrated on, what one might
-consider, realistic conversion rates but allows for optimistic scenarios as well
-if that turns out to be the case.
+Here we assume 500 sessions per week and divide the sampled number of
+conversions by that number. It can be seen that the density is mostly
+consentrated on what one might consider realistic conversion rates but allows
+for optimistic scenarios as well if that turns out to be the case.
 
 To summarize, the conversion rate is modeled indirectly via the number of
 sessions with purchases in accordance with Equation 8 where the
