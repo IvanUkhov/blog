@@ -73,7 +73,10 @@ bound is required, one can do the same with respect to the right tail.
 Let us start with the modeling, and we will then come back to the inference. To
 begin with, we need to acknowledge the fact that the number of sessions $$x_j$$,
 which is a count, is very much different from the conversion rate $$p_j$$, which
-is a proportion. Hence, one would need to build two different models.
+is a proportion. Hence, one would need to build two different models. In
+addition, we shall ignore the information about which week each observation
+belongs to, that is, $$\{ t_j \}_{j = 1}^m$$, and come back to and motivate this
+choice in the conclusion.
 
 ## Modeling: Number of sessions
 
@@ -336,8 +339,9 @@ Equations 10 and 11 and the hyperparameter as in Equation 12.
 
 ## Inference
 
-What do we do with the two models now? Traditionally, the outcome of Bayesian
-inference is a posterior distribution over the parameters of the model:
+What do we do with the two models now? Traditionally, given a model, the outcome
+of Bayesian inference is a posterior distribution over the parameters of the
+model:
 
 $$
 \begin{align}
@@ -346,7 +350,7 @@ f(\theta | \mathcal{D}) & \propto f(\mathcal{D} | \theta) \, f(\theta).
 $$
 
 In the above, $$\theta$$ is collectively referring to all parameters, which for
-the number of sessions would be
+the number of sessions is
 
 $$
 \theta = \{
@@ -355,7 +359,7 @@ $$
 \}
 $$
 
-and for the conversion rate would be
+and for the conversion rate is
 
 $$
 \theta = \{
@@ -363,8 +367,8 @@ $$
 \},
 $$
 
-and $$\mathcal{D}$$ is the observed data, which would be $$\{ x_j \}_{j = 1}^m$$
-for the number of sessions and $$\{ y_j \}_{j = 1}^m$$ for the conversion rate,
+and $$\mathcal{D}$$ is the observed data, which is $$\{ x_j \}_{j = 1}^m$$ for
+the number of sessions and $$\{ y_j \}_{j = 1}^m$$ for the conversion rate,
 assuming $$\{ x_j \}_{j = 1}^m$$ to be implicitly known in the latter case.
 Next, $$f(\theta)$$ stands for the density of the prior distribution of the
 parameters, which is given by Equations 4, 5, 6, and 7 for the number of
@@ -381,8 +385,9 @@ given what we have seen in the past. If we acquire a probability distribution
 over what we can reasonably expect to observe next week, we would be able to
 judge whether what we actually observe is anomalous or not.
 
-The desired distribution has a name: the posterior predictive distribution.
-Formally, it is as follows:
+The desired distribution has a name: the posterior predictive distribution. It
+is also an artifact of Bayesian inference, and formally, the distribution is as
+follows:
 
 $$
 \begin{align}
@@ -390,9 +395,50 @@ f(\mathcal{D}_\text{new} | \mathcal{D}) &= \int f(\mathcal{D}_\text{new} | \thet
 \end{align}
 $$
 
-In other words, it is the distribution of unseen data given the observed data
-where the uncertainty in the parameters is integrated out via the posterior
-distribution of the parameters.
+In other words, it is the distribution of unseen data $$\mathcal{D}_\text{new}$$
+given the observed data $$\mathcal{D}$$ where the uncertainty in the parameters
+is integrated out via the posterior distribution of the parameters $$\theta$$.
+
+In practice, given a model with data, all of the above is done by the
+probabilistic programming language of choice, such as [Stan], and its tooling.
+Since such languages target the general case where the model cannot be tackled
+analytically, the resulting distributions are given in the form of posterior
+draws. For the posterior predictive distribution, it would be a collection of
+$$l$$ hypothetical replicas (on the order of thousands) of the original
+observations: $$\{ \mathcal{D}_\text{new}^k \}_{k = 1}^l$$. That is, for each
+original observation of a store on a specific week, there will be $$l$$ draws.
+To calculate a guardrail for a specific store then, we can simply collect all
+draws that belong to that store, choose a percentile, and calculate the
+corresponding quantile.
+
+For the number of sessions for store $$i$$, the guardrail is as follows:
+
+$$
+\hat{x}_i = \text{quantile}(\mathcal{D}_i, \text{percentile})
+$$
+
+where
+
+$$
+\mathcal{D}_i = \{ x_{\text{new}, j}^k: \, i_j = i, \, k = 1, \dots, l \}
+$$
+
+is a set of draws that belong to store $$i$$ observed on any weeks that might be
+present in the original data set. Likewise, for the conversion rate, we have the
+following, with a slight abuse of notation:
+
+$$
+\hat{p}_i = \text{quantile}(\mathcal{D}_i, \text{percentile})
+$$
+
+where
+
+$$
+\mathcal{D}_i = \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}.
+$$
+
+Working with draws is arguably more intuitive and flexible, as one does not
+depend on any mathematical derivations, which might be intractable.
 
 # Conclusion
 
