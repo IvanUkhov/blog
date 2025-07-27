@@ -81,9 +81,7 @@ use a log-Gaussian distribution instead, which is even more adequate if the
 popularity of the stores taken collectively spans multiple orders of magnitude:
 
 $$
-\begin{align}
-x_j | \mu_{i_j}, \sigma_{i_j} & \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
-\end{align}
+x_j | \mu_{i_j}, \sigma_{i_j} \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
 $$
 
 where $$\mu_{i_j}$$ and $$\sigma_{i_j}$$ are the location and scale for store
@@ -93,9 +91,7 @@ combination of a global and a store-specific component. For the location
 parameter, it is just that:
 
 $$
-\begin{align}
-\mu_{i_j} & = \mu_\text{global} + \mu_{\text{local}, i_j}. \tag{2}
-\end{align}
+\mu_{i_j} = \mu_\text{global} + \mu_{\text{local}, i_j}. \tag{2}
 $$
 
 For the scale parameter, which is positive, we also apply a nonlinear
@@ -103,9 +99,7 @@ transformation on top of the linear combination to ensure the end result stays
 positive:
 
 $$
-\begin{align}
-\sigma_{i_j} & = \text{softplus}(\sigma_\text{global} + \sigma_{\text{local}, i_j}) \tag{3}
-\end{align}
+\sigma_{i_j} = \text{softplus}(\sigma_\text{global} + \sigma_{\text{local}, i_j}) \tag{3}
 $$
 
 where $$\text{softplus}(x) = \ln(1 + \text{exp}(x))$$. Technically, it can be
@@ -200,9 +194,7 @@ sessions: $$p_j = y_j / x_j$$. Since we have the constituents at our disposal,
 it makes sense to model it using a binomial distribution:
 
 $$
-\begin{align}
-y_j | \alpha_{i_j} & \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.
-\end{align}
+y_j | \alpha_{i_j} \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.
 $$
 
 In this framework, one thinks of $$x_j$$ and $$y_j$$ as the number of trials and
@@ -215,9 +207,7 @@ Similarly to the number of sessions, we will use a linear combination for the
 parameters:
 
 $$
-\begin{align}
 \alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global} + \alpha_{\text{local}, i_j}) \tag{9}
-\end{align}
 $$
 
 where $$\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))$$, used ensure the
@@ -242,9 +232,7 @@ $$\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global})$$. Therefore, assuming
 one has an average conversion rate in mind, the parameter can be set as follows:
 
 $$
-\begin{align}
-\alpha_0 & = \text{logit}(\text{mean}) \tag{12}
-\end{align}
+\alpha_0 = \text{logit}(\text{mean}) \tag{12}
 $$
 
 where $$\text{logit}(x) = \ln(x / (1 - x))$$.
@@ -274,9 +262,7 @@ of Bayesian inference is a posterior distribution over the parameters of the
 model:
 
 $$
-\begin{align}
-f(\theta | \mathcal{D}) & \propto f(\mathcal{D} | \theta) \, f(\theta).
-\end{align}
+f(\theta | \mathcal{D}) = \int f(\mathcal{D} | \theta) \, f(\theta) \, d\theta.
 $$
 
 In the above, $$\theta$$ is collectively referring to all parameters, which for
@@ -320,9 +306,7 @@ is also an artifact of Bayesian inference, and formally, the distribution is as
 follows:
 
 $$
-\begin{align}
-f(\mathcal{D}_\text{new} | \mathcal{D}) &= \int f(\mathcal{D}_\text{new} | \theta) \, f(\theta | \mathcal{D}) \, d\theta.
-\end{align}
+f(\mathcal{D}_\text{new} | \mathcal{D}) = \int f(\mathcal{D}_\text{new} | \theta) \, f(\theta | \mathcal{D}) \, d\theta.
 $$
 
 In other words, it is the distribution of unseen data $$\mathcal{D}_\text{new}$$
