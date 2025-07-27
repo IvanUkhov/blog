@@ -341,8 +341,18 @@ $$
 \hat{p}_i = \text{quantile}\left( \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).
 $$
 
-Working with draws is arguably more intuitive and flexible, as one does not
-depend on any mathematical derivations, which might even be intractable.
+If the percentile is chosen to be, for instance, 2.5%, the guardrail will be
+flagging the outcomes, that is, the number of sessions or the conversion rate
+for the week that has just passed, that have dropped so much that the
+probability of this happening is estimated to be at most 2.5%. One can, of
+course, tweak this threshold as one sees fit, depending on how cautious one
+wants to be.
+
+To sum up, once formulated, each model can be implemented in a probabilistic
+programming language and fitted to the historical data. The result is a set of
+replications of the original observations, yielding a probability distribution
+over what one might expect to see in the future. The corresponding guardrail is
+then an appropriately chosen quantile of this posterior predictive distribution.
 
 # Conclusion
 
@@ -359,6 +369,12 @@ trend changes, which fall outside the scope of anomaly detection.
 Furthermore, we calculated only a lower bound, but it is equally easy to
 calculate an upper one in case one wants to keep an eye on unusually successful
 weeks.
+
+In general, working with draws is arguably more intuitive and flexible, as one
+does not depend on any mathematical derivations, which might not even be
+tractable. Calculating guardrails is only one of many possible applications. The
+posterior distribution is an exhaustive description of what is modeled.
+
 
 # Appendix
 
