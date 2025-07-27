@@ -339,36 +339,26 @@ observations: $$\{ \mathcal{D}_\text{new}^k \}_{k = 1}^l$$. That is, for each
 original observation of a store on a specific week, there will be $$l$$ draws.
 To calculate a guardrail for a specific store then, we can simply collect all
 draws that belong to that store, choose a percentile, and calculate the
-corresponding quantile.
+corresponding quantile:
+
+$$
+\text{guardrail} = \text{quantile}(\text{draws}, \text{percentile}).
+$$
 
 For the number of sessions for store $$i$$, the guardrail is as follows:
 
 $$
-\hat{x}_i = \text{quantile}(\mathcal{D}_i, \text{percentile})
+\hat{x}_i = \text{quantile}\left( \left\{ x_{\text{new}, j}^k: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).
 $$
 
-where
+Likewise, for the conversion rate, we have the following:
 
 $$
-\mathcal{D}_i = \{ x_{\text{new}, j}^k: \, i_j = i, \, k = 1, \dots, l \}
-$$
-
-is a set of draws that belong to store $$i$$ observed on any weeks that might be
-present in the original data set. Likewise, for the conversion rate, we have the
-following, with a slight abuse of notation:
-
-$$
-\hat{p}_i = \text{quantile}(\mathcal{D}_i, \text{percentile})
-$$
-
-where
-
-$$
-\mathcal{D}_i = \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}.
+\hat{p}_i = \text{quantile}\left( \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).
 $$
 
 Working with draws is arguably more intuitive and flexible, as one does not
-depend on any mathematical derivations, which might be intractable.
+depend on any mathematical derivations, which might even be intractable.
 
 # Conclusion
 
