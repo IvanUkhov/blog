@@ -29,7 +29,7 @@ at how to build such guardrails using Bayesian statistics.
 
 Let $$n$$ be the number of stores and $$m$$ be the number of weekly
 observations. A weekly observation is a tuple $$(i_j, t_j, x_j, y_j)$$, for $$j
-\in \{1, \ldots, m\}$$, where $$i_j \in \{1, \ldots, n\}$$ is the index of the
+\in \{1, \dots, m\}$$, where $$i_j \in \{1, \dots, n\}$$ is the index of the
 store observed, $$t_j \in \mathbb{N}_+$$ is the index of the week of
 observation, $$x_j \in \mathbb{N}$$ is the total number of sessions that week,
 and $$y_j \leq x_j$$ is the number of sessions that resulted in at least one
@@ -41,14 +41,14 @@ stores and the continuity of observation within a given store: different stores
 might be observed on different weeks, and there might be weeks missing between
 the first and the last observation of a store.
 
-Given $$\mathcal{D} = \{(i_j, t_j, x_j, y_j)\}_{j = 1}^m$$, the goal is to find
-a threshold for the number of sessions, denoted by $$\hat{x}_i$$, and a
-threshold for the conversion rate, denoted by $$\hat{p}_i$$, so that whenever
-$$x_k \geq \hat{x}_i$$ and $$p_k \geq \hat{p}_i$$ for an unseen week $$t_k$$,
-the performance of store $$i \in \{1, \ldots, n\}$$ is considered usual,
-uneventful. Conversely, when either metric falls below the corresponding
-guardrail, the situation is considered concerning enough to perform a closer
-investigation of the performance of the corresponding store.
+Given $$\{(i_j, t_j, x_j, y_j)\}_{j = 1}^m$$, the goal is to find a threshold
+for the number of sessions, denoted by $$\hat{x}_i$$, and a threshold for the
+conversion rate, denoted by $$\hat{p}_i$$, so that whenever $$x_k \geq
+\hat{x}_i$$ and $$p_k \geq \hat{p}_i$$ for an unseen week $$t_k$$, the
+performance of store $$i \in \{1, \dots, n\}$$ is considered usual, uneventful.
+Conversely, when either metric falls below the corresponding guardrail, the
+situation is considered concerning enough to perform a closer investigation of
+the performance of the corresponding store.
 
 The problem can be classified as anomaly detection. The topic is well studied,
 and there are many approaches to this end. Here we shall look at it from a
@@ -57,17 +57,17 @@ Bayesian perspective.
 # Solution
 
 The idea is to build a statistical model and fit it to the data. In Bayesian
-statistics, it means that there will be a fully-fledged probability distribution
+inference, it means that there will be a fully-fledged probability distribution
 available in the end, which will provide an exhaustive description of the
 situation at hand. This distribution can then be used to estimate a wide range
 of quantities of interest. In particular, one can choose an appropriate quantile
 on the left tail of the distribution and use it as a guardrail. If an upper
 bound is required, one can do the same with respect to the right tail.
 
-First, we need to acknowledge that the number of sessions $$x_j$$, which is a
-count, is very much different from the conversion rate $$p_j$$, which is a
-proportion. Hence, one would need to build two different models for the two
-metrics. Let us start with the number of sessions.
+Let us start with the modeling, and we will then come back to the inference. To
+begin with, we need to acknowledge the fact that the number of sessions $$x_j$$,
+which is a count, is very much different from the conversion rate $$p_j$$, which
+is a proportion. Hence, one would need to build two different models.
 
 ## Modeling: Number of sessions
 
@@ -79,7 +79,7 @@ popularity of the stores taken collectively spans multiple orders of magnitude:
 
 $$
 \begin{align}
-x_j & \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
+x_j | \mu_{i_j}, \sigma_{i_j} & \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}
 \end{align}
 $$
 
@@ -198,7 +198,7 @@ it makes sense to model it using a binomial distribution:
 
 $$
 \begin{align}
-y_j & \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.
+y_j | \alpha_{i_j} & \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.
 \end{align}
 $$
 
@@ -264,6 +264,66 @@ sessions with purchases in accordance with Equation 8 where the
 success-probability parameter is given by Equation 9, with the priors set as in
 Equations 10 and 11 and the hyperparameter as in Equation 12.
 
+## Inference
+
+What do we do with the two models now? Traditionally, the outcome of Bayesian
+inference is a posterior distribution over the parameters of the model:
+
+$$
+\begin{align}
+f(\theta | \mathcal{D}) & \propto f(\mathcal{D} | \theta) \, f(\theta).
+\end{align}
+$$
+
+In the above, $$\theta$$ is collectively referring to all parameters, which for
+the number of sessions would be
+
+$$
+\theta = \{
+  \mu_\text{global}, \mu_{\text{local}, 1}, \dots, \mu_{\text{local}, n},
+  \sigma_\text{global}, \sigma_{\text{local}, 1}, \dots, \sigma_{\text{local}, n}
+\}
+$$
+
+and for the conversion rate would be
+
+$$
+\theta = \{
+  \alpha_\text{global}, \alpha_{\text{local}, 1}, \dots, \alpha_{\text{local}, n}
+\},
+$$
+
+and $$\mathcal{D}$$ is the observed data, which would be $$\{ x_j \}_{j = 1}^m$$
+for the number of sessions and $$\{ y_j \}_{j = 1}^m$$ for the conversion rate,
+assuming $$\{ x_j \}_{j = 1}^m$$ to be implicitly known in the latter case.
+Next, $$f(\theta)$$ stands for the density of the prior distribution of the
+parameters, which is given by Equations 4, 5, 6, and 7 for the number of
+sessions and by Equations 10 and 11 for the conversion rate, and $$f(\mathcal{D}
+| \theta)$$ is the density of the likelihood of the data, which is given by
+Equations 1 and 8, respectively. When the two are combined, we arrive at the
+density of the posterior distribution of the parameters given the data,
+$$f(\theta | \mathcal{D})$$.
+
+However, we are not so much after the parameters themselves, that is,
+$$\theta$$, but rather after the data, that is, $$\mathcal{D}$$. More
+specifically, we would like to know what to expect from the data in the future
+given what we have seen in the past. If we acquire a probability distribution
+over what we can reasonably expect to observe next week, we would be able to
+judge whether what we actually observe is anomalous or not.
+
+The desired distribution has a name: the posterior predictive distribution.
+Formally, it is as follows:
+
+$$
+\begin{align}
+f(\mathcal{D}_\text{new} | \mathcal{D}) &= \int f(\mathcal{D}_\text{new} | \theta) \, f(\theta | \mathcal{D}) \, d\theta.
+\end{align}
+$$
+
+In other words, it is the distribution of unseen data given the observed data
+where the uncertainty in the parameters is integrated out via the posterior
+distribution of the parameters.
+
 # Conclusion
 
 The time aspect, that is, $$\{ t_j \}_{j = 1}^m$$, has been ignored in this
@@ -282,6 +342,9 @@ weeks.
 
 # Appendix
 
+In this section, we provide reference implementations of the two models in
+[Stan].
+
 ## Modeling: Number of sessions
 
 ```c
@@ -294,9 +357,8 @@ data {
 }
 
 transformed data {
-  real mean = 500;
-  real deviation = 500;
-  real epsilon = 1e-3;
+  real mean = 500; // Prior mean
+  real deviation = 500; // Prior standard deviation
 
   real mu_0 = log(mean) - 0.5 * log(1 + pow(deviation / mean, 2));
   real sigma_0 = sqrt(log(1 + pow(deviation / mean, 2)));
@@ -312,7 +374,8 @@ parameters {
 
 transformed parameters {
   vector[n] mu = mu_global + mu_local;
-  vector[n] sigma = log1p_exp(sigma_global + sigma_local) + epsilon;
+  // The value is shifted by a small amount to avoid numerical issues.
+  vector[n] sigma = log1p_exp(sigma_global + sigma_local) + 1e-3;
 }
 
 model {
@@ -328,9 +391,9 @@ model {
 }
 
 generated quantities {
-  vector[m] samples;
+  vector[m] x_new;
   for (j in 1:m) {
-    samples[j] = lognormal_rng(mu[i[j]], sigma[i[j]]);
+    x_new[j] = lognormal_rng(mu[i[j]], sigma[i[j]]);
   }
 }
 ```
@@ -348,7 +411,7 @@ data {
 }
 
 transformed data {
-  real mean = 0.025;
+  real mean = 0.025; // Prior mean
 
   real alpha_0 = mean;
 }
@@ -372,9 +435,11 @@ model {
 }
 
 generated quantities {
-  vector<lower=0, upper=1>[m] samples;
+  vector<lower=0, upper=1>[m] y_new;
   for (j in 1:m) {
-    samples[j] = 1.0 * binomial_rng(x[j], inv_logit(alpha[i[j]])) / x[j];
+    y_new[j] = 1.0 * binomial_rng(x[j], inv_logit(alpha[i[j]])) / x[j];
   }
 }
 ```
+
+[Stan]: https://mc-stan.org/
