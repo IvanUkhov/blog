@@ -422,7 +422,7 @@ To sum up, once formulated, each model can be implemented in a probabilistic
 programming language and fitted to the historical data. The result is a set of
 replications of the original observations, yielding a probability distribution
 over what one might expect to see in the future. The corresponding guardrail is
-then an appropriately chosen quantile of this posterior predictive distribution.
+then an appropriately chosen quantile of this distribution.
 
 # Conclusion
 
@@ -448,16 +448,14 @@ posterior distribution is an exhaustive description of what is modeled.
 
 # Appendix
 
-In this section, we provide reference implementations of the two models in
-[Stan].
-
-## Modeling: Number of sessions
+In this auxiliary section, we provide reference implementations of the two
+models in [Stan]. The notation is the same as in the rest of the article. For
+the number of sessions, it is as follows:
 
 ```c
 data {
   int<lower=1> n; // Number of stores
   int<lower=1> m; // Number of observations
-
   array[m] int<lower=1, upper=n> i; // Mapping from observations to stores
   vector[m] x; // Number of sessions
 }
@@ -465,7 +463,6 @@ data {
 transformed data {
   real mean = 500; // Prior mean
   real deviation = 500; // Prior standard deviation
-
   real mu_0 = log(mean) - 0.5 * log(1 + pow(deviation / mean, 2));
   real sigma_0 = sqrt(log(1 + pow(deviation / mean, 2)));
 }
@@ -473,7 +470,6 @@ transformed data {
 parameters {
   real mu_global;
   vector[n] mu_local;
-
   real sigma_global;
   vector[n] sigma_local;
 }
@@ -485,18 +481,19 @@ transformed parameters {
 }
 
 model {
+  // Prior distributions
   mu_global ~ normal(mu_0, 1);
   mu_local ~ normal(0, 1);
-
   sigma_global ~ normal(log(exp(sigma_0) - 1), 1);
   sigma_local ~ normal(0, 1);
-
+  // Likelihood of the data
   for (j in 1:m) {
     x[j] ~ lognormal(mu[i[j]], sigma[i[j]]);
   }
 }
 
 generated quantities {
+  // Posterior predictive distribution
   vector[m] x_new;
   for (j in 1:m) {
     x_new[j] = lognormal_rng(mu[i[j]], sigma[i[j]]);
@@ -504,13 +501,14 @@ generated quantities {
 }
 ```
 
-## Modeling: Conversion rate
+Note that the posterior predictive distribution is part of the program; once
+execution, it will not require any additional postprocessing. As for the
+conversion rate, the implementation is as follows:
 
 ```c
 data {
   int<lower=1> n; // Number of stores
   int<lower=1> m; // Number of observations
-
   array[m] int<lower=1, upper=n> i; // Mapping from observations to stores
   array[m] int<lower=0> x; // Number of sessions
   array[m] int<lower=0> y; // Number of sessions with purchases
@@ -518,7 +516,6 @@ data {
 
 transformed data {
   real mean = 0.025; // Prior mean
-
   real alpha_0 = mean;
 }
 
@@ -532,15 +529,17 @@ transformed parameters {
 }
 
 model {
+  // Prior distributions
   alpha_global ~ normal(logit(alpha_0), 1);
   alpha_local ~ normal(0, 1);
-
+  // Likelihood of the data
   for (j in 1:m) {
     y[j] ~ binomial_logit(x[j], alpha[i[j]]);
   }
 }
 
 generated quantities {
+  // Posterior predictive distribution
   vector<lower=0, upper=1>[m] y_new;
   for (j in 1:m) {
     y_new[j] = 1.0 * binomial_rng(x[j], inv_logit(alpha[i[j]])) / x[j];
