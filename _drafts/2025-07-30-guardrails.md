@@ -14,21 +14,15 @@ keywords:
   - website traffic
 ---
 
-```{r}
-library(ggplot2)
-library(tidyverse)
 
-font_size <- 18
-theme_set(theme_minimal(base_size = font_size))
-```
 
-Suppose you run several online stores, and their number keeps on growing. It is
-becoming increasingly difficult to monitor the performance of any given one as
+Suppose you run several online stores, and their number keeps growing. It is
+becoming increasingly difficult to monitor the performance of any given store as
 there are simply too many of them. There is a fair chance that something
-unexpected happens, and that it will have a negative impact on either the
+unexpected will happen, and that it will have a negative impact on either the
 website traffic or the conversion rate, that is, purchases—without you realizing
-it. To your hand on the pulse, you decide to put guardrails in place, which
-would inform you if something goes wrong. In this article, we shall take a look
+it. To keep your hand on the pulse, you decide to put guardrails in place, which
+will inform you if something goes wrong. In this article, we shall take a look
 at how to build such guardrails using Bayesian statistics.
 
 # Problem
@@ -42,7 +36,7 @@ and $$y_j \leq x_j$$ is the number of sessions that resulted in at least one
 purchase. With this notation, the conversion rate for store $$i_j$$ and week
 $$t_j$$ is given by $$p_j = y_j / x_j$$ provided that $$x_j > 0$$.
 
-Note that there is no requirement on the alignment of observation across the
+Note that there is no requirement on the alignment of observations across the
 stores and the continuity of observation within a given store: different stores
 might be observed on different weeks, and there might be weeks missing between
 the first and the last observation of a store.
@@ -64,25 +58,25 @@ Bayesian perspective.
 
 The idea is to build a statistical model and fit it to the data. In Bayesian
 inference, it means that there will be a fully-fledged probability distribution
-available in the end, which will provide an exhaustive description of the
-situation at hand. This distribution can then be used to estimate a wide range
-of quantities of interest. In particular, one can choose an appropriate quantile
-on the left tail of the distribution and use it as a guardrail. If an upper
-bound is required, one can do the same with respect to the right tail.
+available in the end, providing an exhaustive description of the situation at
+hand. This distribution can then be used to estimate a wide range of quantities
+of interest. In particular, one can choose an appropriate quantile on the left
+tail of the distribution and use it as a guardrail. If an upper bound is
+required, one can do the same with respect to the right tail.
 
 Let us start with the modeling, and we will then come back to the inference. To
 begin with, we need to acknowledge the fact that the number of sessions $$x_j$$,
-which is a count, is very much different from the conversion rate $$p_j$$, which
-is a proportion. Hence, one would need to build two different models. In
-addition, we shall ignore the information about which week each observation
-belongs to, that is, $$\{ t_j \}_{j = 1}^m$$, and come back to and motivate this
-choice in the conclusion.
+which is a count, is very different from the conversion rate $$p_j$$, which is a
+proportion. Hence, one would need to build two different models. In addition, we
+shall ignore the information about which week each observation belongs to, that
+is, $$\{ t_j \}_{j = 1}^m$$, and come back to and motivate this choice in the
+conclusion.
 
 ## Modeling: Number of sessions
 
 Even though the number of sessions is a natural number, it is commonplace to
 model it as a real number. One could, for instance, use a Gaussian distribution
-to this end. However, to respect the fact that is cannot be negative, we shall
+to this end. However, to respect the fact that it cannot be negative, we shall
 use a log-Gaussian distribution instead, which is even more adequate if the
 popularity of the stores taken collectively spans multiple orders of magnitude:
 
@@ -178,41 +172,7 @@ estimation. For instance, assuming a mean and a standard deviation of 500 and
 setting the local variable to zero for simplicity, we obtain the following prior
 probability density:
 
-```{r sessions-prior}
-set.seed(42)
 
-count <- 10000
-mean <- 500
-deviation <- 500
-
-mu_0 <- log(mean) - 0.5 * log(1 + (deviation / mean)**2)
-sigma_0 <- log(exp(sqrt(log(1 + (deviation / mean)**2))) - 1)
-
-mu_global <- rnorm(count, mean = mu_0, sd = 1)
-sigma_global <- rnorm(count, mean = sigma_0, sd = 1)
-
-x <- mapply(function(location, scale) rlnorm(1, meanlog = location, sdlog = scale),
-            location = mu_global,
-            scale = log(1 + exp(sigma_global)))
-
-prior <- density(x, n = 10 * count)
-x_limit <- quantile(x, 0.95)
-y_limit <- max(prior$y)
-
-tibble(x = prior$x, y = prior$y) %>%
-  ggplot(aes(x = x, y = y)) +
-  geom_line(linewidth = 1) +
-  xlim(0, 1.1 * x_limit) +
-  geom_vline(xintercept = x_limit, linetype = 'dashed', color = 'black') +
-  annotate('text',
-           label = '95%',
-           x = x_limit,
-           y = y_limit,
-           vjust = 0.5,
-           hjust = -0.5,
-           size = font_size / .pt) +
-  labs(x = 'Number of sessions', y = 'Prior probability density')
-```
 
 ![](/assets/images/2025-07-30-guardrails/sessions-prior-1.svg)
 
@@ -281,37 +241,7 @@ Let us perform a prior predictive check for the conversion rate as well.
 Assuming a conversion rate of 2.5%, that is, $$\alpha_0 = \text{logit}(0.025)$$,
 we obtain the following prior probability density:
 
-```{r purchases-prior}
-set.seed(42)
 
-count <- 10000
-mean <- 0.025
-
-alpha_0 <- log(mean / (1 - mean))
-
-alpha_global <- rnorm(count, mean = alpha_0, sd = 1)
-
-x <- mapply(function(probability) rbinom(1, size = 500, prob = probability),
-            probability = 1 / (1 + exp(-alpha_global))) / 500
-
-prior <- density(x, n = 10 * count)
-x_limit <- quantile(x, 0.95)
-y_limit <- max(prior$y)
-
-tibble(x = prior$x, y = prior$y) %>%
-  ggplot(aes(x = x, y = y)) +
-  geom_line(linewidth = 1) +
-  xlim(0, 1.1 * x_limit) +
-  geom_vline(xintercept = x_limit, linetype = 'dashed', color = 'black') +
-  annotate('text',
-           label = '95%',
-           x = x_limit,
-           y = y_limit,
-           vjust = 0.5,
-           hjust = -0.5,
-           size = font_size / .pt) +
-  labs(x = 'Conversion rate', y = 'Prior probability density')
-```
 
 ![](/assets/images/2025-07-30-guardrails/purchases-prior-1.svg)
 
