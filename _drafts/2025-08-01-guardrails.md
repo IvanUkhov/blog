@@ -348,6 +348,12 @@ probability of this happening is estimated to be at most 2.5%. One can, of
 course, tweak this threshold as one sees fit, depending on how cautious one
 wants to be.
 
+Due to the separation of the models' parameters into global and local, they are
+considered hierarchical or multilevel. This structure allows for partial pooling
+of information: what is observed for one store not only helps with the inference
+for that store but also for all other stores. In particular, stores will little
+data get more sensible estimates due to the presence of those with more.
+
 To sum up, once formulated, each model can be implemented in a probabilistic
 programming language and fitted to the historical data. The result is a set of
 replications of the original observations, yielding a probability distribution
