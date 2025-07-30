@@ -17,8 +17,8 @@ keywords:
 
 
 Suppose you run several online stores, and their number keeps growing. It is
-becoming increasingly difficult to monitor the performance of any given store as
-there are simply too many of them. There is a fair chance that something
+becoming increasingly difficult to monitor the performance of any given store,
+simply because there are too many of them. There is a fair chance that something
 unexpected will happen, and that it will have a negative impact on either the
 website traffic or the conversion rate, that is, purchases—without you realizing
 it. To keep your hand on the pulse, you decide to put guardrails in place, which
