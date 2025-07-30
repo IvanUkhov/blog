@@ -356,6 +356,23 @@ then an appropriately chosen quantile of this distribution.
 
 # Conclusion
 
+In this article, we have taken a look at how to build guardrails using Bayesian
+statistics. They are derived in a principled way as opposed to being set based
+on a gut feeling.
+
+What makes this approach different from other data-driven techniques is the end
+product: a probability distribution. Moreover, this distribution respects one's
+prior domain knowledge—or gut feeling again—but necessarily updates it with
+evidence, that is, actual observations. Having such a probability distribution
+for the situation at hand is all one can ask for, since it provides an
+exhaustive description. Furthermore, the distribution is provided in the form of
+draws, and working with draws is arguably more intuitive and flexible, as one
+does not depend on any mathematical derivations, which might not even be
+tractable. With this in mind, calculating guardrails is only one of many
+possible applications, and even this very calculation can be done in numerous
+ways. One can, for instance, devise a utility function assigning a cost to each
+outcome and choose a guardrail by minimizing the expected cost.
+
 The time aspect, that is, $$\{ t_j \}_{j = 1}^m$$, has been ignored in this
 article. However, it might be justified in the setting of anomaly detection
 where a relatively short time horizon is considered sufficient or even desired.
@@ -364,17 +381,9 @@ One might, for instance, limit the number of weeks to a rolling quarter (around
 case, one would not expect to have any prominent annual seasonal effects or
 alike, and it is then not worth complicating the model. Moreover, the rolling
 nature of this approach with a shorter window also helps to accommodate any slow
-trend changes, which fall outside the scope of anomaly detection.
-
-Furthermore, we calculated only a lower bound, but it is equally easy to
-calculate an upper one in case one wants to keep an eye on unusually successful
-weeks.
-
-In general, working with draws is arguably more intuitive and flexible, as one
-does not depend on any mathematical derivations, which might not even be
-tractable. Calculating guardrails is only one of many possible applications. The
-posterior distribution is an exhaustive description of what is modeled.
-
+trend changes, which fall outside the scope of anomaly detection. However, it is
+always possible to extend the model to have the time aspect modeled explicitly
+if that is desired.
 
 # Appendix
 
