@@ -1,7 +1,7 @@
 ---
 layout: post
 title: Building guardrails with Bayesian statistics
-date: 2025-08-01T08:00:00+01:00
+date: 2025-07-30T08:00:00+01:00
 math: true
 stan: true
 keywords:
@@ -174,7 +174,7 @@ probability density:
 
 
 
-![](/assets/images/2025-08-01-guardrails/sessions-prior-1.svg)
+![](/assets/images/2025-07-30-guardrails/sessions-prior-1.svg)
 
 It can be seen that it covers well the area that we hypothesis to be plausible.
 The distribution also has a very long tail, which is truncated here, allowing
@@ -243,7 +243,7 @@ we obtain the following prior probability density:
 
 
 
-![](/assets/images/2025-08-01-guardrails/purchases-prior-1.svg)
+![](/assets/images/2025-07-30-guardrails/purchases-prior-1.svg)
 
 Here we assume 500 sessions per week and divide the sampled number of
 conversions by that number. It can be seen that the density is mostly
@@ -369,10 +369,10 @@ on a gut feeling.
 What makes this approach different from other data-driven techniques is the end
 product: a probability distribution. Moreover, this distribution respects one's
 prior domain knowledge—or gut feeling again—but necessarily updates it with
-evidence, that is, actual observations. Having such a probability distribution
-for the situation at hand is all one can ask for, since it provides an
-exhaustive description. Furthermore, the distribution is provided in the form of
-draws, and working with draws is arguably more intuitive and flexible, as one
+evidence, that is, with actual observations. Having such a probability
+distribution for the situation at hand is all one can ask for, since it provides
+an exhaustive description. Furthermore, the distribution is provided in the form
+of draws, and working with draws is arguably more intuitive and flexible, as one
 does not depend on any mathematical derivations, which might not even be
 tractable. With this in mind, calculating guardrails is only one of many
 possible applications, and even this very calculation can be done in numerous
