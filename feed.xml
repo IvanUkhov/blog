@@ -1,5 +1,439 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-30T15:12:43+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
-</subtitle><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, and there are no
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.4.1">Jekyll</generator><link href="https://blog.ivanukhov.com/feed.xml" rel="self" type="application/atom+xml" /><link href="https://blog.ivanukhov.com/" rel="alternate" type="text/html" /><updated>2025-07-30T15:16:05+00:00</updated><id>https://blog.ivanukhov.com/feed.xml</id><title type="html">Good news, everyone!</title><subtitle>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
+</subtitle><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><entry><title type="html">Building guardrails with Bayesian statistics</title><link href="https://blog.ivanukhov.com/2025/07/30/guardrails.html" rel="alternate" type="text/html" title="Building guardrails with Bayesian statistics" /><published>2025-07-30T07:00:00+00:00</published><updated>2025-07-30T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2025/07/30/guardrails</id><content type="html" xml:base="https://blog.ivanukhov.com/2025/07/30/guardrails.html"><![CDATA[<p>Suppose you run several online stores, and their number keeps growing. It is
+becoming increasingly difficult to monitor the performance of any given store as
+there are simply too many of them. There is a fair chance that something
+unexpected will happen, and that it will have a negative impact on either the
+website traffic or the conversion rate, that is, purchases—without you realizing
+it. To keep your hand on the pulse, you decide to put guardrails in place, which
+will inform you if something goes wrong. In this article, we shall take a look
+at how to build such guardrails using Bayesian statistics.</p>
+
+<h1 id="problem">Problem</h1>
+
+<p>Let \(n\) be the number of stores and \(m\) be the number of weekly
+observations. A weekly observation is a tuple \((i_j, t_j, x_j, y_j)\), for \(j
+\in \{1, \dots, m\}\), where \(i_j \in \{1, \dots, n\}\) is the index of the
+store observed, \(t_j \in \mathbb{N}_+\) is the index of the week of
+observation, \(x_j \in \mathbb{N}\) is the total number of sessions that week,
+and \(y_j \leq x_j\) is the number of sessions that resulted in at least one
+purchase. With this notation, the conversion rate for store \(i_j\) and week
+\(t_j\) is given by \(p_j = y_j / x_j\) provided that \(x_j &gt; 0\).</p>
+
+<p>Note that there is no requirement on the alignment of observations across the
+stores and the continuity of observation within a given store: different stores
+might be observed on different weeks, and there might be weeks missing between
+the first and the last observation of a store.</p>
+
+<p>Given \(\{(i_j, t_j, x_j, y_j)\}_{j = 1}^m\), the goal is to find a threshold
+for the number of sessions, denoted by \(\hat{x}_i\), and a threshold for the
+conversion rate, denoted by \(\hat{p}_i\), so that whenever \(x_k \geq
+\hat{x}_i\) and \(p_k \geq \hat{p}_i\) for an unseen week \(t_k\), the
+performance of store \(i \in \{1, \dots, n\}\) is considered usual, uneventful.
+Conversely, when either metric falls below the corresponding guardrail, the
+situation is considered concerning enough to perform a closer investigation of
+the performance of the corresponding store.</p>
+
+<p>The problem can be classified as anomaly detection. The topic is well studied,
+and there are many approaches to this end. Here we shall look at it from a
+Bayesian perspective.</p>
+
+<h1 id="solution">Solution</h1>
+
+<p>The idea is to build a statistical model and fit it to the data. In Bayesian
+inference, it means that there will be a fully-fledged probability distribution
+available in the end, providing an exhaustive description of the situation at
+hand. This distribution can then be used to estimate a wide range of quantities
+of interest. In particular, one can choose an appropriate quantile on the left
+tail of the distribution and use it as a guardrail. If an upper bound is
+required, one can do the same with respect to the right tail.</p>
+
+<p>Let us start with the modeling, and we will then come back to the inference. To
+begin with, we need to acknowledge the fact that the number of sessions \(x_j\),
+which is a count, is very different from the conversion rate \(p_j\), which is a
+proportion. Hence, one would need to build two different models. In addition, we
+shall ignore the information about which week each observation belongs to, that
+is, \(\{ t_j \}_{j = 1}^m\), and come back to and motivate this choice in the
+conclusion.</p>
+
+<h2 id="modeling-number-of-sessions">Modeling: Number of sessions</h2>
+
+<p>Even though the number of sessions is a natural number, it is commonplace to
+model it as a real number. One could, for instance, use a Gaussian distribution
+to this end. However, to respect the fact that it cannot be negative, we shall
+use a log-Gaussian distribution instead, which is even more adequate if the
+popularity of the stores taken collectively spans multiple orders of magnitude:</p>
+
+\[x_j | \mu_{i_j}, \sigma_{i_j} \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}\]
+
+<p>where \(\mu_{i_j}\) and \(\sigma_{i_j}\) are the location and scale for store
+\(i_j\). The above is the likelihood of the data. To complete the model, one has
+to specify priors for the two parameters. For each one, we will use a linear
+combination of a global and a store-specific component. For the location
+parameter, it is just that:</p>
+
+\[\mu_{i_j} = \mu_\text{global} + \mu_{\text{local}, i_j}. \tag{2}\]
+
+<p>For the scale parameter, which is positive, we also apply a nonlinear
+transformation on top of the linear combination to ensure the end result stays
+positive:</p>
+
+\[\sigma_{i_j} = \text{softplus}(\sigma_\text{global} + \sigma_{\text{local}, i_j}) \tag{3}\]
+
+<p>where \(\text{softplus}(x) = \ln(1 + \text{exp}(x))\). Technically, it can be
+zero if \(\sigma_\text{global} + \sigma_{\text{local}, i_j}\) goes to
+\(-\infty\), but it is not a concern in practice, as we shell see when we come
+to the implementation.</p>
+
+<p>With this reparameterization, there are \(2n + 2\) parameters in the model. We
+shall put a Gaussian prior on each one as follows:</p>
+
+\[\begin{align}
+\mu_\text{global} &amp; \sim \text{Gaussian}(\mu_0, 1), \tag{4} \\
+\mu_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1), \tag{5} \\
+\sigma_\text{global} &amp; \sim \text{Gaussian}(\sigma_0, 1), \text{ and} \tag{6} \\
+\sigma_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1). \tag{7}
+\end{align}\]
+
+<p>It can be seen that the local ones are standard Gaussian, while the global ones
+have the mean set to non-zeros values (to be discussed shortly), with the
+standard deviation set to one still. Since we work on a logarithmic scale due to
+the usage of a log-Gaussian distribution in Equation 1, this standard
+parameterization should be adequate for websites having a number of sessions per
+week that is below a few thousand provided that the global distributions are
+centered appropriately via \(\mu_0\) and \(\sigma_0\).</p>
+
+<p>In the above formulation, there are only two hyperparameters, which require
+custom values: \(\mu_0\) and \(\sigma_0\). To get a bit of intuition for what
+they control, it is helpful to temporarily set the local parameters (Equations 5
+and 7) to zero. Then \(\mu_{i_j}\) simplifies to \(\mu_\text{global}\) and
+\(\sigma_{i_j}\) to \(\text{softplus}(\sigma_\text{global})\). Furthermore,
+\(\text{softplus}\) can be dropped, since the corresponding non-linearity
+manifest itself only close to zero. Hence, \(\mu_\text{global}\) and
+\(\sigma_\text{global}\) can simply be thought of as the location and scale
+parameters of the log-Gaussian distribution in Equation 1. With this in mind,
+they can be used to control the distribution’s shape, that is, our prior
+assumptions about the number of weekly sessions.</p>
+
+<p>That does not quite help with the intuition still, as the location and scale
+parameters of a log-Gaussian distribution are <em>not</em> its mean and standard
+deviation, which would have been more familiar concepts to work with. However,
+it is possible to derive the location and scale parameters given a mean and a
+standard deviation one has in mind. More specifically, they are as follows:</p>
+
+\[\begin{align}
+\text{location} &amp; = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\text{scale} &amp; = \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)}.
+\end{align}\]
+
+<p>Bringing \(\text{softplus}\) back into the picture, we obtain the following for
+the hyperparameters:</p>
+
+\[\begin{align}
+\mu_0 &amp; = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\sigma_0 &amp; = \text{softplus}^{-1} \left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right)
+\end{align}\]
+
+<p>where \(\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)\). The end result is
+that we can think of a mean and a standard deviation for the situation at hand,
+and it would be enough to complete the model.</p>
+
+<p>It is always a good idea to perform a prior predictive check, which can be done
+by sampling from the prior distribution and performing a kernel density
+estimation. For instance, assuming a mean and a standard deviation of 500 and
+setting the local variable to zero for simplicity, we obtain the following prior
+probability density:</p>
+
+<p><img src="/assets/images/2025-07-30-guardrails/sessions-prior-1.svg" alt="" /></p>
+
+<p>It can be seen that it covers well the area that we hypothesis to be plausible.
+The distribution also has a very long tail, which is truncated here, allowing
+for the number of sessions to be untypically large.</p>
+
+<p>To recapitulate, the number of sessions is modeled according to Equation 1 where
+the location and scale parameters are given by Equation 2 and 3, respectively,
+with the priors set as in Equations 4–7 and the two hyperparameters set based on
+prior expectations for the mean and standard deviation according to Equation 8
+and 9, respectively.</p>
+
+<h2 id="modeling-conversion-rate">Modeling: Conversion rate</h2>
+
+<p>The conversion rate is a proportion, that is, a real number between zero and
+one, which is obtained by dividing the number of purchases by the number of
+sessions: \(p_j = y_j / x_j\). Since we have the constituents at our disposal,
+it makes sense to model it using a binomial distribution:</p>
+
+\[y_j | \alpha_{i_j} \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.\]
+
+<p>In this framework, one thinks of \(x_j\) and \(y_j\) as the number of trials and
+the number of successes, respectively, and of \(\alpha_{i_j}\) as the
+probability of success. In our case, a trial is a session, a success is having
+at least one purchase within that session, and the probability of success is the
+conversion rate.</p>
+
+<p>Similarly to the number of sessions, we will use a linear combination for the
+parameters:</p>
+
+\[\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global} + \alpha_{\text{local}, i_j}) \tag{9}\]
+
+<p>where \(\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))\), used ensure the
+output stays in \([0, 1]\). There is a global components, which all stores
+share, and each one has its own local.</p>
+
+<p>There are \(n + 1\) parameters in the model, which we shall consider to be <em>a
+priori</em> distributed according to Gaussian distributions as follows:</p>
+
+\[\begin{align}
+\alpha_\text{global} &amp; \sim \text{Gaussian}(\alpha_0, 1) \text{ and} \tag{10} \\
+\alpha_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1). \tag{11} \\
+\end{align}\]
+
+<p>As before, the number of hyperparameters is kept to a minimum; there is only one
+in this case: \(\alpha_0\). The interpretation of \(\alpha_0\) is that it
+controls the base conversion rate, which one can see by temporarily setting the
+local parameters (Equation 11) to zero. Equation 9 then reduces to
+\(\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global})\). Therefore, assuming
+one has an average conversion rate in mind, the parameter can be set as follows:</p>
+
+\[\alpha_0 = \text{logit}(\text{mean}) \tag{12}\]
+
+<p>where \(\text{logit}(x) = \ln(x / (1 - x))\).</p>
+
+<p>Let us perform a prior predictive check for the conversion rate as well.
+Assuming a conversion rate of 2.5%, that is, \(\alpha_0 = \text{logit}(0.025)\),
+we obtain the following prior probability density:</p>
+
+<p><img src="/assets/images/2025-07-30-guardrails/purchases-prior-1.svg" alt="" /></p>
+
+<p>Here we assume 500 sessions per week and divide the sampled number of
+conversions by that number. It can be seen that the density is mostly
+concentrated on what one might consider realistic conversion rates but allows
+for optimistic scenarios as well if that turns out to be the case.</p>
+
+<p>To summarize, the conversion rate is modeled indirectly via the number of
+sessions with purchases in accordance with Equation 8 where the
+success-probability parameter is given by Equation 9, with the priors set as in
+Equations 10 and 11 and the hyperparameter as in Equation 12.</p>
+
+<h2 id="inference">Inference</h2>
+
+<p>What do we do with the two models now? Traditionally, given a model, the outcome
+of Bayesian inference is a posterior distribution over the parameters of the
+model:</p>
+
+\[f(\theta | \mathcal{D}) = \int f(\mathcal{D} | \theta) \, f(\theta) \, d\theta.\]
+
+<p>In the above, \(\theta\) is collectively referring to all parameters, which for
+the number of sessions is</p>
+
+\[\theta = \{
+  \mu_\text{global}, \mu_{\text{local}, 1}, \dots, \mu_{\text{local}, n},
+  \sigma_\text{global}, \sigma_{\text{local}, 1}, \dots, \sigma_{\text{local}, n}
+\}\]
+
+<p>and for the conversion rate is</p>
+
+\[\theta = \{
+  \alpha_\text{global}, \alpha_{\text{local}, 1}, \dots, \alpha_{\text{local}, n}
+\},\]
+
+<p>and \(\mathcal{D}\) is the observed data, which is \(\{ x_j \}_{j = 1}^m\) for
+the number of sessions and \(\{ y_j \}_{j = 1}^m\) for the conversion rate,
+assuming \(\{ x_j \}_{j = 1}^m\) to be implicitly known in the latter case.
+Next, \(f(\theta)\) stands for the density of the prior distribution of the
+parameters, which is given by Equations 4, 5, 6, and 7 for the number of
+sessions and by Equations 10 and 11 for the conversion rate, and \(f(\mathcal{D}
+| \theta)\) is the density of the likelihood of the data, which is given by
+Equations 1 and 8, respectively. When the two are combined, we arrive at the
+density of the posterior distribution of the parameters given the data,
+\(f(\theta | \mathcal{D})\).</p>
+
+<p>However, we are not so much after the parameters themselves, that is,
+\(\theta\), but rather after the data, that is, \(\mathcal{D}\). More
+specifically, we would like to know what to expect from the data in the future
+given what we have seen in the past. If we acquire a probability distribution
+over what we can reasonably expect to observe next week, we would be able to
+judge whether what we actually observe is anomalous or not.</p>
+
+<p>The desired distribution has a name: the posterior predictive distribution. It
+is also an artifact of Bayesian inference, and formally, the distribution is as
+follows:</p>
+
+\[f(\mathcal{D}_\text{new} | \mathcal{D}) = \int f(\mathcal{D}_\text{new} | \theta) \, f(\theta | \mathcal{D}) \, d\theta.\]
+
+<p>In other words, it is the distribution of unseen data \(\mathcal{D}_\text{new}\)
+given the observed data \(\mathcal{D}\) where the uncertainty in the parameters
+is integrated out via the posterior distribution of the parameters \(\theta\).</p>
+
+<p>In practice, given a model with data, all of the above is done by the
+probabilistic programming language of choice, such as <a href="https://mc-stan.org/">Stan</a>, and its tooling.
+Since such languages target the general case where the model cannot be tackled
+analytically, the resulting distributions are given in the form of posterior
+draws. For the posterior predictive distribution, it would be a collection of
+\(l\) hypothetical replicas (on the order of thousands) of the original
+observations: \(\{ \mathcal{D}_\text{new}^k \}_{k = 1}^l\). That is, for each
+original observation of a store on a specific week, there will be \(l\) draws.
+To calculate a guardrail for a specific store then, we can simply collect all
+draws that belong to that store, choose a percentile, and calculate the
+corresponding quantile:</p>
+
+\[\text{guardrail} = \text{quantile}(\text{draws}, \text{percentile}).\]
+
+<p>For the number of sessions for store \(i\), the guardrail is as follows:</p>
+
+\[\hat{x}_i = \text{quantile}\left( \left\{ x_{\text{new}, j}^k: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).\]
+
+<p>Likewise, for the conversion rate, we have the following:</p>
+
+\[\hat{p}_i = \text{quantile}\left( \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).\]
+
+<p>If the percentile is chosen to be, for instance, 2.5%, the guardrail will be
+flagging the outcomes, that is, the number of sessions or the conversion rate
+for the week that has just passed, that have dropped so much that the
+probability of this happening is estimated to be at most 2.5%. One can, of
+course, tweak this threshold as one sees fit, depending on how cautious one
+wants to be.</p>
+
+<p>Due to the separation of the models’ parameters into global and local, they are
+considered hierarchical or multilevel. This structure allows for partial pooling
+of information: what is observed for one store not only helps with the inference
+for that store but also for all other stores. In particular, stores will little
+data get more sensible estimates due to the presence of those with more.</p>
+
+<p>To sum up, once formulated, each model can be implemented in a probabilistic
+programming language and fitted to the historical data. The result is a set of
+replications of the original observations, yielding a probability distribution
+over what one might expect to see in the future. The corresponding guardrail is
+then an appropriately chosen quantile of this distribution.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, we have taken a look at how to build guardrails using Bayesian
+statistics. They are derived in a principled way as opposed to being set based
+on a gut feeling.</p>
+
+<p>What makes this approach different from other data-driven techniques is the end
+product: a probability distribution. Moreover, this distribution respects one’s
+prior domain knowledge—or gut feeling again—but necessarily updates it with
+evidence, that is, with actual observations. Having such a probability
+distribution for the situation at hand is all one can ask for, since it provides
+an exhaustive description. Furthermore, the distribution is provided in the form
+of draws, and working with draws is arguably more intuitive and flexible, as one
+does not depend on any mathematical derivations, which might not even be
+tractable. With this in mind, calculating guardrails is only one of many
+possible applications, and even this very calculation can be done in numerous
+ways. One can, for instance, devise a utility function assigning a cost to each
+outcome and choose a guardrail by minimizing the expected cost.</p>
+
+<p>The time aspect, that is, \(\{ t_j \}_{j = 1}^m\), has been ignored in this
+article. However, it might be justified in the setting of anomaly detection
+where a relatively short time horizon is considered sufficient or even desired.
+One might, for instance, limit the number of weeks to a rolling quarter (around
+13 weeks) and keep on estimating the guardrails for the upcoming week. In this
+case, one would not expect to have any prominent annual seasonal effects or
+alike, and it is then not worth complicating the model. Moreover, the rolling
+nature of this approach with a shorter window also helps to accommodate any slow
+trend changes, which fall outside the scope of anomaly detection. However, it is
+always possible to extend the model to have the time aspect modeled explicitly
+if that is desired.</p>
+
+<h1 id="appendix">Appendix</h1>
+
+<p>In this auxiliary section, we provide reference implementations of the two
+models in <a href="https://mc-stan.org/">Stan</a>. The notation is the same as in the rest of the article. For
+the number of sessions, it is as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="p">{</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// Number of stores</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span> <span class="c1">// Number of observations</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">n</span><span class="o">&gt;</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// Mapping from observations to stores</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// Number of sessions</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">data</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mean</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span> <span class="c1">// Prior mean</span>
+  <span class="n">real</span> <span class="n">deviation</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span> <span class="c1">// Prior standard deviation</span>
+  <span class="n">real</span> <span class="n">mu_0</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="o">-</span> <span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">pow</span><span class="p">(</span><span class="n">deviation</span> <span class="o">/</span> <span class="n">mean</span><span class="p">,</span> <span class="mi">2</span><span class="p">));</span>
+  <span class="n">real</span> <span class="n">sigma_0</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">pow</span><span class="p">(</span><span class="n">deviation</span> <span class="o">/</span> <span class="n">mean</span><span class="p">,</span> <span class="mi">2</span><span class="p">)));</span>
+<span class="p">}</span>
+
+<span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mu_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">mu_local</span><span class="p">;</span>
+  <span class="n">real</span> <span class="n">sigma_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">sigma_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">mu</span> <span class="o">=</span> <span class="n">mu_global</span> <span class="o">+</span> <span class="n">mu_local</span><span class="p">;</span>
+  <span class="c1">// The value is shifted by a small amount to avoid numerical issues.</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">log1p_exp</span><span class="p">(</span><span class="n">sigma_global</span> <span class="o">+</span> <span class="n">sigma_local</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-3</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">model</span> <span class="p">{</span>
+  <span class="c1">// Prior distributions</span>
+  <span class="n">mu_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">mu_0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">mu_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">sigma_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">sigma_0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">sigma_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="c1">// Likelihood of the data</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">~</span> <span class="n">lognormal</span><span class="p">(</span><span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">generated</span> <span class="n">quantities</span> <span class="p">{</span>
+  <span class="c1">// Posterior predictive distribution</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">x_new</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">x_new</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">lognormal_rng</span><span class="p">(</span><span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Note that the posterior predictive distribution is part of the program; once
+execution, it will not require any additional postprocessing. As for the
+conversion rate, the implementation is as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="p">{</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// Number of stores</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span> <span class="c1">// Number of observations</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">n</span><span class="o">&gt;</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// Mapping from observations to stores</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// Number of sessions</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">y</span><span class="p">;</span> <span class="c1">// Number of sessions with purchases</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">data</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mean</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mo">025</span><span class="p">;</span> <span class="c1">// Prior mean</span>
+  <span class="n">real</span> <span class="n">alpha_0</span> <span class="o">=</span> <span class="n">mean</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">alpha_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">alpha_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha_global</span> <span class="o">+</span> <span class="n">alpha_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">model</span> <span class="p">{</span>
+  <span class="c1">// Prior distributions</span>
+  <span class="n">alpha_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">logit</span><span class="p">(</span><span class="n">alpha_0</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">alpha_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="c1">// Likelihood of the data</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">~</span> <span class="n">binomial_logit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">generated</span> <span class="n">quantities</span> <span class="p">{</span>
+  <span class="c1">// Posterior predictive distribution</span>
+  <span class="n">vector</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">y_new</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">y_new</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span> <span class="o">*</span> <span class="n">binomial_rng</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">inv_logit</span><span class="p">(</span><span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]))</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>]]></content><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><summary type="html"><![CDATA[Suppose you run several online stores, and their number keeps growing. It is becoming increasingly difficult to monitor the performance of any given store as there are simply too many of them. There is a fair chance that something unexpected will happen, and that it will have a negative impact on either the website traffic or the conversion rate, that is, purchases—without you realizing it. To keep your hand on the pulse, you decide to put guardrails in place, which will inform you if something goes wrong. In this article, we shall take a look at how to build such guardrails using Bayesian statistics.]]></summary></entry><entry><title type="html">Out of memory, or gradient accumulation for larger models</title><link href="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html" rel="alternate" type="text/html" title="Out of memory, or gradient accumulation for larger models" /><published>2024-01-31T07:00:00+00:00</published><updated>2024-01-31T07:00:00+00:00</updated><id>https://blog.ivanukhov.com/2024/01/31/gradient-accumulation</id><content type="html" xml:base="https://blog.ivanukhov.com/2024/01/31/gradient-accumulation.html"><![CDATA[<p>When the model grows large and does not fit on a single device, and there are no
 more devices to spare, the common mitigation strategy is to reduce the batch
 size, thereby allowing more space for the model at the expense of the data.
 However, smaller batches lead to noisier weight updates, which is undesirable.
@@ -2839,293 +3273,4 @@ make? Make sure to leave a comment.</p>
 2014.</li>
   <li>Andrew Gelman, “<a href="https://statmodeling.stat.columbia.edu/2009/10/21/some_practical/">Some practical questions about prior distributions</a>,”
 2009.</li>
-</ul>]]></content><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><summary type="html"><![CDATA[The net promoter score is a widely adopted metric for gauging customers’ satisfaction with a product. The popularity of the score is arguably attributed to the simplicity of measurement and the intuitiveness of interpretation. Moreover, it is claimed to be correlated with revenue growth, which, ignoring causality, makes it even more appealing. In this article, we leverage Bayesian statistics in order to infer the net promoter score for an arbitrary segmentation of a customer base. The outcome of the inference is a distribution over all possible values of the score weighted by probabilities, which provides exhaustive information for the subsequent decision-making.]]></summary></entry><entry><title type="html">Interactive notebooks in tightly sealed disposable containers</title><link href="https://blog.ivanukhov.com/2019/07/24/notebook.html" rel="alternate" type="text/html" title="Interactive notebooks in tightly sealed disposable containers" /><published>2019-07-24T06:00:00+00:00</published><updated>2019-07-24T06:00:00+00:00</updated><id>https://blog.ivanukhov.com/2019/07/24/notebook</id><content type="html" xml:base="https://blog.ivanukhov.com/2019/07/24/notebook.html"><![CDATA[<p>It is truly amazing how interactive notebooks—where a narrative in a spoken
-language is entwined with executable chunks of code in a programming
-language—have revolutionized the way we work with data and document our thought
-processes and findings for others and, equally importantly, for our future
-selves. They are ubiquitous and taken for granted. It is hard to imagine where
-data enthusiasts would be without them. Most likely, we would be spending too
-much time staring at a terminal window, anxiously re-running scripts from start
-to finish, printing variables, and saving lots of files with tables and graphs
-on disk for further inspection. Interactive notebooks are an essential tool in
-the data scientist’s toolbox, and in this article, we are going to make them
-readily available for our use with our favorite packages installed and
-preferences set up, no matter where we find ourselves working and regardless of
-the mess we might have left behind during the previous session.</p>
-
-<p>Python and R (in alphabetic order) are arguably the primary languages used by
-data scientists nowadays. In the context of interactive computations, <a href="https://ipython.org/">IPython</a>
-and later on <a href="https://jupyter.org/">Project Jupyter</a> have been of paramount importance for the Python
-community (the latter is actually language agnostic). In the R community, this
-role has been played by <a href="https://www.rstudio.com/">RStudio</a>. Therefore, having at one’s disposal
-<a href="https://jupyter.org/">JupyterLab</a>, which is Project Jupyter’s flagship, and RStudio should make one
-well equipped for a wide range of data challenges. As alluded to earlier, the
-objective is to have an environment that has a fixed initial state defined by us
-and is accessible to us on any machine we might happen to work on. This problem
-definition is a perfect fit for containerization. Specifically, we shall build
-custom-tailored <a href="https://www.docker.com/">Docker</a> images for JupyterLab and RStudio and create a few
-convenient shortcuts for launching them.</p>
-
-<p>The code discussed below can be found in the following two repositories:</p>
-
-<ul>
-  <li><a href="https://github.com/chain-rule/JupyterLab/tree/article">JupyterLab</a> and</li>
-  <li><a href="https://github.com/chain-rule/RStudio/tree/article">RStudio</a>.</li>
-</ul>
-
-<h1 id="jupyterlab">JupyterLab</h1>
-
-<p>In order to build a Docker image for JupyterLab, we begin with a
-<a href="https://github.com/chain-rule/JupyterLab/blob/article/Dockerfile"><code class="language-plaintext highlighter-rouge">Dockerfile</code></a>:</p>
-
-<div class="language-docker highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start with a minimal Python image</span>
-<span class="k">FROM</span><span class="s"> python:3.7-slim</span>
-
-<span class="c"># Install the desired Python packages</span>
-<span class="k">COPY</span><span class="s"> requirements.txt /tmp/requirements.txt</span>
-<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> pip
-<span class="k">RUN </span>pip <span class="nb">install</span> <span class="nt">--upgrade</span> <span class="nt">--requirement</span> /tmp/requirements.txt
-
-<span class="c"># Configure JupyterLab to use a specific IP address and port</span>
-<span class="k">RUN </span><span class="nb">mkdir</span> <span class="nt">-p</span> ~/.jupyter
-<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"c.NotebookApp.ip = '0.0.0.0'"</span> <span class="o">&gt;&gt;</span> ~/.jupyter/jupyter_notebook_config.py
-<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"c.NotebookApp.port = 8888"</span> <span class="o">&gt;&gt;</span> ~/.jupyter/jupyter_notebook_config.py
-
-<span class="c"># Set the working directory</span>
-<span class="k">WORKDIR</span><span class="s"> /home/jupyterlab</span>
-
-<span class="c"># Stort JupyterLab once the container is launched</span>
-<span class="k">ENTRYPOINT</span><span class="s"> jupyter lab --allow-root --no-browser</span>
-</code></pre></div></div>
-
-<p>In words, we take a minimalistic image with the desired version of Python
-preinstalled—in this case, it is the <a href="https://hub.docker.com/_/python">official Python image</a>
-tagged <code class="language-plaintext highlighter-rouge">3.7-slim</code>, which refers to Python 3.7 with any available bug fixes
-promptly applied—and add packages that we consider to be important for our work.
-These packages are gathered in the usual
-<a href="https://github.com/chain-rule/JupyterLab/blob/article/requirements.txt"><code class="language-plaintext highlighter-rouge">requirements.txt</code></a>, which might look as follows:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>jupyterlab
-matplotlib
-numpy
-pandas
-pylint
-pytest
-scikit-learn
-scipy
-seaborn
-tensorflow
-yapf
-</code></pre></div></div>
-
-<p>The first one, <code class="language-plaintext highlighter-rouge">jupyterlab</code>, is essential; the rest is up to the data
-scientist’s taste. An important aspect to note is that, in this example, the
-versions of the listed packages are not fixed; hence, the latest available
-versions will be taken each time a new image is built. Alternatively, one can
-pin them to specific numbers by changing <code class="language-plaintext highlighter-rouge">requirements.txt</code>. For instance, one
-might write <code class="language-plaintext highlighter-rouge">tensorflow==1.14.0</code> instead of <code class="language-plaintext highlighter-rouge">tensorflow</code>.</p>
-
-<p>Having defined an image, we need a tool for orchestration. We would like to have
-a convenient command for actually building the image and, more importantly, a
-convenient command for launching a container with that image from an arbitrary
-directory. The versatile <code class="language-plaintext highlighter-rouge">make</code> to the rescue!</p>
-
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># The name of the Docker image
-</span><span class="nv">name</span> <span class="o">:=</span> jupyterlab
-<span class="c"># The directory to be mounted to the container
-</span><span class="nv">root</span> <span class="o">?=</span> <span class="p">${</span>PWD<span class="p">}</span>
-
-<span class="c"># Build a new image
-</span><span class="nl">build</span><span class="o">:</span>
-	docker rmi <span class="p">${</span>name<span class="p">}</span> <span class="o">||</span> <span class="nb">true</span>
-	docker build <span class="nt">--tag</span> <span class="p">${</span>name<span class="p">}</span> .
-
-<span class="c"># Start a new container
-</span><span class="nl">start</span><span class="o">:</span>
-	<span class="p">@</span>docker run <span class="nt">--interactive</span> <span class="nt">--tty</span> <span class="nt">--rm</span> <span class="se">\</span>
-		<span class="nt">--name</span> <span class="p">${</span>name<span class="p">}</span> <span class="se">\</span>
-		<span class="nt">--publish</span> 8888:8888 <span class="se">\</span>
-		<span class="nt">--volume</span> <span class="s2">"</span><span class="p">${</span><span class="s2">root</span><span class="p">}</span><span class="s2">:/home/jupyterlab"</span> <span class="se">\</span>
-		<span class="p">${</span>name<span class="p">}</span>
-</code></pre></div></div>
-
-<p>In the above <a href="https://github.com/chain-rule/JupyterLab/blob/article/Makefile"><code class="language-plaintext highlighter-rouge">Makefile</code></a>, we define two commands: <code class="language-plaintext highlighter-rouge">build</code>
-and <code class="language-plaintext highlighter-rouge">start</code>. The <code class="language-plaintext highlighter-rouge">build</code> command instructs Docker to build a new image according
-to the recipe in <code class="language-plaintext highlighter-rouge">Dockerfile</code>. The <code class="language-plaintext highlighter-rouge">start</code> command launches a new container and
-mounts the directory specified by the <code class="language-plaintext highlighter-rouge">root</code> variable to the file system inside
-the container using the <code class="language-plaintext highlighter-rouge">--volume</code> option. It also forwards port 8888 inside the
-container, which is the one specified in <code class="language-plaintext highlighter-rouge">Dockerfile</code>, to port 8888 on the host
-machine so that JupyterLab can be reached from the browser.</p>
-
-<p>Let us now go ahead and try the two commands:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
-make start
-</code></pre></div></div>
-
-<p>JupyterLab should come back with usage instructions similar to the following:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>...
-[I 18:40:15.078 LabApp] The Jupyter Notebook is running at:
-[I 18:40:15.078 LabApp] http://e4edba021595:8888/?token=&lt;token&gt;
-[I 18:40:15.078 LabApp]  or http://127.0.0.1:8888/?token=&lt;token&gt;
-[I 18:40:15.078 LabApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
-[C 18:40:15.082 LabApp]
-
-    To access the notebook, open this file in a browser:
-        file:///root/.local/share/jupyter/runtime/nbserver-6-open.html
-    Or copy and paste one of these URLs:
-        http://e4edba021595:8888/?token=&lt;token&gt;
-     or http://127.0.0.1:8888/?token=&lt;token&gt;
-...
-</code></pre></div></div>
-
-<p>By clicking on the last link, we end up in a fully fledged JupyterLab.
-Congratulations! However, there is one step left. JupyterLab is currently
-running in the folder with our <code class="language-plaintext highlighter-rouge">Dockerfile</code> and <code class="language-plaintext highlighter-rouge">Makefile</code>, which is not
-particularly useful, as each project we might want to work on probably lives in
-its own folder elsewhere in the file system. Fortunately, it is easy to fix with
-an alias:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">alias </span><span class="nv">jupyterlab</span><span class="o">=</span><span class="s1">'make -C /path/to/the/folder/with/the/Makefile root="${PWD}"'</span>
-</code></pre></div></div>
-
-<p>This command should be placed in the start-up script of the shell being
-utilized. In the case of Bash, it can be done as follows:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"alias jupyterlab='make -C </span><span class="se">\"</span><span class="k">${</span><span class="nv">PWD</span><span class="k">}</span><span class="se">\"</span><span class="s2"> root=</span><span class="se">\"\$</span><span class="s2">{PWD}</span><span class="se">\"</span><span class="s2">'"</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-</code></pre></div></div>
-
-<p>Now, in a new terminal, one should be able to run JupyterLab from any directory
-as follows:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">cd</span> /path/to/some/project
-jupyterlab
-</code></pre></div></div>
-
-<p>Note that the content of the current working directory (that is,
-<code class="language-plaintext highlighter-rouge">/path/to/some/project</code>) is readily available inside JupyterLab. All notebooks
-created and modified in the GUI there will be stored directly in this folder,
-and they will remain here when the container is shut down.</p>
-
-<h1 id="rstudio">RStudio</h1>
-
-<p>It is time to get to grips with an image for R notebooks. As before, we begin
-with a <a href="https://github.com/chain-rule/RStudio/blob/article/Dockerfile"><code class="language-plaintext highlighter-rouge">Dockerfile</code></a>:</p>
-
-<div class="language-docker highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Start with an RStudio image</span>
-<span class="k">FROM</span><span class="s"> rocker/rstudio:latest</span>
-
-<span class="c"># Install the software that R packages require</span>
-<span class="k">RUN </span>apt-get update
-<span class="k">RUN </span>apt-get <span class="nb">install</span> <span class="nt">-y</span> libxml2-dev texlive texlive-latex-extra zlib1g-dev
-
-<span class="c"># Set the working directory</span>
-<span class="k">WORKDIR</span><span class="s"> /home/rstudio</span>
-
-<span class="c"># Install the desired R packages</span>
-<span class="k">COPY</span><span class="s"> requirements.txt /tmp/requirements.txt</span>
-<span class="k">RUN </span><span class="nb">echo</span> <span class="s2">"install.packages(readLines('/tmp/requirements.txt'), </span><span class="se">\
-</span><span class="s2">                           repos = 'http://cran.us.r-project.org')"</span> | R
-</code></pre></div></div>
-
-<p>Installing RStudio from scratch is not an easy task. Fortunately, we can start
-with the <a href="https://hub.docker.com/r/rocker/rstudio/">official RStudio image</a>, which is what is specified at
-the top of the file. If desired, the <code class="language-plaintext highlighter-rouge">latest</code> tag can be changed to a specific
-version. The second block of Docker instructions is to provide programs and
-libraries that are needed by the R packages that one is planning to install. For
-instance, TeX Live is needed for rendering notebooks as PDF documents using
-LaTeX. The last block of instructions in <code class="language-plaintext highlighter-rouge">Dockerfile</code> is for installing the R
-packages themselves. As with Python, all necessary packages are gathered in a
-single file called <a href="https://github.com/chain-rule/RStudio/blob/article/requirements.txt"><code class="language-plaintext highlighter-rouge">requirements.txt</code></a>:</p>
-
-<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>devtools
-glmnet
-plotly
-rmarkdown
-rstan
-testthat
-tidytext
-tidyverse
-</code></pre></div></div>
-
-<p>The <code class="language-plaintext highlighter-rouge">rmarkdown</code> package is required for notebooks in Markdown. The rest is
-intended to be changed according to one’s preferences; although, <code class="language-plaintext highlighter-rouge">tidyverse</code> is
-arguably a must in modern R.</p>
-
-<p>All right, in order to build the image and launch containers, we create the
-following <a href="https://github.com/chain-rule/RStudio/blob/article/Makefile"><code class="language-plaintext highlighter-rouge">Makefile</code></a>:</p>
-
-<div class="language-make highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># The name of the Docker image
-</span><span class="nv">name</span> <span class="o">:=</span> rstudio
-<span class="c"># The directory to be mounted to the container
-</span><span class="nv">root</span> <span class="o">?=</span> <span class="p">${</span>PWD<span class="p">}</span>
-
-<span class="c"># Build a new image
-</span><span class="nl">build</span><span class="o">:</span>
-	docker rmi <span class="p">${</span>name<span class="p">}</span> <span class="o">||</span> <span class="nb">true</span>
-	docker build <span class="nt">--tag</span> <span class="p">${</span>name<span class="p">}</span> .
-
-<span class="c"># Start a new container
-</span><span class="nl">start</span><span class="o">:</span>
-	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"Address:  http://localhost:8787/"</span>
-	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"User:     rstudio"</span>
-	<span class="p">@</span><span class="nb">echo</span> <span class="s2">"Password: rstud10"</span>
-	<span class="p">@</span><span class="nb">echo</span>
-	<span class="p">@</span><span class="nb">echo</span> <span class="s1">'Press Control-C to terminate...'</span>
-	<span class="p">@</span>docker run <span class="nt">--interactive</span> <span class="nt">--tty</span> <span class="nt">--rm</span> <span class="se">\</span>
-		<span class="nt">--name</span> <span class="p">${</span>name<span class="p">}</span> <span class="se">\</span>
-		<span class="nt">--publish</span> 8787:8787 <span class="se">\</span>
-		<span class="nt">--volume</span> <span class="s2">"</span><span class="p">${</span><span class="s2">root</span><span class="p">}</span><span class="s2">:/home/rstudio"</span> <span class="se">\</span>
-		<span class="nt">--env</span> <span class="nv">PASSWORD</span><span class="o">=</span>rstud10 <span class="se">\</span>
-		<span class="p">${</span>name<span class="p">}</span> <span class="o">&gt;</span> /dev/null
-</code></pre></div></div>
-
-<p>It is similar to the one for JupyterLab; however, since the default prompt of
-RStudio is not as informative as the one of JupyterLab, we print our own usage
-instructions upon <code class="language-plaintext highlighter-rouge">start</code>.</p>
-
-<p>The final piece is the shortcut for launching RStudio:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">alias </span><span class="nv">rstudio</span><span class="o">=</span><span class="s1">'make -C /path/to/the/folder/with/the/Makefile root="${PWD}"'</span>
-</code></pre></div></div>
-
-<p>In the case of Bash, it can be installed as follows:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">echo</span> <span class="s2">"alias rstudio='make -C </span><span class="se">\"</span><span class="k">${</span><span class="nv">PWD</span><span class="k">}</span><span class="se">\"</span><span class="s2"> root=</span><span class="se">\"\$</span><span class="s2">{PWD}</span><span class="se">\"</span><span class="s2">'"</span> <span class="o">&gt;&gt;</span> ~/.bashrc
-</code></pre></div></div>
-
-<p>Now it is time to build the image, go to an arbitrary directory, and test the
-alias:</p>
-
-<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>make build
-<span class="nb">cd</span> /path/to/some/project
-rstudio
-</code></pre></div></div>
-
-<p>Unlike the JupyterLab image, this one is much slower to build due to R packages
-traditionally compiling a lot of C++ code upon installation.</p>
-
-<p>Lastly, it might be particularly convenient to have one’s GUI preferences (such
-as the font size in the editor) and alike be automatically set up upon each
-container launch. This can be achieved by realizing that RStudio stores user
-preferences in a local folder called <code class="language-plaintext highlighter-rouge">.rstudio</code>. Then the <code class="language-plaintext highlighter-rouge">start</code> command can be
-adjusted to silently plant a preconfigured <code class="language-plaintext highlighter-rouge">.rstudio</code> into the current working
-directory, which can be seen in the <a href="https://github.com/chain-rule/RStudio/tree/article">repository</a> accompanying this
-article.</p>
-
-<h1 id="conclusion">Conclusion</h1>
-
-<p>Having completed the above steps, we have two Docker images: one is for Python
-notebooks via JupyterLab, and one is for R notebooks via RStudio. At the moment,
-the images are stored locally; however, they can be pushed to a public or
-private image repository, such as <a href="https://hub.docker.com/">Docker Hub</a> and <a href="https://cloud.google.com/container-registry/">Google Container Registry</a>,
-and subsequently pulled on an arbitrary machine having Docker installed.
-Alternatively, they can be built on each machine separately. Regardless of the
-installation, the crucial point is that our working environment will unshakably
-remain in a specific pristine state defined by us.</p>
-
-<p>Lastly, it is worth noting that similar images can straightforwardly be built
-for more specific scenarios. For instance, the following repository provides a
-skeleton for building and using a custom <a href="https://cloud.google.com/datalab/">Datalab</a>, which is Google’s wrapper
-for Jupyter notebooks that run in the cloud: <a href="https://github.com/chain-rule/Datalab">Datalab</a>.</p>]]></content><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><summary type="html"><![CDATA[It is truly amazing how interactive notebooks—where a narrative in a spoken language is entwined with executable chunks of code in a programming language—have revolutionized the way we work with data and document our thought processes and findings for others and, equally importantly, for our future selves. They are ubiquitous and taken for granted. It is hard to imagine where data enthusiasts would be without them. Most likely, we would be spending too much time staring at a terminal window, anxiously re-running scripts from start to finish, printing variables, and saving lots of files with tables and graphs on disk for further inspection. Interactive notebooks are an essential tool in the data scientist’s toolbox, and in this article, we are going to make them readily available for our use with our favorite packages installed and preferences set up, no matter where we find ourselves working and regardless of the mess we might have left behind during the previous session.]]></summary></entry></feed>
+</ul>]]></content><author><name>Ivan Ukhov</name><email>ivan.ukhov@gmail.com</email></author><summary type="html"><![CDATA[The net promoter score is a widely adopted metric for gauging customers’ satisfaction with a product. The popularity of the score is arguably attributed to the simplicity of measurement and the intuitiveness of interpretation. Moreover, it is claimed to be correlated with revenue growth, which, ignoring causality, makes it even more appealing. In this article, we leverage Bayesian statistics in order to infer the net promoter score for an arbitrary segmentation of a customer base. The outcome of the inference is a distribution over all possible values of the score weighted by probabilities, which provides exhaustive information for the subsequent decision-making.]]></summary></entry></feed>

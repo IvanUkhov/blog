@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Building guardrails with Bayesian statistics | Good news, everyone!</title>
+<meta name="generator" content="Jekyll v4.4.1" />
+<meta property="og:title" content="Building guardrails with Bayesian statistics" />
+<meta name="author" content="Ivan Ukhov" />
+<meta property="og:locale" content="en_US" />
+<meta name="description" content="Suppose you run several online stores, and their number keeps growing. It is becoming increasingly difficult to monitor the performance of any given store as there are simply too many of them. There is a fair chance that something unexpected will happen, and that it will have a negative impact on either the website traffic or the conversion rate, that is, purchases—without you realizing it. To keep your hand on the pulse, you decide to put guardrails in place, which will inform you if something goes wrong. In this article, we shall take a look at how to build such guardrails using Bayesian statistics." />
+<meta property="og:description" content="Suppose you run several online stores, and their number keeps growing. It is becoming increasingly difficult to monitor the performance of any given store as there are simply too many of them. There is a fair chance that something unexpected will happen, and that it will have a negative impact on either the website traffic or the conversion rate, that is, purchases—without you realizing it. To keep your hand on the pulse, you decide to put guardrails in place, which will inform you if something goes wrong. In this article, we shall take a look at how to build such guardrails using Bayesian statistics." />
+<link rel="canonical" href="https://blog.ivanukhov.com/2025/07/30/guardrails.html" />
+<meta property="og:url" content="https://blog.ivanukhov.com/2025/07/30/guardrails.html" />
+<meta property="og:site_name" content="Good news, everyone!" />
+<meta property="og:type" content="article" />
+<meta property="article:published_time" content="2025-07-30T07:00:00+00:00" />
+<meta name="twitter:card" content="summary" />
+<meta property="twitter:title" content="Building guardrails with Bayesian statistics" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Ivan Ukhov"},"dateModified":"2025-07-30T07:00:00+00:00","datePublished":"2025-07-30T07:00:00+00:00","description":"Suppose you run several online stores, and their number keeps growing. It is becoming increasingly difficult to monitor the performance of any given store as there are simply too many of them. There is a fair chance that something unexpected will happen, and that it will have a negative impact on either the website traffic or the conversion rate, that is, purchases—without you realizing it. To keep your hand on the pulse, you decide to put guardrails in place, which will inform you if something goes wrong. In this article, we shall take a look at how to build such guardrails using Bayesian statistics.","headline":"Building guardrails with Bayesian statistics","mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.ivanukhov.com/2025/07/30/guardrails.html"},"url":"https://blog.ivanukhov.com/2025/07/30/guardrails.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link id="main-stylesheet" rel="stylesheet" href="/assets/css/style.css"><link type="application/atom+xml" rel="alternate" href="https://blog.ivanukhov.com/feed.xml" title="Good news, everyone!" /><script async src="https://www.googletagmanager.com/gtag/js?id=G-43DGEP382H"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){window.dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-43DGEP382H');
+</script>
+<meta content="assets/favicon.png" property="og:image"><meta name="keywords" content="Bayesian statistics, R, Stan, anomaly detection, conversion rate, guardrails, website traffic"><link rel="stylesheet" href="/assets/main.css">
+<link rel="shortcut icon" type="image/png" href="/assets/favicon.png"><script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+</head>
+<body><header class="site-header">
+
+  <div class="wrapper">
+    <a class="site-title" rel="author" href="/">Good news, everyone!</a>
+      <nav class="site-nav">
+        <input type="checkbox" id="nav-trigger" />
+        <label for="nav-trigger">
+          <span class="menu-icon"></span>
+        </label>
+
+        <div class="nav-items">
+  <a class="nav-item" href="/about/">About</a>
+</div>
+
+      </nav>
+  </div>
+</header>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+  <header class="post-header">
+    <h1 class="post-title p-name" itemprop="name headline">Building guardrails with Bayesian statistics</h1>
+    <div class="post-meta">
+      <time class="dt-published" datetime="2025-07-30T07:00:00+00:00" itemprop="datePublished">
+        July 30, 2025
+      </time>
+    </div>
+  </header>
+
+  <div class="post-content e-content" itemprop="articleBody">
+    <p>Suppose you run several online stores, and their number keeps growing. It is
+becoming increasingly difficult to monitor the performance of any given store as
+there are simply too many of them. There is a fair chance that something
+unexpected will happen, and that it will have a negative impact on either the
+website traffic or the conversion rate, that is, purchases—without you realizing
+it. To keep your hand on the pulse, you decide to put guardrails in place, which
+will inform you if something goes wrong. In this article, we shall take a look
+at how to build such guardrails using Bayesian statistics.</p>
+
+<h1 id="problem">Problem</h1>
+
+<p>Let \(n\) be the number of stores and \(m\) be the number of weekly
+observations. A weekly observation is a tuple \((i_j, t_j, x_j, y_j)\), for \(j
+\in \{1, \dots, m\}\), where \(i_j \in \{1, \dots, n\}\) is the index of the
+store observed, \(t_j \in \mathbb{N}_+\) is the index of the week of
+observation, \(x_j \in \mathbb{N}\) is the total number of sessions that week,
+and \(y_j \leq x_j\) is the number of sessions that resulted in at least one
+purchase. With this notation, the conversion rate for store \(i_j\) and week
+\(t_j\) is given by \(p_j = y_j / x_j\) provided that \(x_j &gt; 0\).</p>
+
+<p>Note that there is no requirement on the alignment of observations across the
+stores and the continuity of observation within a given store: different stores
+might be observed on different weeks, and there might be weeks missing between
+the first and the last observation of a store.</p>
+
+<p>Given \(\{(i_j, t_j, x_j, y_j)\}_{j = 1}^m\), the goal is to find a threshold
+for the number of sessions, denoted by \(\hat{x}_i\), and a threshold for the
+conversion rate, denoted by \(\hat{p}_i\), so that whenever \(x_k \geq
+\hat{x}_i\) and \(p_k \geq \hat{p}_i\) for an unseen week \(t_k\), the
+performance of store \(i \in \{1, \dots, n\}\) is considered usual, uneventful.
+Conversely, when either metric falls below the corresponding guardrail, the
+situation is considered concerning enough to perform a closer investigation of
+the performance of the corresponding store.</p>
+
+<p>The problem can be classified as anomaly detection. The topic is well studied,
+and there are many approaches to this end. Here we shall look at it from a
+Bayesian perspective.</p>
+
+<h1 id="solution">Solution</h1>
+
+<p>The idea is to build a statistical model and fit it to the data. In Bayesian
+inference, it means that there will be a fully-fledged probability distribution
+available in the end, providing an exhaustive description of the situation at
+hand. This distribution can then be used to estimate a wide range of quantities
+of interest. In particular, one can choose an appropriate quantile on the left
+tail of the distribution and use it as a guardrail. If an upper bound is
+required, one can do the same with respect to the right tail.</p>
+
+<p>Let us start with the modeling, and we will then come back to the inference. To
+begin with, we need to acknowledge the fact that the number of sessions \(x_j\),
+which is a count, is very different from the conversion rate \(p_j\), which is a
+proportion. Hence, one would need to build two different models. In addition, we
+shall ignore the information about which week each observation belongs to, that
+is, \(\{ t_j \}_{j = 1}^m\), and come back to and motivate this choice in the
+conclusion.</p>
+
+<h2 id="modeling-number-of-sessions">Modeling: Number of sessions</h2>
+
+<p>Even though the number of sessions is a natural number, it is commonplace to
+model it as a real number. One could, for instance, use a Gaussian distribution
+to this end. However, to respect the fact that it cannot be negative, we shall
+use a log-Gaussian distribution instead, which is even more adequate if the
+popularity of the stores taken collectively spans multiple orders of magnitude:</p>
+
+\[x_j | \mu_{i_j}, \sigma_{i_j} \sim \text{Log-Gaussian}(\mu_{i_j}, \sigma_{i_j}) \tag{1}\]
+
+<p>where \(\mu_{i_j}\) and \(\sigma_{i_j}\) are the location and scale for store
+\(i_j\). The above is the likelihood of the data. To complete the model, one has
+to specify priors for the two parameters. For each one, we will use a linear
+combination of a global and a store-specific component. For the location
+parameter, it is just that:</p>
+
+\[\mu_{i_j} = \mu_\text{global} + \mu_{\text{local}, i_j}. \tag{2}\]
+
+<p>For the scale parameter, which is positive, we also apply a nonlinear
+transformation on top of the linear combination to ensure the end result stays
+positive:</p>
+
+\[\sigma_{i_j} = \text{softplus}(\sigma_\text{global} + \sigma_{\text{local}, i_j}) \tag{3}\]
+
+<p>where \(\text{softplus}(x) = \ln(1 + \text{exp}(x))\). Technically, it can be
+zero if \(\sigma_\text{global} + \sigma_{\text{local}, i_j}\) goes to
+\(-\infty\), but it is not a concern in practice, as we shell see when we come
+to the implementation.</p>
+
+<p>With this reparameterization, there are \(2n + 2\) parameters in the model. We
+shall put a Gaussian prior on each one as follows:</p>
+
+\[\begin{align}
+\mu_\text{global} &amp; \sim \text{Gaussian}(\mu_0, 1), \tag{4} \\
+\mu_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1), \tag{5} \\
+\sigma_\text{global} &amp; \sim \text{Gaussian}(\sigma_0, 1), \text{ and} \tag{6} \\
+\sigma_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1). \tag{7}
+\end{align}\]
+
+<p>It can be seen that the local ones are standard Gaussian, while the global ones
+have the mean set to non-zeros values (to be discussed shortly), with the
+standard deviation set to one still. Since we work on a logarithmic scale due to
+the usage of a log-Gaussian distribution in Equation 1, this standard
+parameterization should be adequate for websites having a number of sessions per
+week that is below a few thousand provided that the global distributions are
+centered appropriately via \(\mu_0\) and \(\sigma_0\).</p>
+
+<p>In the above formulation, there are only two hyperparameters, which require
+custom values: \(\mu_0\) and \(\sigma_0\). To get a bit of intuition for what
+they control, it is helpful to temporarily set the local parameters (Equations 5
+and 7) to zero. Then \(\mu_{i_j}\) simplifies to \(\mu_\text{global}\) and
+\(\sigma_{i_j}\) to \(\text{softplus}(\sigma_\text{global})\). Furthermore,
+\(\text{softplus}\) can be dropped, since the corresponding non-linearity
+manifest itself only close to zero. Hence, \(\mu_\text{global}\) and
+\(\sigma_\text{global}\) can simply be thought of as the location and scale
+parameters of the log-Gaussian distribution in Equation 1. With this in mind,
+they can be used to control the distribution’s shape, that is, our prior
+assumptions about the number of weekly sessions.</p>
+
+<p>That does not quite help with the intuition still, as the location and scale
+parameters of a log-Gaussian distribution are <em>not</em> its mean and standard
+deviation, which would have been more familiar concepts to work with. However,
+it is possible to derive the location and scale parameters given a mean and a
+standard deviation one has in mind. More specifically, they are as follows:</p>
+
+\[\begin{align}
+\text{location} &amp; = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\text{scale} &amp; = \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)}.
+\end{align}\]
+
+<p>Bringing \(\text{softplus}\) back into the picture, we obtain the following for
+the hyperparameters:</p>
+
+\[\begin{align}
+\mu_0 &amp; = \ln(\text{mean}) - \frac{1}{2} \ln\left( 1 + \left( \frac{\text{deviation}}{\text{mean}} \right)^2 \right) \text{ and} \\
+\sigma_0 &amp; = \text{softplus}^{-1} \left( \sqrt{\ln\left( 1 + \left(\frac{\text{deviation}}{\text{mean}}\right)^2 \right)} \right)
+\end{align}\]
+
+<p>where \(\text{softplus}^{-1}(x) = \ln(\text{exp}(x) - 1)\). The end result is
+that we can think of a mean and a standard deviation for the situation at hand,
+and it would be enough to complete the model.</p>
+
+<p>It is always a good idea to perform a prior predictive check, which can be done
+by sampling from the prior distribution and performing a kernel density
+estimation. For instance, assuming a mean and a standard deviation of 500 and
+setting the local variable to zero for simplicity, we obtain the following prior
+probability density:</p>
+
+<p><img src="/assets/images/2025-07-30-guardrails/sessions-prior-1.svg" alt="" /></p>
+
+<p>It can be seen that it covers well the area that we hypothesis to be plausible.
+The distribution also has a very long tail, which is truncated here, allowing
+for the number of sessions to be untypically large.</p>
+
+<p>To recapitulate, the number of sessions is modeled according to Equation 1 where
+the location and scale parameters are given by Equation 2 and 3, respectively,
+with the priors set as in Equations 4–7 and the two hyperparameters set based on
+prior expectations for the mean and standard deviation according to Equation 8
+and 9, respectively.</p>
+
+<h2 id="modeling-conversion-rate">Modeling: Conversion rate</h2>
+
+<p>The conversion rate is a proportion, that is, a real number between zero and
+one, which is obtained by dividing the number of purchases by the number of
+sessions: \(p_j = y_j / x_j\). Since we have the constituents at our disposal,
+it makes sense to model it using a binomial distribution:</p>
+
+\[y_j | \alpha_{i_j} \sim \text{Binomial}(x_j, \alpha_{i_j}) \tag{8}.\]
+
+<p>In this framework, one thinks of \(x_j\) and \(y_j\) as the number of trials and
+the number of successes, respectively, and of \(\alpha_{i_j}\) as the
+probability of success. In our case, a trial is a session, a success is having
+at least one purchase within that session, and the probability of success is the
+conversion rate.</p>
+
+<p>Similarly to the number of sessions, we will use a linear combination for the
+parameters:</p>
+
+\[\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global} + \alpha_{\text{local}, i_j}) \tag{9}\]
+
+<p>where \(\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))\), used ensure the
+output stays in \([0, 1]\). There is a global components, which all stores
+share, and each one has its own local.</p>
+
+<p>There are \(n + 1\) parameters in the model, which we shall consider to be <em>a
+priori</em> distributed according to Gaussian distributions as follows:</p>
+
+\[\begin{align}
+\alpha_\text{global} &amp; \sim \text{Gaussian}(\alpha_0, 1) \text{ and} \tag{10} \\
+\alpha_{\text{local}, i_j} &amp; \sim \text{Gaussian}(0, 1). \tag{11} \\
+\end{align}\]
+
+<p>As before, the number of hyperparameters is kept to a minimum; there is only one
+in this case: \(\alpha_0\). The interpretation of \(\alpha_0\) is that it
+controls the base conversion rate, which one can see by temporarily setting the
+local parameters (Equation 11) to zero. Equation 9 then reduces to
+\(\alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global})\). Therefore, assuming
+one has an average conversion rate in mind, the parameter can be set as follows:</p>
+
+\[\alpha_0 = \text{logit}(\text{mean}) \tag{12}\]
+
+<p>where \(\text{logit}(x) = \ln(x / (1 - x))\).</p>
+
+<p>Let us perform a prior predictive check for the conversion rate as well.
+Assuming a conversion rate of 2.5%, that is, \(\alpha_0 = \text{logit}(0.025)\),
+we obtain the following prior probability density:</p>
+
+<p><img src="/assets/images/2025-07-30-guardrails/purchases-prior-1.svg" alt="" /></p>
+
+<p>Here we assume 500 sessions per week and divide the sampled number of
+conversions by that number. It can be seen that the density is mostly
+concentrated on what one might consider realistic conversion rates but allows
+for optimistic scenarios as well if that turns out to be the case.</p>
+
+<p>To summarize, the conversion rate is modeled indirectly via the number of
+sessions with purchases in accordance with Equation 8 where the
+success-probability parameter is given by Equation 9, with the priors set as in
+Equations 10 and 11 and the hyperparameter as in Equation 12.</p>
+
+<h2 id="inference">Inference</h2>
+
+<p>What do we do with the two models now? Traditionally, given a model, the outcome
+of Bayesian inference is a posterior distribution over the parameters of the
+model:</p>
+
+\[f(\theta | \mathcal{D}) = \int f(\mathcal{D} | \theta) \, f(\theta) \, d\theta.\]
+
+<p>In the above, \(\theta\) is collectively referring to all parameters, which for
+the number of sessions is</p>
+
+\[\theta = \{
+  \mu_\text{global}, \mu_{\text{local}, 1}, \dots, \mu_{\text{local}, n},
+  \sigma_\text{global}, \sigma_{\text{local}, 1}, \dots, \sigma_{\text{local}, n}
+\}\]
+
+<p>and for the conversion rate is</p>
+
+\[\theta = \{
+  \alpha_\text{global}, \alpha_{\text{local}, 1}, \dots, \alpha_{\text{local}, n}
+\},\]
+
+<p>and \(\mathcal{D}\) is the observed data, which is \(\{ x_j \}_{j = 1}^m\) for
+the number of sessions and \(\{ y_j \}_{j = 1}^m\) for the conversion rate,
+assuming \(\{ x_j \}_{j = 1}^m\) to be implicitly known in the latter case.
+Next, \(f(\theta)\) stands for the density of the prior distribution of the
+parameters, which is given by Equations 4, 5, 6, and 7 for the number of
+sessions and by Equations 10 and 11 for the conversion rate, and \(f(\mathcal{D}
+| \theta)\) is the density of the likelihood of the data, which is given by
+Equations 1 and 8, respectively. When the two are combined, we arrive at the
+density of the posterior distribution of the parameters given the data,
+\(f(\theta | \mathcal{D})\).</p>
+
+<p>However, we are not so much after the parameters themselves, that is,
+\(\theta\), but rather after the data, that is, \(\mathcal{D}\). More
+specifically, we would like to know what to expect from the data in the future
+given what we have seen in the past. If we acquire a probability distribution
+over what we can reasonably expect to observe next week, we would be able to
+judge whether what we actually observe is anomalous or not.</p>
+
+<p>The desired distribution has a name: the posterior predictive distribution. It
+is also an artifact of Bayesian inference, and formally, the distribution is as
+follows:</p>
+
+\[f(\mathcal{D}_\text{new} | \mathcal{D}) = \int f(\mathcal{D}_\text{new} | \theta) \, f(\theta | \mathcal{D}) \, d\theta.\]
+
+<p>In other words, it is the distribution of unseen data \(\mathcal{D}_\text{new}\)
+given the observed data \(\mathcal{D}\) where the uncertainty in the parameters
+is integrated out via the posterior distribution of the parameters \(\theta\).</p>
+
+<p>In practice, given a model with data, all of the above is done by the
+probabilistic programming language of choice, such as <a href="https://mc-stan.org/">Stan</a>, and its tooling.
+Since such languages target the general case where the model cannot be tackled
+analytically, the resulting distributions are given in the form of posterior
+draws. For the posterior predictive distribution, it would be a collection of
+\(l\) hypothetical replicas (on the order of thousands) of the original
+observations: \(\{ \mathcal{D}_\text{new}^k \}_{k = 1}^l\). That is, for each
+original observation of a store on a specific week, there will be \(l\) draws.
+To calculate a guardrail for a specific store then, we can simply collect all
+draws that belong to that store, choose a percentile, and calculate the
+corresponding quantile:</p>
+
+\[\text{guardrail} = \text{quantile}(\text{draws}, \text{percentile}).\]
+
+<p>For the number of sessions for store \(i\), the guardrail is as follows:</p>
+
+\[\hat{x}_i = \text{quantile}\left( \left\{ x_{\text{new}, j}^k: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).\]
+
+<p>Likewise, for the conversion rate, we have the following:</p>
+
+\[\hat{p}_i = \text{quantile}\left( \left\{ \frac{y_{\text{new}, j}^k}{x_j^k}: \, i_j = i, \, k = 1, \dots, l \right\}, \text{percentile} \right).\]
+
+<p>If the percentile is chosen to be, for instance, 2.5%, the guardrail will be
+flagging the outcomes, that is, the number of sessions or the conversion rate
+for the week that has just passed, that have dropped so much that the
+probability of this happening is estimated to be at most 2.5%. One can, of
+course, tweak this threshold as one sees fit, depending on how cautious one
+wants to be.</p>
+
+<p>Due to the separation of the models’ parameters into global and local, they are
+considered hierarchical or multilevel. This structure allows for partial pooling
+of information: what is observed for one store not only helps with the inference
+for that store but also for all other stores. In particular, stores will little
+data get more sensible estimates due to the presence of those with more.</p>
+
+<p>To sum up, once formulated, each model can be implemented in a probabilistic
+programming language and fitted to the historical data. The result is a set of
+replications of the original observations, yielding a probability distribution
+over what one might expect to see in the future. The corresponding guardrail is
+then an appropriately chosen quantile of this distribution.</p>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>In this article, we have taken a look at how to build guardrails using Bayesian
+statistics. They are derived in a principled way as opposed to being set based
+on a gut feeling.</p>
+
+<p>What makes this approach different from other data-driven techniques is the end
+product: a probability distribution. Moreover, this distribution respects one’s
+prior domain knowledge—or gut feeling again—but necessarily updates it with
+evidence, that is, with actual observations. Having such a probability
+distribution for the situation at hand is all one can ask for, since it provides
+an exhaustive description. Furthermore, the distribution is provided in the form
+of draws, and working with draws is arguably more intuitive and flexible, as one
+does not depend on any mathematical derivations, which might not even be
+tractable. With this in mind, calculating guardrails is only one of many
+possible applications, and even this very calculation can be done in numerous
+ways. One can, for instance, devise a utility function assigning a cost to each
+outcome and choose a guardrail by minimizing the expected cost.</p>
+
+<p>The time aspect, that is, \(\{ t_j \}_{j = 1}^m\), has been ignored in this
+article. However, it might be justified in the setting of anomaly detection
+where a relatively short time horizon is considered sufficient or even desired.
+One might, for instance, limit the number of weeks to a rolling quarter (around
+13 weeks) and keep on estimating the guardrails for the upcoming week. In this
+case, one would not expect to have any prominent annual seasonal effects or
+alike, and it is then not worth complicating the model. Moreover, the rolling
+nature of this approach with a shorter window also helps to accommodate any slow
+trend changes, which fall outside the scope of anomaly detection. However, it is
+always possible to extend the model to have the time aspect modeled explicitly
+if that is desired.</p>
+
+<h1 id="appendix">Appendix</h1>
+
+<p>In this auxiliary section, we provide reference implementations of the two
+models in <a href="https://mc-stan.org/">Stan</a>. The notation is the same as in the rest of the article. For
+the number of sessions, it is as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="p">{</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// Number of stores</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span> <span class="c1">// Number of observations</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">n</span><span class="o">&gt;</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// Mapping from observations to stores</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// Number of sessions</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">data</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mean</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span> <span class="c1">// Prior mean</span>
+  <span class="n">real</span> <span class="n">deviation</span> <span class="o">=</span> <span class="mi">500</span><span class="p">;</span> <span class="c1">// Prior standard deviation</span>
+  <span class="n">real</span> <span class="n">mu_0</span> <span class="o">=</span> <span class="n">log</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span> <span class="o">-</span> <span class="mi">0</span><span class="p">.</span><span class="mi">5</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">pow</span><span class="p">(</span><span class="n">deviation</span> <span class="o">/</span> <span class="n">mean</span><span class="p">,</span> <span class="mi">2</span><span class="p">));</span>
+  <span class="n">real</span> <span class="n">sigma_0</span> <span class="o">=</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">pow</span><span class="p">(</span><span class="n">deviation</span> <span class="o">/</span> <span class="n">mean</span><span class="p">,</span> <span class="mi">2</span><span class="p">)));</span>
+<span class="p">}</span>
+
+<span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mu_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">mu_local</span><span class="p">;</span>
+  <span class="n">real</span> <span class="n">sigma_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">sigma_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">mu</span> <span class="o">=</span> <span class="n">mu_global</span> <span class="o">+</span> <span class="n">mu_local</span><span class="p">;</span>
+  <span class="c1">// The value is shifted by a small amount to avoid numerical issues.</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">sigma</span> <span class="o">=</span> <span class="n">log1p_exp</span><span class="p">(</span><span class="n">sigma_global</span> <span class="o">+</span> <span class="n">sigma_local</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-3</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">model</span> <span class="p">{</span>
+  <span class="c1">// Prior distributions</span>
+  <span class="n">mu_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">mu_0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">mu_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">sigma_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">log</span><span class="p">(</span><span class="n">exp</span><span class="p">(</span><span class="n">sigma_0</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">sigma_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="c1">// Likelihood of the data</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">~</span> <span class="n">lognormal</span><span class="p">(</span><span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">generated</span> <span class="n">quantities</span> <span class="p">{</span>
+  <span class="c1">// Posterior predictive distribution</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">x_new</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">x_new</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">lognormal_rng</span><span class="p">(</span><span class="n">mu</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]],</span> <span class="n">sigma</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Note that the posterior predictive distribution is part of the program; once
+execution, it will not require any additional postprocessing. As for the
+conversion rate, the implementation is as follows:</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span> <span class="p">{</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">n</span><span class="p">;</span> <span class="c1">// Number of stores</span>
+  <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span> <span class="n">m</span><span class="p">;</span> <span class="c1">// Number of observations</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="n">n</span><span class="o">&gt;</span> <span class="n">i</span><span class="p">;</span> <span class="c1">// Mapping from observations to stores</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">x</span><span class="p">;</span> <span class="c1">// Number of sessions</span>
+  <span class="n">array</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="kt">int</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="o">&gt;</span> <span class="n">y</span><span class="p">;</span> <span class="c1">// Number of sessions with purchases</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">data</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">mean</span> <span class="o">=</span> <span class="mi">0</span><span class="p">.</span><span class="mo">025</span><span class="p">;</span> <span class="c1">// Prior mean</span>
+  <span class="n">real</span> <span class="n">alpha_0</span> <span class="o">=</span> <span class="n">mean</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">real</span> <span class="n">alpha_global</span><span class="p">;</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">alpha_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">transformed</span> <span class="n">parameters</span> <span class="p">{</span>
+  <span class="n">vector</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha_global</span> <span class="o">+</span> <span class="n">alpha_local</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="n">model</span> <span class="p">{</span>
+  <span class="c1">// Prior distributions</span>
+  <span class="n">alpha_global</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="n">logit</span><span class="p">(</span><span class="n">alpha_0</span><span class="p">),</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="n">alpha_local</span> <span class="o">~</span> <span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+  <span class="c1">// Likelihood of the data</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">~</span> <span class="n">binomial_logit</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">generated</span> <span class="n">quantities</span> <span class="p">{</span>
+  <span class="c1">// Posterior predictive distribution</span>
+  <span class="n">vector</span><span class="o">&lt;</span><span class="n">lower</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mi">1</span><span class="o">&gt;</span><span class="p">[</span><span class="n">m</span><span class="p">]</span> <span class="n">y_new</span><span class="p">;</span>
+  <span class="k">for</span> <span class="p">(</span><span class="n">j</span> <span class="n">in</span> <span class="mi">1</span><span class="o">:</span><span class="n">m</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">y_new</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">.</span><span class="mi">0</span> <span class="o">*</span> <span class="n">binomial_rng</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">],</span> <span class="n">inv_logit</span><span class="p">(</span><span class="n">alpha</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="n">j</span><span class="p">]]))</span> <span class="o">/</span> <span class="n">x</span><span class="p">[</span><span class="n">j</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+
+  </div>
+
+  <div id="disqus_thread"></div>
+  <script>
+    var disqus_config = function () {
+      this.page.url = 'https://blog.ivanukhov.com/2025/07/30/guardrails.html';
+      this.page.identifier = '/2025/07/30/guardrails';
+    };
+    (function() {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://good-news-everyone.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', +new Date());
+      (d.head || d.body).appendChild(s);
+    })();
+  </script>
+  <noscript>
+    Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+  </noscript>
+<a class="u-url" href="/2025/07/30/guardrails.html" hidden></a>
+</article>
+
+      </div>
+    </main><link id="fa-stylesheet" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@latest/css/all.min.css">
+
+<footer class="site-footer h-card">
+  <data class="u-url" value="/"></data>
+
+  <div class="wrapper">
+
+    <div class="footer-col-wrapper">
+      <div class="footer-col">
+        <ul class="contact-list">
+          <li class="p-name">Ivan Ukhov</li>
+          <li><a class="u-email" href="mailto:ivan.ukhov@gmail.com">ivan.ukhov@gmail.com</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <p>Solving problems that a software engineer might encounter in practice—or invent to sharpen their skills in leisure time
+</p>
+      </div>
+    </div>
+
+    <div class="social-links"><ul class="social-media-list"><li>
+    <a rel="me" href="https://github.com/IvanUkhov" target="_blank" title="GitHub">
+      <span class="grey fa-brands fa-github fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://www.linkedin.com/in/ivanukhov/" target="_blank" title="LinkedIn">
+      <span class="grey fa-brands fa-linkedin fa-lg"></span>
+    </a>
+  </li><li>
+    <a rel="me" href="https://x.com/IvanUkhov" target="_blank" title="X">
+      <span class="grey fa-brands fa-x-twitter fa-lg"></span>
+    </a>
+  </li>
+  <li>
+    <a href="https://blog.ivanukhov.com/feed.xml" target="_blank" title="Subscribe to syndication feed">
+      <svg class="svg-icon grey" viewbox="0 0 16 16">
+        <path d="M12.8 16C12.8 8.978 7.022 3.2 0 3.2V0c8.777 0 16 7.223 16 16h-3.2zM2.194
+          11.61c1.21 0 2.195.985 2.195 2.196 0 1.21-.99 2.194-2.2 2.194C.98 16 0 15.017 0
+          13.806c0-1.21.983-2.195 2.194-2.195zM10.606
+          16h-3.11c0-4.113-3.383-7.497-7.496-7.497v-3.11c5.818 0 10.606 4.79 10.606 10.607z"
+        />
+      </svg>
+    </a>
+  </li>
+</ul>
+</div>
+
+  </div>
+
+</footer>
+<script type="text/javascript">
+  function anchor() {
+    for (let header of document.querySelectorAll('h1[id], h2[id]')) {
+      header.innerHTML += ` <a href="#${header.id}" aria-hidden="true">#</a>`;
+    }
+  }
+  function theme() {
+    document.body.className = 'theme-' + (Math.floor(Math.random() * 6) + 1);
+  }
+  window.addEventListener('load', anchor);
+  window.addEventListener('load', theme);
+</script><script type="text/javascript">
+  function stan() {
+    var keywords = ['data', 'model', 'parameters', 'transformed'];
+    var types = ['matrix', 'real', 'simplex', 'vector'];
+    document
+      .querySelectorAll('.language-c .n')
+      .forEach(function(element) {
+        if (keywords.indexOf(element.innerText) != -1) {
+          element.style.cssText = 'font-weight: 600';
+        }
+        if (types.indexOf(element.innerText) != -1) {
+          element.className += ' kt';
+        }
+      });
+  };
+  window.addEventListener('load', stan);
+</script>
+</body>
+
+</html>
