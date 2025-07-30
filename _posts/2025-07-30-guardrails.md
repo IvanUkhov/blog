@@ -57,7 +57,7 @@ Bayesian perspective.
 # Solution
 
 The idea is to build a statistical model and fit it to the data. In Bayesian
-inference, it means that there will be a fully-fledged probability distribution
+inference, it means that there will be a fully fledged probability distribution
 available in the end, providing an exhaustive description of the situation at
 hand. This distribution can then be used to estimate a wide range of quantities
 of interest. In particular, one can choose an appropriate quantile on the left
@@ -104,7 +104,7 @@ $$
 
 where $$\text{softplus}(x) = \ln(1 + \text{exp}(x))$$. Technically, it can be
 zero if $$\sigma_\text{global} + \sigma_{\text{local}, i_j}$$ goes to
-$$-\infty$$, but it is not a concern in practice, as we shell see when we come
+$$-\infty$$, but it is not a concern in practice, as we shall see when we come
 to the implementation.
 
 With this reparameterization, there are $$2n + 2$$ parameters in the model. We
@@ -120,7 +120,7 @@ $$
 $$
 
 It can be seen that the local ones are standard Gaussian, while the global ones
-have the mean set to non-zeros values (to be discussed shortly), with the
+have the mean set to non-zero values (to be discussed shortly), with the
 standard deviation set to one still. Since we work on a logarithmic scale due to
 the usage of a log-Gaussian distribution in Equation 1, this standard
 parameterization should be adequate for websites having a number of sessions per
@@ -176,7 +176,7 @@ probability density:
 
 ![](/assets/images/2025-07-30-guardrails/sessions-prior-1.svg)
 
-It can be seen that it covers well the area that we hypothesis to be plausible.
+It can be seen that it covers well the area that we hypothesize to be plausible.
 The distribution also has a very long tail, which is truncated here, allowing
 for the number of sessions to be untypically large.
 
@@ -210,9 +210,9 @@ $$
 \alpha_{i_j} = \text{logit}^{-1}(\alpha_\text{global} + \alpha_{\text{local}, i_j}) \tag{9}
 $$
 
-where $$\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))$$, used ensure the
-output stays in $$[0, 1]$$. There is a global components, which all stores
-share, and each one has its own local.
+where $$\text{logit}^{-1}(x) = 1 / (1 + \text{exp}(-x))$$, used to ensure the
+output stays in $$[0, 1]$$. There is a global component, which all stores share,
+and each one has its own local.
 
 There are $$n + 1$$ parameters in the model, which we shall consider to be _a
 priori_ distributed according to Gaussian distributions as follows:
@@ -351,7 +351,7 @@ wants to be.
 Due to the separation of the models' parameters into global and local, they are
 considered hierarchical or multilevel. This structure allows for partial pooling
 of information: what is observed for one store not only helps with the inference
-for that store but also for all other stores. In particular, stores will little
+for that store but also for all other stores. In particular, stores with little
 data get more sensible estimates due to the presence of those with more.
 
 To sum up, once formulated, each model can be implemented in a probabilistic
@@ -447,7 +447,7 @@ generated quantities {
 ```
 
 Note that the posterior predictive distribution is part of the program; once
-execution, it will not require any additional postprocessing. As for the
+executed, it will not require any additional postprocessing. As for the
 conversion rate, the implementation is as follows:
 
 ```c
